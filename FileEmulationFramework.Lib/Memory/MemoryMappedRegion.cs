@@ -1,9 +1,9 @@
 ﻿using System.IO.MemoryMappedFiles;
 using System.Runtime.InteropServices;
 using FileEmulationFramework.Lib.Utilities;
-using static Vanara.PInvoke.Kernel32;
+using static FileEmulationFramework.Lib.Utilities.MemoryMapFunctions;
 
-namespace FileEmulationFramework.Lib;
+namespace FileEmulationFramework.Lib.Memory;
 
 /// <summary>
 /// Represents a region of memory that can be mapped to.
@@ -16,7 +16,7 @@ public unsafe struct MemoryMappedRegion : IDisposable
     /// The region of memory mapped.
     /// </summary>
     public byte* MappedRegion { get; private set; } = (byte*)0;
-    
+
     /// <summary>
     /// Size of the memory mapped.
     /// </summary>
@@ -32,8 +32,8 @@ public unsafe struct MemoryMappedRegion : IDisposable
     /// </summary>
     public bool Disposed { get; private set; } = false;
 
-    private NativeFunctions _nativeFunctions = NativeFunctions.Instance;
-    
+    private MemoryMapFunctions _memoryMapFunctions = Instance;
+
     /// <summary>
     /// Represents a region of memory that can be mapped to.
     /// </summary>
@@ -65,7 +65,7 @@ public unsafe struct MemoryMappedRegion : IDisposable
 
         var fileHandle = file.SafeMemoryMappedFileHandle.DangerousGetHandle();
         UnmapCurrent();
-        MappedRegion = (byte*) _nativeFunctions.MapViewOfFileEx(fileHandle, FILE_MAP.FILE_MAP_WRITE, 0, 0, (uint)MemorySize, (IntPtr)0);
+        MappedRegion = (byte*)_memoryMapFunctions.MapViewOfFileEx(fileHandle, FILE_MAP.FILE_MAP_WRITE, 0, 0, (uint)MemorySize, (IntPtr)0);
         if (MappedRegion == (void*)0)
             ThrowHelpers.ThrowApiCallFailed($"Failed to call MapViewOfFileEx with handle: {fileHandle}, size: {MemorySize} | W32 Error: {Marshal.GetLastWin32Error()}");
     }
@@ -75,7 +75,7 @@ public unsafe struct MemoryMappedRegion : IDisposable
     /// </summary>
     private void UnmapCurrent()
     {
-        if (MappedRegion != (void*)0 && !_nativeFunctions.UnmapViewOfFileEx((IntPtr)MappedRegion, 1))
+        if (MappedRegion != (void*)0 && !_memoryMapFunctions.UnmapViewOfFileEx((IntPtr)MappedRegion, 1))
             ThrowHelpers.ThrowApiCallFailed($"Failed to call UnmapViewOfFileEx with {(long)MappedRegion:X}, {1} | W32 Error:  {Marshal.GetLastWin32Error()}");
     }
 }

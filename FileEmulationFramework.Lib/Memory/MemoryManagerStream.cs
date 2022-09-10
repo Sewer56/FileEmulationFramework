@@ -2,7 +2,7 @@
 using FileEmulationFramework.Lib.Utilities;
 using MemoryExtensions = FileEmulationFramework.Lib.Utilities.MemoryExtensions;
 
-namespace FileEmulationFramework.Lib;
+namespace FileEmulationFramework.Lib.Memory;
 
 /// <summary>
 /// A stream class backed by <see cref="MemoryManager"/>.
@@ -88,14 +88,18 @@ public unsafe class MemoryManagerStream : Stream, IDisposable
     public override void Flush() { /* no-op */ }
 
     /// <inheritdoc />
-    public override int Read(byte[] buffer, int offset, int count)
+    public override int Read(byte[] buffer, int offset, int count) => Read(buffer.AsSpanFast(offset, count));
+
+    /// <inheritdoc />
+    public override int Read(Span<byte> buffer)
     {
         EnsureAccessorNoAlloc();
+        var count = buffer.Length;
 
         // Check if we can fit within boundaries.
         if (count <= _bytesAvailable)
         {
-            MemoryExtensions.ToSpanFast(_memoryPtr, count).CopyTo(buffer.AsSpanFast(offset, count));
+            MemoryExtensions.ToSpanFast(_memoryPtr, count).CopyTo(buffer);
             _memoryPtr += count;
             _bytesAvailable -= count;
             _position += count;
@@ -105,11 +109,11 @@ public unsafe class MemoryManagerStream : Stream, IDisposable
             // Else we might need to do something more complex across boundaries.
             // This could probably be optimised to shave a few more instructions, but is the cold path ultimately.
             var bytesRemaining = count;
-            var bufferOffset   = offset;
+            var bufferOffset = 0;
             while (bytesRemaining > 0)
             {
                 var numToCopy = Math.Min(bytesRemaining, _bytesAvailable);
-                MemoryExtensions.ToSpanFast(_memoryPtr, numToCopy).CopyTo(buffer.AsSpanFast(bufferOffset, numToCopy));
+                MemoryExtensions.ToSpanFast(_memoryPtr, numToCopy).CopyTo(buffer.Slice(bufferOffset, numToCopy));
 
                 bytesRemaining -= numToCopy;
                 bufferOffset += numToCopy;
@@ -128,14 +132,21 @@ public unsafe class MemoryManagerStream : Stream, IDisposable
     }
 
     /// <inheritdoc />
-    public override void Write(byte[] buffer, int offset, int count)
+    public override void Write(byte[] buffer, int offset, int count) => Write(buffer.AsSpanFast(offset, count));
+    
+    /// <summary>
+    /// Writes the contents of the specified buffer to the output.
+    /// </summary>
+    /// <param name="buffer">The buffer to write contents from.</param>
+    public override void Write(ReadOnlySpan<byte> buffer)
     {
         EnsureAccessorAlloc();
+        var count = buffer.Length;
 
         // Check if we can fit within boundaries.
         if (count <= _bytesAvailable)
         {
-            buffer.AsSpanFast(offset, count).CopyTo(MemoryExtensions.ToSpanFast(_memoryPtr, count));
+            buffer.CopyTo(MemoryExtensions.ToSpanFast(_memoryPtr, count));
             _memoryPtr += count;
             _bytesAvailable -= count;
             _position += count;
@@ -145,11 +156,11 @@ public unsafe class MemoryManagerStream : Stream, IDisposable
             // Else we need to perform a cross boundary operation.
             // Like read, could probably be optimised for a few more instructions, but differences would probably be negligible.
             var bytesRemaining = count;
-            var bufferOffset   = offset;
+            var bufferOffset = 0;
             while (bytesRemaining > 0)
             {
                 var numToCopy = Math.Min(bytesRemaining, _bytesAvailable);
-                buffer.AsSpanFast(bufferOffset, numToCopy).CopyTo(MemoryExtensions.ToSpanFast(_memoryPtr, numToCopy));
+                buffer.Slice(bufferOffset, numToCopy).CopyTo(MemoryExtensions.ToSpanFast(_memoryPtr, numToCopy));
 
                 bytesRemaining -= numToCopy;
                 bufferOffset += numToCopy;
@@ -174,7 +185,7 @@ public unsafe class MemoryManagerStream : Stream, IDisposable
     {
         if (origin == SeekOrigin.Begin)
         {
-            if (TryFastSeek(offset)) 
+            if (TryFastSeek(offset))
                 return _position;
 
             _position = offset;
@@ -190,7 +201,7 @@ public unsafe class MemoryManagerStream : Stream, IDisposable
         else if (origin == SeekOrigin.End)
         {
             var newPosition = _length + offset;
-            if (TryFastSeek(newPosition)) 
+            if (TryFastSeek(newPosition))
                 return _position;
 
             _position = newPosition;
@@ -204,7 +215,7 @@ public unsafe class MemoryManagerStream : Stream, IDisposable
     {
         var offset = target - Position;
         var maxBytesFromStart = _memoryBasePtr - _memoryPtr;
-        if ((offset <= _bytesAvailable && offset >= 0) || (offset >= maxBytesFromStart && offset < 0))
+        if (offset <= _bytesAvailable && offset >= 0 || offset >= maxBytesFromStart && offset < 0)
         {
             _position += offset;
             _memoryPtr += offset;

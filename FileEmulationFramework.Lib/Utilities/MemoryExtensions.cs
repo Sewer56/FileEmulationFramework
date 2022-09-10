@@ -13,16 +13,6 @@ public static class MemoryExtensions
     /// </summary>
     /// <param name="data">The data to create the span for.</param>
     /// <param name="offset">Offset in the data.</param>
-    public static Span<byte> AsSpanFast(this byte[] data, int offset)
-    {
-        return MemoryMarshal.CreateSpan(ref Unsafe.Add(ref MemoryMarshal.GetArrayDataReference(data), offset), data.Length - offset);
-    }
-
-    /// <summary>
-    /// Creates a span for the given byte array without bounds checks.
-    /// </summary>
-    /// <param name="data">The data to create the span for.</param>
-    /// <param name="offset">Offset in the data.</param>
     /// <param name="count">Number of bytes in the span.</param>
     public static Span<byte> AsSpanFast(this byte[] data, int offset, int count)
     {

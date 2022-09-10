@@ -1,5 +1,5 @@
 using System;
-using FileEmulationFramework.Lib;
+using FileEmulationFramework.Lib.Memory;
 using Xunit;
 
 namespace FileEmulationFramework.Tests;

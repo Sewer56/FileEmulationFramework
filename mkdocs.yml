@@ -1,0 +1,47 @@
+site_name: File Emulation Framework
+site_url: http://sewer56.dev/FileEmulationFramework/
+
+repo_name: Sewer56/FileEmulationFramework
+repo_url: https://github.com/Sewer56/FileEmulationFramework
+
+extra:
+  social:
+    - icon: fontawesome/brands/github
+      link: https://github.com/Sewer56
+    - icon: fontawesome/brands/twitter
+      link: https://twitter.com/TheSewer56
+
+markdown_extensions:
+  - admonition
+  - tables
+  - pymdownx.details
+  - pymdownx.highlight
+  - pymdownx.superfences 
+  - pymdownx.tasklist
+  - def_list
+  - meta
+  - md_in_html
+  - attr_list
+  - footnotes
+
+theme:
+  name: material
+  features:
+    - navigation.instant
+
+  palette:
+    primary: red
+    accent: red
+    scheme: slate
+
+use_directory_urls: false
+
+nav:
+  - Home: index.md
+  - Routing: routing.md
+  - Emulator Guidelines: emulator-guidelines.md
+
+  - Guides: 
+    - Contributing Locally: guides/contributing-locally.md
+    - Contributing Online: guides/contributing-online.md
+     

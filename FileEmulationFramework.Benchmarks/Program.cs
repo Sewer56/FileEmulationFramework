@@ -3,5 +3,5 @@
 using BenchmarkDotNet.Running;
 using FileEmulationFramework.Benchmarks;
 
-Console.WriteLine("Hello, World!");
 BenchmarkRunner.Run<MemoryManagerReadBenchmarks>();
+BenchmarkRunner.Run<MemoryManagerWriteBenchmarks>();

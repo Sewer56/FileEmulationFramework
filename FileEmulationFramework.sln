@@ -9,7 +9,9 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "FileEmulationFramework.Test
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "FileEmulationFramework.Benchmarks", "FileEmulationFramework.Benchmarks\FileEmulationFramework.Benchmarks.csproj", "{0A080A74-32EC-46BD-95C4-0B4A86FCFD46}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "FileEmulationFramework.Lib", "FileEmulationFramework.Lib\FileEmulationFramework.Lib.csproj", "{152E92CD-22A5-4173-9EA6-9301D9F79B0A}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "FileEmulationFramework.Lib", "FileEmulationFramework.Lib\FileEmulationFramework.Lib.csproj", "{152E92CD-22A5-4173-9EA6-9301D9F79B0A}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "FileEmulationFramework.Interfaces", "FileEmulationFramework.Interfaces\FileEmulationFramework.Interfaces.csproj", "{E5E48208-33DE-4340-AB56-C7CDD6A368BF}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -33,6 +35,10 @@ Global
 		{152E92CD-22A5-4173-9EA6-9301D9F79B0A}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{152E92CD-22A5-4173-9EA6-9301D9F79B0A}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{152E92CD-22A5-4173-9EA6-9301D9F79B0A}.Release|Any CPU.Build.0 = Release|Any CPU
+		{E5E48208-33DE-4340-AB56-C7CDD6A368BF}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{E5E48208-33DE-4340-AB56-C7CDD6A368BF}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{E5E48208-33DE-4340-AB56-C7CDD6A368BF}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{E5E48208-33DE-4340-AB56-C7CDD6A368BF}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

@@ -1,6 +1,6 @@
 ﻿using System;
 using System.IO;
-using FileEmulationFramework.Lib;
+using FileEmulationFramework.Lib.Memory;
 using FileEmulationFramework.Tests.Extensions;
 using Reloaded.Memory.Streams;
 using Xunit;

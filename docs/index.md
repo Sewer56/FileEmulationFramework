@@ -1,13 +1,9 @@
 <div align="center">
 	<h1>Reloaded-II File Emulation Framework</h1>
-	<img src="./docs/images/icon.png" Width=200 /><br/>
+	<img src="./images/icon.png" Width=200 /><br/>
 	<strong>🎈 Let's screw with binaries 🎈</strong>
     <p>A framework for creating virtual files at runtime.</p>
 </div>
-
-# The Website
-
-[***Click here to visit the full documentation.***](https://sewer56.dev/SonicRiders.Index/)
 
 ## About The Framework
 
@@ -21,12 +17,21 @@ In practice this is extremely effective, the original [AFS Redirector](https://g
 
 Projects using this framework are referred to as 'emulators' hence the name `File Emulation Framework`; that name is derived from the original projects which simulated nonexistent archive files.
 
+## Performance Impact
+
+This one varies with a lot of factors, such as number of emulators used, the emulators themselves, amount of data emulated, etc.
+
+In most realistic use cases, the emulators usually have negligible performance impact that is completely invisible to the end user. 
+
+Usually first access to a file may be delayed for a small amount of time (`<50ms`) but this should usually be invisible to the end user. Penalty in speed of access to data of emulated files is negligible in practice. 
+
+The biggest penalty tends to be from reading multiple files instead of just one; as the benefits of purely sequential reads may no longer apply.
+
 ## How to Contribute (Wiki)
 
-- [Contributing to the Wiki: Online](./docs/guides/contributing-online.md)
-- [Contributing to the Wiki: Locally](./docs/guides/contributing-locally.md)
+- [Contributing to the Wiki: Online](./guides/contributing-online.md)
+- [Contributing to the Wiki: Locally](./guides/contributing-locally.md)
 
 ## Credits, Attributions
 
 - Header icon created by <a href="https://www.flaticon.com/free-icons/settings" title="settings icons">Freepik - Flaticon</a>
-

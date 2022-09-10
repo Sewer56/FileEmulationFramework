@@ -1,6 +1,6 @@
 ﻿using System.IO.MemoryMappedFiles;
 
-namespace FileEmulationFramework.Lib;
+namespace FileEmulationFramework.Lib.Memory;
 
 /// <summary>
 /// A custom implementation of a Memory Manager that allows access to large amounts of memory using Memory Mapped Files.
@@ -11,7 +11,7 @@ public sealed unsafe class MemoryManager : IDisposable
 {
     private const int WindowsAllocationGranularity = 64 * 1024;
     private List<MemoryMappedFile> _files = new List<MemoryMappedFile>();
-    
+
     /// <summary>
     /// The granularity at which memory mapped files inside are allocated.
     /// </summary>
@@ -35,7 +35,7 @@ public sealed unsafe class MemoryManager : IDisposable
     {
         if (allocationGranularity % WindowsAllocationGranularity != 0)
             throw new ArgumentException($"The allocation granularity must be a multiple of {WindowsAllocationGranularity} and greater than zero");
-        
+
         AllocationGranularity = allocationGranularity;
     }
 
@@ -52,7 +52,7 @@ public sealed unsafe class MemoryManager : IDisposable
     /// <param name="amountOfBytes">The amount of bytes to grow by. This is rounded up to <see cref="AllocationGranularity"/>.</param>
     public void Allocate(long amountOfBytes)
     {
-        long numAllocations = ((amountOfBytes - 1) / AllocationGranularity) + 1;
+        long numAllocations = (amountOfBytes - 1) / AllocationGranularity + 1;
         for (int x = 0; x < numAllocations; x++)
             _files.Add(MemoryMappedFile.CreateNew(null, AllocationGranularity, MemoryMappedFileAccess.ReadWriteExecute));
     }
@@ -93,7 +93,7 @@ public sealed unsafe class MemoryManager : IDisposable
 
     private long GetMappedFileIndex(long offset, out int byteOffset, out int bytesAvailable)
     {
-        var mapIndex  = offset / AllocationGranularity;
+        var mapIndex = offset / AllocationGranularity;
         var firstByte = mapIndex * AllocationGranularity;
         var lastByte = firstByte + AllocationGranularity;
         byteOffset = (int)(offset - firstByte);
