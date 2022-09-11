@@ -1,8 +1,8 @@
 ﻿using System.ComponentModel;
+using AFS.Stream.Emulator.Template.Configuration;
 using FileEmulationFramework.Lib.Utilities;
-using FileEmulationFramework.Template.Configuration;
 
-namespace FileEmulationFramework;
+namespace AFS.Stream.Emulator;
 
 public class Config : Configurable<Config>
 {

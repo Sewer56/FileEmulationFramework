@@ -1,0 +1,21 @@
+{
+  "ModId": "reloaded.universal.fileemulationframework.afs",
+  "ModName": "AFS Emulator for File Emulation Framework",
+  "ModAuthor": "Sewer56",
+  "ModVersion": "1.0.0",
+  "ModDescription": "Simulates CRIWARE AFS files. Allows mods to add or replace existing files using files on disk.",
+  "ModDll": "AFS.Stream.Emulator.dll",
+  "ModIcon": "Preview.png",
+  "ModR2RManagedDll32": "x86/AFS.Stream.Emulator.dll",
+  "ModR2RManagedDll64": "x64/AFS.Stream.Emulator.dll",
+  "ModNativeDll32": "",
+  "ModNativeDll64": "",
+  "IsLibrary": false,
+  "ReleaseMetadataFileName": "AFS.Stream.Emulator.ReleaseMetadata.json",
+  "PluginData": {},
+  "IsUniversalMod": true,
+  "ModDependencies": [ "reloaded.sharedlib.hooks", "reloaded.universal.fileemulationframework" ],
+  "OptionalDependencies": [],
+  "SupportedAppId": [],
+  "ProjectUrl": ""
+}

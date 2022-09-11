@@ -5,9 +5,11 @@ using System.Diagnostics.CodeAnalysis;
 using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 using System.Runtime.Versioning;
+using static FileEmulationFramework.Lib.Utilities.Native;
+
 #pragma warning disable CS1591
 
-namespace FileEmulationFramework.Lib.Utilities;
+namespace FileEmulationFramework.Lib.IO;
 
 /// <summary>
 /// Class that provides WinAPI based utility methods for fast file enumeration in directories.
@@ -19,12 +21,12 @@ public class NtQueryDirectoryFileSearcher
     private const string Prefix = "\\??\\";
 
     static unsafe delegate* unmanaged[Stdcall]<ref IntPtr, int, ref OBJECT_ATTRIBUTES, ref IO_STATUS_BLOCK, ref long, uint, FileShare, int, uint, IntPtr, uint, IntPtr> NtCreateFilePtr;
-    static unsafe delegate* unmanaged[Stdcall]<IntPtr, IntPtr, IntPtr, IntPtr, ref IO_STATUS_BLOCK, IntPtr, UInt32, UInt32, int, IntPtr, int, uint> NtQueryDirectoryFilePtr;
+    static unsafe delegate* unmanaged[Stdcall]<IntPtr, IntPtr, IntPtr, IntPtr, ref IO_STATUS_BLOCK, IntPtr, uint, uint, int, IntPtr, int, uint> NtQueryDirectoryFilePtr;
     static unsafe delegate* unmanaged[Stdcall]<IntPtr, int> NtClosePtr;
 
     static unsafe NtQueryDirectoryFileSearcher()
     {
-        var ntdll = LoadLibraryW("ntdll");
+        var ntdll = LoadLibrary("ntdll");
         NtCreateFilePtr = (delegate* unmanaged[Stdcall]<ref IntPtr, int, ref OBJECT_ATTRIBUTES, ref IO_STATUS_BLOCK, ref long, uint, FileShare, int, uint, IntPtr, uint, IntPtr>)GetProcAddress(ntdll, "NtCreateFile");
         NtQueryDirectoryFilePtr = (delegate* unmanaged[Stdcall]<IntPtr, IntPtr, IntPtr, IntPtr, ref IO_STATUS_BLOCK, IntPtr, uint, uint, int, IntPtr, int, uint>)GetProcAddress(ntdll, "NtQueryDirectoryFile");
         NtClosePtr = (delegate* unmanaged[Stdcall]<IntPtr, int>)GetProcAddress(ntdll, "NtClose");
@@ -197,7 +199,7 @@ public class NtQueryDirectoryFileSearcher
                             });
                         }
 
-                        nextfile:
+                    nextfile:
                         currentBufferPtr += (int)info->NextEntryOffset;
                     }
                     while (info->NextEntryOffset != 0);
@@ -212,14 +214,6 @@ public class NtQueryDirectoryFileSearcher
         return true;
     }
 
-    #region P/Invoke
-    [DllImport("kernel32.dll", CharSet = CharSet.Unicode)]
-    internal static extern IntPtr LoadLibraryW(string lpFileName);
-
-    [DllImport("kernel32.dll", CharSet = CharSet.Ansi)]
-    static extern IntPtr GetProcAddress(IntPtr hModule, string procName);
-    #endregion
-
     #region Native Import Wrappers
     [MethodImpl(MethodImplOptions.AggressiveInlining | MethodImplOptions.AggressiveOptimization)]
     private static unsafe IntPtr NtCreateFile(ref IntPtr handle, int access, ref OBJECT_ATTRIBUTES objectAttributes,
@@ -231,7 +225,7 @@ public class NtQueryDirectoryFileSearcher
 
     [MethodImpl(MethodImplOptions.AggressiveInlining | MethodImplOptions.AggressiveOptimization)]
     private static unsafe uint NtQueryDirectoryFile(IntPtr FileHandle, IntPtr Event, IntPtr ApcRoutine, IntPtr ApcContext,
-        ref IO_STATUS_BLOCK IoStatusBlock, IntPtr FileInformation, UInt32 Length, UInt32 FileInformationClass, int BoolReturnSingleEntry,
+        ref IO_STATUS_BLOCK IoStatusBlock, IntPtr FileInformation, uint Length, uint FileInformationClass, int BoolReturnSingleEntry,
         IntPtr FileName, int BoolRestartScan)
     {
         return NtQueryDirectoryFilePtr(FileHandle, Event, ApcRoutine, ApcContext, ref IoStatusBlock, FileInformation, Length, FileInformationClass, BoolReturnSingleEntry, FileName, BoolRestartScan);
@@ -241,96 +235,12 @@ public class NtQueryDirectoryFileSearcher
     internal static unsafe int NtClose(IntPtr hObject) => NtClosePtr(hObject);
     #endregion
 
-
     #region Native Structs
-    [StructLayout(LayoutKind.Explicit, Size = 8)]
-    // ReSharper disable InconsistentNaming
-    internal struct LARGE_INTEGER
-    {
-        [FieldOffset(0)]
-        internal Int64 QuadPart;
-        [FieldOffset(0)]
-        internal Int32 LowPart;
-        [FieldOffset(4)]
-        internal UInt32 HighPart;
-
-        public DateTime ToDateTime()
-        {
-            ulong high = (ulong)HighPart;
-            ulong low = (ulong)LowPart;
-            long fileTime = (long)((high << 32) + low);
-            return DateTime.FromFileTimeUtc(fileTime);
-        }
-    }
-
-    /// <summary>
-    /// The OBJECT_ATTRIBUTES structure specifies attributes that can be applied to objects or object
-    /// handles by routines that create objects and/or return handles to objects.
-    /// </summary>
-    [StructLayout(LayoutKind.Sequential)]
-    public struct OBJECT_ATTRIBUTES
-    {
-        /// <summary>
-        /// Length of this structure.
-        /// </summary>
-        public int Length;
-
-        /// <summary>
-        /// Optional handle to the root object directory for the path name specified by the ObjectName member.
-        /// If RootDirectory is NULL, ObjectName must point to a fully qualified object name that includes the full path to the target object.
-        /// If RootDirectory is non-NULL, ObjectName specifies an object name relative to the RootDirectory directory.
-        /// The RootDirectory handle can refer to a file system directory or an object directory in the object manager namespace.
-        /// </summary>
-        public IntPtr RootDirectory;
-
-        /// <summary>
-        /// Pointer to a Unicode string that contains the name of the object for which a handle is to be opened.
-        /// This must either be a fully qualified object name, or a relative path name to the directory specified by the RootDirectory member.
-        /// </summary>
-        public unsafe UNICODE_STRING* ObjectName;
-
-        /// <summary>
-        /// Bitmask of flags that specify object handle attributes. This member can contain one or more of the flags in the following table (See MSDN)
-        /// </summary>
-        public uint Attributes;
-
-        /// <summary>
-        /// Specifies a security descriptor (SECURITY_DESCRIPTOR) for the object when the object is created.
-        /// If this member is NULL, the object will receive default security settings.
-        /// </summary>
-        public IntPtr SecurityDescriptor;
-
-        /// <summary>
-        /// Optional quality of service to be applied to the object when it is created.
-        /// Used to indicate the security impersonation level and context tracking mode (dynamic or static).
-        /// Currently, the InitializeObjectAttributes macro sets this member to NULL.
-        /// </summary>
-        public IntPtr SecurityQualityOfService;
-    }
-
-    /// <summary>
-    /// Represents a singular unicode string.
-    /// </summary>
-    [StructLayout(LayoutKind.Sequential)]
-    public struct UNICODE_STRING
-    {
-        public ushort Length;
-        public ushort MaximumLength;
-        private IntPtr buffer;
-
-        public unsafe UNICODE_STRING(char* pointer, int length)
-        {
-            Length = (ushort)(length * 2);
-            MaximumLength = (ushort)(Length + 2);
-            buffer = (IntPtr)pointer;
-        }
-    }
-
     [StructLayout(LayoutKind.Sequential, CharSet = CharSet.Unicode, Pack = 1)]
     internal struct FILE_DIRECTORY_INFORMATION
     {
-        internal UInt32 NextEntryOffset;
-        internal UInt32 FileIndex;
+        internal uint NextEntryOffset;
+        internal uint FileIndex;
         internal LARGE_INTEGER CreationTime;
         internal LARGE_INTEGER LastAccessTime;
         internal LARGE_INTEGER LastWriteTime;
@@ -338,7 +248,7 @@ public class NtQueryDirectoryFileSearcher
         internal LARGE_INTEGER EndOfFile;
         internal LARGE_INTEGER AllocationSize;
         internal FileAttributes FileAttributes;
-        internal UInt32 FileNameLength;
+        internal uint FileNameLength;
         // char[] fileName
     }
 
@@ -346,7 +256,7 @@ public class NtQueryDirectoryFileSearcher
     internal struct IO_STATUS_BLOCK_UNION
     {
         [FieldOffset(0)]
-        internal UInt32 Status;
+        internal uint Status;
         [FieldOffset(0)]
         internal IntPtr Pointer;
     }

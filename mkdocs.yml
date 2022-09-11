@@ -39,7 +39,10 @@ use_directory_urls: false
 nav:
   - Home: index.md
   - Routing: routing.md
-  - Emulator Guidelines: emulator-guidelines.md
+  - Emulator Development Guidance: 
+      - Emulator Types: emulator-types.md
+      - Implementation Rules: implementation-rules.md
+      - Utilities: implementation-utilities.md
 
   - Guides: 
     - Contributing Locally: guides/contributing-locally.md

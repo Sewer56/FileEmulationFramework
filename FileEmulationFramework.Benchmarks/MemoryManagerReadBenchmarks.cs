@@ -10,9 +10,9 @@ public class MemoryManagerReadBenchmarks
     // 32 MiB
     private byte[] _dataToWrite = new byte[1024 * 1024 * 32];
 
-    private MemoryStream _memoryStream;
-    private MemoryManagerStream _memoryManagerStream_64k;
-    private MemoryManagerStream _memoryManagerStream_4M;
+    private MemoryStream _memoryStream = null!;
+    private MemoryManagerStream _memoryManagerStream_64k = null!;
+    private MemoryManagerStream _memoryManagerStream_4M = null!;
 
     [GlobalSetup]
     public void Setup()

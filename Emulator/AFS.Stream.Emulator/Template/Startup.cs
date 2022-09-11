@@ -3,13 +3,12 @@
  * to make it easier to upgrade to newer versions of the template.
 */
 
-using System.Diagnostics;
-using FileEmulationFramework.Template.Configuration;
+using AFS.Stream.Emulator.Template.Configuration;
 using Reloaded.Hooks.ReloadedII.Interfaces;
 using Reloaded.Mod.Interfaces;
 using Reloaded.Mod.Interfaces.Internal;
 
-namespace FileEmulationFramework.Template;
+namespace AFS.Stream.Emulator.Template;
 
 public class Startup : IMod
 {

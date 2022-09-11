@@ -7,21 +7,20 @@
     <LangVersion>preview</LangVersion>
     <Nullable>enable</Nullable>
     <AllowUnsafeBlocks>True</AllowUnsafeBlocks>
-    <OutputPath>$(RELOADEDIIMODS)/Reloaded.Universal.FileEmulationFramework</OutputPath>
+    <OutputPath>$(RELOADEDIIMODS)/reloaded.universal.fileemulationframework.afs</OutputPath>
+    <Deterministic>true</Deterministic>
     <ImplicitUsings>enable</ImplicitUsings>
-    <LangVersion>10.0</LangVersion>
-    <SatelliteResourceLanguages>en</SatelliteResourceLanguages>
 
     <!-- IL Trimming Support for Framework Dependent Apps. Unofficial.
          If you set this to true, trimming will be enabled when you publish the mod.
          Test trimming with: `BuildLinked.ps1` in PowerShell. -->
-    <ReloadedILLink>true</ReloadedILLink>
+    <ReloadedILLink>false</ReloadedILLink>
   </PropertyGroup>
 
   <ItemGroup>
-    <ReloadedLinkRoots Include="Reloaded.Universal.FileEmulationFramework" />
+    <ReloadedLinkRoots Include="AFS.Stream.Emulator" />
     <!-- Add assemblies to be trimmed. You might need to add their dependencies too!  -->
-    <!-- <ReloadedLinkAssemblies Include="Vanara.Core" /> -->
+    <!-- <ReloadedLinkAssemblies Include="Reloaded.Memory" /> -->
   </ItemGroup>
 
   <Import Project="Reloaded.Trimming.targets" />
@@ -43,19 +42,12 @@
   </ItemGroup>
 
   <ItemGroup>
-    <PackageReference Include="Reloaded.Memory" Version="8.0.0" />
     <PackageReference Include="Reloaded.Mod.Interfaces" Version="2.3.0" ExcludeAssets="runtime" />
     <PackageReference Include="Reloaded.SharedLib.Hooks" Version="1.9.0" />
   </ItemGroup>
 
   <ItemGroup>
-    <Folder Include="Structs\" />
-    <Folder Include="Utilities\" />
-  </ItemGroup>
-
-  <ItemGroup>
-    <ProjectReference Include="..\FileEmulationFramework.Interfaces\FileEmulationFramework.Interfaces.csproj" />
-    <ProjectReference Include="..\FileEmulationFramework.Lib\FileEmulationFramework.Lib.csproj" />
+    <ProjectReference Include="..\..\FileEmulationFramework.Lib\FileEmulationFramework.Lib.csproj" />
   </ItemGroup>
 
 </Project>

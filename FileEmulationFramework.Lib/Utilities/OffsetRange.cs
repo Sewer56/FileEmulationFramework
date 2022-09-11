@@ -6,23 +6,42 @@ namespace FileEmulationFramework.Lib.Utilities;
 /// Defines a physical offset range with a minimum and maximum address.
 /// </summary>
 [ExcludeFromCodeCoverage(Justification = "Known good implementation from Reloaded.Memory.Buffers")]
-internal struct OffsetRange
+public struct OffsetRange
 {
     /// <summary>
     /// Represents the first byte of the offset.
     /// </summary>
-    public int Start;
+    public nint Start;
 
     /// <summary>
     /// Represents the last byte of the offset.
     /// </summary>
-    public int End;
+    public nint End;
 
-    public OffsetRange(int start, int end)
+    /// <summary>
+    /// Creates an offset range from a given start and end offset.
+    /// </summary>
+    /// <param name="start">The start offset.</param>
+    /// <param name="end">The end offset.</param>
+    public OffsetRange(nint start, nint end)
     {
         Start = start;
         End = end;
     }
+
+    /// <summary>
+    /// Creates an offset range from a given start and end offset.
+    /// </summary>
+    /// <param name="start">The start offset.</param>
+    /// <param name="end">The end offset.</param>
+    public static OffsetRange FromStartAndEnd(nint start, nint end) => new OffsetRange(start, end);
+
+    /// <summary>
+    /// Creates an offset range from a given start and length.
+    /// </summary>
+    /// <param name="start">The start offset.</param>
+    /// <param name="length">Length of the offset range.</param>
+    public static OffsetRange FromStartAndLength(nint start, nint length) => new OffsetRange(start, start + length);
 
     /// <summary>
     /// Returns true if the other address range is completely inside
@@ -61,7 +80,7 @@ internal struct OffsetRange
     /// <summary>
     /// Returns true if a number "point", is between min and max of address range.
     /// </summary>
-    private bool PointInRange(ref OffsetRange range, long point)
+    private bool PointInRange(ref OffsetRange range, nint point)
     {
         if (point >= range.Start &&
             point <= range.End)
@@ -76,7 +95,7 @@ internal struct OffsetRange
 /// This is the variant which uses 64-bit integers. Use this for files that can be bigger than 2GB.
 /// </summary>
 [ExcludeFromCodeCoverage(Justification = "Known good implementation from Reloaded.Memory.Buffers")]
-internal struct OffsetRangeLong
+public struct OffsetRangeLong
 {
     /// <summary>
     /// Represents the first byte of the offset.
@@ -88,12 +107,31 @@ internal struct OffsetRangeLong
     /// </summary>
     public long End;
 
+    /// <summary>
+    /// Creates an offset range from a given start and end offset.
+    /// </summary>
+    /// <param name="start">The start offset.</param>
+    /// <param name="end">The end offset.</param>
     public OffsetRangeLong(long start, long end)
     {
         Start = start;
         End = end;
     }
 
+    /// <summary>
+    /// Creates an offset range from a given start and end offset.
+    /// </summary>
+    /// <param name="start">The start offset.</param>
+    /// <param name="end">The end offset.</param>
+    public static OffsetRangeLong FromStartAndEnd(long start, long end) => new OffsetRangeLong(start, end);
+
+    /// <summary>
+    /// Creates an offset range from a given start and length.
+    /// </summary>
+    /// <param name="start">The start offset.</param>
+    /// <param name="length">Length of the offset range.</param>
+    public static OffsetRangeLong FromStartAndLength(long start, long length) => new OffsetRangeLong(start, start + length);
+    
     /// <summary>
     /// Returns true if the other address range is completely inside
     /// the current address range.

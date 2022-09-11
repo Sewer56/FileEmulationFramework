@@ -6,8 +6,11 @@ namespace FileEmulationFramework.Lib.Utilities;
 internal static class ThrowHelpers
 {
     [MethodImpl(MethodImplOptions.NoInlining)]
-    public static void ThrowObjectDisposed(string message) => throw new ObjectDisposedException(message);
+    public static void ObjectDisposed(string message) => throw new ObjectDisposedException(message);
 
     [MethodImpl(MethodImplOptions.NoInlining)]
-    public static void ThrowApiCallFailed(string message) => throw new Win32Exception(message);
+    public static void ArgumentException(string message) => throw new ArgumentException(message);
+
+    [MethodImpl(MethodImplOptions.NoInlining)]
+    public static void Win32Exception(string message) => throw new Win32Exception(message);
 }

@@ -1,16 +1,13 @@
-﻿using FileEmulationFramework.Interfaces;
-using FileEmulationFramework.Lib.Utilities;
-using FileEmulationFramework.Template;
-using FileEmulationFramework.Utilities;
+﻿using AFS.Stream.Emulator.Template;
 using Reloaded.Hooks.ReloadedII.Interfaces;
 using Reloaded.Mod.Interfaces;
 
-namespace FileEmulationFramework;
+namespace AFS.Stream.Emulator;
 
 /// <summary>
 /// Your mod logic goes here.
 /// </summary>
-public class Mod : ModBase, IExports // <= Do not Remove.
+public class Mod : ModBase // <= Do not Remove.
 {
     /// <summary>
     /// Provides access to the mod loader API.
@@ -43,8 +40,6 @@ public class Mod : ModBase, IExports // <= Do not Remove.
     /// </summary>
     private readonly IModConfig _modConfig;
 
-    private Logger _log;
-
     public Mod(ModContext context)
     {
         _modLoader = context.ModLoader;
@@ -53,32 +48,26 @@ public class Mod : ModBase, IExports // <= Do not Remove.
         _owner = context.Owner;
         _configuration = context.Configuration;
         _modConfig = context.ModConfig;
+
+
         // For more information about this template, please see
         // https://reloaded-project.github.io/Reloaded-II/ModTemplate/
-        _log = new Logger(_logger, _configuration.LogLevel);
-        _log.Info("Starting FileEmulationFramework");
-        FileAccessServer.Init(_log, NativeFunctions.GetInstance(_hooks!));
+
+        // If you want to implement e.g. unload support in your mod,
+        // and some other neat features, override the methods in ModBase.
+
+        // TODO: Implement some mod logic
     }
-
     #region Standard Overrides
-
     public override void ConfigurationUpdated(Config configuration)
     {
         // Apply settings from configuration.
         // ... your code here.
         _configuration = configuration;
-        _log.Info($"[{_modConfig.ModId}] Config Updated: Applying");
+        _logger.WriteLine($"[{_modConfig.ModId}] Config Updated: Applying");
     }
     #endregion
-
-    /// <summary>
-    /// All types exported to other mods.
-    /// </summary>
-    public Type[] GetTypes() => new[] { typeof(IEmulator) };
-
-    /// <summary>
-    /// For IExports.
-    /// </summary>
+    
 #pragma warning disable CS8618
     public Mod() { }
 #pragma warning restore CS8618

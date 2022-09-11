@@ -61,13 +61,13 @@ public unsafe struct MemoryMappedRegion : IDisposable
     public void Update(MemoryMappedFile file)
     {
         if (Disposed)
-            ThrowHelpers.ThrowObjectDisposed("This structure has already been disposed.");
+            ThrowHelpers.ObjectDisposed("This structure has already been disposed.");
 
         var fileHandle = file.SafeMemoryMappedFileHandle.DangerousGetHandle();
         UnmapCurrent();
-        MappedRegion = (byte*)_memoryMapFunctions.MapViewOfFileEx(fileHandle, FILE_MAP.FILE_MAP_WRITE, 0, 0, (uint)MemorySize, (IntPtr)0);
+        MappedRegion = (byte*)_memoryMapFunctions.MapViewOfFileEx(fileHandle, Native.FILE_MAP.FILE_MAP_WRITE, 0, 0, (uint)MemorySize, (IntPtr)0);
         if (MappedRegion == (void*)0)
-            ThrowHelpers.ThrowApiCallFailed($"Failed to call MapViewOfFileEx with handle: {fileHandle}, size: {MemorySize} | W32 Error: {Marshal.GetLastWin32Error()}");
+            ThrowHelpers.Win32Exception($"Failed to call MapViewOfFileEx with handle: {fileHandle}, size: {MemorySize} | W32 Error: {Marshal.GetLastWin32Error()}");
     }
 
     /// <summary>
@@ -76,6 +76,6 @@ public unsafe struct MemoryMappedRegion : IDisposable
     private void UnmapCurrent()
     {
         if (MappedRegion != (void*)0 && !_memoryMapFunctions.UnmapViewOfFileEx((IntPtr)MappedRegion, 1))
-            ThrowHelpers.ThrowApiCallFailed($"Failed to call UnmapViewOfFileEx with {(long)MappedRegion:X}, {1} | W32 Error:  {Marshal.GetLastWin32Error()}");
+            ThrowHelpers.Win32Exception($"Failed to call UnmapViewOfFileEx with {(long)MappedRegion:X}, {1} | W32 Error:  {Marshal.GetLastWin32Error()}");
     }
 }
