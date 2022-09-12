@@ -1,29 +1,27 @@
-﻿using System.Diagnostics.CodeAnalysis;
-
-namespace FileEmulationFramework.Lib.Utilities;
+﻿namespace FileEmulationFramework.Lib.Utilities;
 
 /// <summary>
 /// Defines a physical offset range with a minimum and maximum address.
+/// This is the variant which uses 64-bit integers. Use this for files that can be bigger than 2GB.
 /// </summary>
-[ExcludeFromCodeCoverage(Justification = "Known good implementation from Reloaded.Memory.Buffers")]
 public struct OffsetRange
 {
     /// <summary>
     /// Represents the first byte of the offset.
     /// </summary>
-    public nint Start;
+    public long Start;
 
     /// <summary>
-    /// Represents the last byte of the offset.
+    /// Represents the last byte of the offset. [Inclusive]
     /// </summary>
-    public nint End;
+    public long End;
 
     /// <summary>
     /// Creates an offset range from a given start and end offset.
     /// </summary>
     /// <param name="start">The start offset.</param>
     /// <param name="end">The end offset.</param>
-    public OffsetRange(nint start, nint end)
+    public OffsetRange(long start, long end)
     {
         Start = start;
         End = end;
@@ -34,15 +32,15 @@ public struct OffsetRange
     /// </summary>
     /// <param name="start">The start offset.</param>
     /// <param name="end">The end offset.</param>
-    public static OffsetRange FromStartAndEnd(nint start, nint end) => new OffsetRange(start, end);
+    public static OffsetRange FromStartAndEnd(long start, long end) => new OffsetRange(start, end);
 
     /// <summary>
     /// Creates an offset range from a given start and length.
     /// </summary>
     /// <param name="start">The start offset.</param>
     /// <param name="length">Length of the offset range.</param>
-    public static OffsetRange FromStartAndLength(nint start, nint length) => new OffsetRange(start, start + length);
-
+    public static OffsetRange FromStartAndLength(long start, long length) => new OffsetRange(start, start + length);
+    
     /// <summary>
     /// Returns true if the other address range is completely inside
     /// the current address range.
@@ -80,10 +78,11 @@ public struct OffsetRange
     /// <summary>
     /// Returns true if a number "point", is between min and max of address range.
     /// </summary>
-    private bool PointInRange(ref OffsetRange range, nint point)
+    /// <param name="range">The range to check.</param>
+    /// <param name="point">The offset to check if between <see cref="Start"/> [inclusive] and <see cref="End"/> [inclusive].</param>
+    public static bool PointInRange(ref OffsetRange range, long point)
     {
-        if (point >= range.Start &&
-            point <= range.End)
+        if (point >= range.Start && point <= range.End)
             return true;
 
         return false;
@@ -91,90 +90,38 @@ public struct OffsetRange
 }
 
 /// <summary>
-/// Defines a physical offset range with a minimum and maximum address.
-/// This is the variant which uses 64-bit integers. Use this for files that can be bigger than 2GB.
+/// Extensions related to <see cref="OffsetRange"/>.
 /// </summary>
-[ExcludeFromCodeCoverage(Justification = "Known good implementation from Reloaded.Memory.Buffers")]
-public struct OffsetRangeLong
+public static class OffsetRangeExtensions
 {
     /// <summary>
-    /// Represents the first byte of the offset.
+    /// Verifies whether all offset ranges are joined and form a complete range from 0 to end of last range.
+    /// Assumes items are sorted by starting offset.
     /// </summary>
-    public long Start;
-
-    /// <summary>
-    /// Represents the last byte of the offset.
-    /// </summary>
-    public long End;
-
-    /// <summary>
-    /// Creates an offset range from a given start and end offset.
-    /// </summary>
-    /// <param name="start">The start offset.</param>
-    /// <param name="end">The end offset.</param>
-    public OffsetRangeLong(long start, long end)
+    /// <param name="ranges">Sorted collection (low to high) of ranges.</param>
+    public static bool AreAllJoined(Span<OffsetRange> ranges)
     {
-        Start = start;
-        End = end;
-    }
+        // Ensure no gap at start of range.
+        if (ranges[0].Start != 0)
+            return false;
 
-    /// <summary>
-    /// Creates an offset range from a given start and end offset.
-    /// </summary>
-    /// <param name="start">The start offset.</param>
-    /// <param name="end">The end offset.</param>
-    public static OffsetRangeLong FromStartAndEnd(long start, long end) => new OffsetRangeLong(start, end);
+        for (int x = 0; x < ranges.Length - 1; x++)
+        {
+            // Check all pairs.
+            var second = ranges[x + 1];
+            var first  = ranges[x];
 
-    /// <summary>
-    /// Creates an offset range from a given start and length.
-    /// </summary>
-    /// <param name="start">The start offset.</param>
-    /// <param name="length">Length of the offset range.</param>
-    public static OffsetRangeLong FromStartAndLength(long start, long length) => new OffsetRangeLong(start, start + length);
-    
-    /// <summary>
-    /// Returns true if the other address range is completely inside
-    /// the current address range.
-    /// </summary>
-    public bool Contains(ref OffsetRangeLong otherRange)
-    {
-        if (otherRange.Start >= this.Start &&
-            otherRange.End <= this.End)
-            return true;
+            // Ensure are joined.
+            if (first.End + 1 != second.Start)
+                return false;
 
-        return false;
-    }
+            // If end of first item matches start of other, there can't be an overlap,
+            // since the very first item can't overlap with anything.
 
-    /// <summary>
-    /// Returns true if the other address range intersects another address range, i.e.
-    /// start or end of this range falls inside other range.
-    /// </summary>
-    public bool Overlaps(ref OffsetRangeLong otherRange)
-    {
-        if (PointInRange(ref otherRange, this.Start))
-            return true;
+            // If this condition does not hold true, there is an overlap or gap between
+            // two items.
+        }
 
-        if (PointInRange(ref otherRange, this.End))
-            return true;
-
-        if (PointInRange(ref this, otherRange.Start))
-            return true;
-
-        if (PointInRange(ref this, otherRange.End))
-            return true;
-
-        return false;
-    }
-
-    /// <summary>
-    /// Returns true if a number "point", is between min and max of address range.
-    /// </summary>
-    private bool PointInRange(ref OffsetRangeLong range, long point)
-    {
-        if (point >= range.Start &&
-            point <= range.End)
-            return true;
-
-        return false;
+        return true;
     }
 }

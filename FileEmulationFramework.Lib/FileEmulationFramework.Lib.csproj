@@ -13,4 +13,8 @@
     <PackageReference Include="Reloaded.Mod.Interfaces" Version="2.3.0" />
   </ItemGroup>
 
+  <ItemGroup>
+    <Folder Include="IO\Struct\" />
+  </ItemGroup>
+
 </Project>

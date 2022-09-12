@@ -5,3 +5,4 @@ using FileEmulationFramework.Benchmarks;
 
 BenchmarkRunner.Run<MemoryManagerReadBenchmarks>();
 BenchmarkRunner.Run<MemoryManagerWriteBenchmarks>();
+BenchmarkRunner.Run<OffsetSelectionBenchmarks>();

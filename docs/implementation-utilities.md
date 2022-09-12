@@ -51,7 +51,25 @@ Try using the `FileSlice.TryMerge` API.
 
 Should be simple enough.
 
-## StreamMixer
+## OffsetRange
+
+A utility class that stores a start and end offset [inclusive]. Can be used for testing for overlaps, testing of address is in range, etc.
+
+## MultiStream
+
+!!! info
+
+    Combines multiple streams into a single stream with read and seek support. Highly optimised.
+
+!!! tip
+
+    It is possible to build entire files using this stream and just resolve read requests `IEmulator.ReadData` by seeking and reading from this stream. This is a recommended approach.
+
+!!! note
+
+    To allow for more flexibility, MultiStream will only read until the end of the stream it chooses to read from [based on the current position]. This means it might not return all requested bytes.  
+    
+    Use `StreamExtensions.TryRead` (similar to upcoming .NET 7's `ReadExactly`) to ensure requested amount of data is read.
 
 ## Fast Directory Searcher
 

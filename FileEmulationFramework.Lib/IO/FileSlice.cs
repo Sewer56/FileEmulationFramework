@@ -174,12 +174,7 @@ public class FileSlice
     /// <summary>
     /// Converts the current file slice to an <see cref="OffsetRange"/>.
     /// </summary>
-    public OffsetRange ToOffsetRange() => OffsetRange.FromStartAndLength((int)Offset, Length);
-
-    /// <summary>
-    /// Converts the current file slice to an <see cref="OffsetRangeLong"/>.
-    /// </summary>
-    public OffsetRangeLong ToOffsetRangeLong() => OffsetRangeLong.FromStartAndLength(Offset, Length);
+    public OffsetRange ToOffsetRange() => OffsetRange.FromStartAndLength(Offset, Length - 1);
 
     /// <inheritdoc />
     public override string ToString()
