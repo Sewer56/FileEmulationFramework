@@ -6,12 +6,12 @@ namespace FileEmulationFramework.Lib.IO.Struct;
 /// A struct that represents a pair between a stream and an offset range.
 /// Used as input.
 /// </summary>
-public struct StreamOffsetPair
+public struct StreamOffsetPair<TStream> where TStream : Stream
 {
     /// <summary>
     /// The stream in question.
     /// </summary>
-    public Stream Stream;
+    public TStream Stream;
 
     /// <summary>
     /// The offset associated with the stream.
@@ -23,7 +23,7 @@ public struct StreamOffsetPair
     /// </summary>
     /// <param name="stream">The stream.</param>
     /// <param name="offset">The offset range.</param>
-    public StreamOffsetPair(Stream stream, OffsetRange offset)
+    public StreamOffsetPair(TStream stream, OffsetRange offset)
     {
         Stream = stream;
         Offset = offset;

@@ -8,6 +8,20 @@ namespace FileEmulationFramework.Lib.Utilities;
 public static class StreamExtensions
 {
     /// <summary>
+    /// Reads an unmanaged, generic type from the stream.
+    /// </summary>
+    /// <param name="stream">The stream to read the value from.</param>
+    /// <param name="value">The value to return.</param>
+    /// <param name="numBytesRead">Number of bytes actually read.</param>
+    [MethodImpl(MethodImplOptions.AggressiveInlining)]
+    public static unsafe bool TryRead<T>(this Stream stream, out T value, out int numBytesRead) where T : unmanaged
+    {
+        value = default;
+        var valueSpan = new Span<byte>(Unsafe.AsPointer(ref value), sizeof(T));
+        return TryRead(stream, valueSpan, out numBytesRead);
+    }
+
+    /// <summary>
     /// Tries to read a given number of bytes from a stream.
     /// </summary>
     /// <param name="stream">The stream to read the value from.</param>
@@ -21,7 +35,7 @@ public static class StreamExtensions
         numBytesRead = 0;
         int numBytesToRead = result.Length;
 
-        do
+        while (numBytesToRead > 0)
         {
             int bytesRead = stream.Read(result.Slice(numBytesRead, numBytesToRead));
             if (bytesRead <= 0)
@@ -30,7 +44,6 @@ public static class StreamExtensions
             numBytesRead += bytesRead;
             numBytesToRead -= bytesRead;
         }
-        while (numBytesRead < numBytesToRead);
 
         return true;
     }

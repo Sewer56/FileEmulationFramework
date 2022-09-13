@@ -1,5 +1,4 @@
-﻿using System.Diagnostics.CodeAnalysis;
-using FileEmulationFramework.Lib.Utilities;
+﻿using FileEmulationFramework.Lib.Utilities;
 
 namespace FileEmulationFramework.Lib.IO;
 
@@ -91,7 +90,7 @@ public class FileSlice
         }
         else
         {
-            Handle = Native.CreateFileW(FilePath, FileAccess.Read, FileShare.Read, IntPtr.Zero, FileMode.Open, FileAttributes.Normal, IntPtr.Zero);
+            Handle = Native.CreateFileW(FilePath, FileAccess.Read, FileShare.ReadWrite, IntPtr.Zero, FileMode.Open, FileAttributes.Normal, IntPtr.Zero);
             HandleCache[FilePath] = Handle;
         }
     }
@@ -106,7 +105,7 @@ public class FileSlice
         {
             // TODO: We might need to add support for asynchronous handles at some point.
             if (!NativeExtensions.TryReadFile(Handle, Offset, buf, (uint)Length, out var bytesRead))
-                ThrowHelpers.Win32Exception("Failed to read all bytes from requested file.\n" +
+                ThrowHelpers.Win32("Failed to read all bytes from requested file.\n" +
                                             $"FileSlice: {this}");
         }
 
@@ -135,11 +134,11 @@ public class FileSlice
         var finalOffset = Offset + offset;
         var maxAllowedOffset = End;
         if (finalOffset < Offset || finalOffset >= maxAllowedOffset)
-            ThrowHelpers.ArgumentException("Requested offset is out of range. Is neither negative or beyond end of file.");
+            ThrowHelpers.Argument("Requested offset is out of range. Is neither negative or beyond end of file.");
 
         var requestedEndOfFile = finalOffset + length;
         if (requestedEndOfFile < finalOffset || requestedEndOfFile > maxAllowedOffset)
-            ThrowHelpers.ArgumentException("Requested length is out of range. Is neither negative or will read beyond end of file.");
+            ThrowHelpers.Argument("Requested length is out of range. Is neither negative or will read beyond end of file.");
 
         return new(finalOffset, length, FilePath);
     }
@@ -158,11 +157,11 @@ public class FileSlice
         var finalOffset = Offset + offset;
         var maxAllowedOffset = End;
         if (finalOffset < Offset || finalOffset >= maxAllowedOffset)
-            ThrowHelpers.ArgumentException("Requested offset is out of range. Is neither negative or beyond end of file.");
+            ThrowHelpers.Argument("Requested offset is out of range. Is neither negative or beyond end of file.");
 
         var requestedEndOfFile = finalOffset + length;
         if (requestedEndOfFile < finalOffset)
-            ThrowHelpers.ArgumentException("Requested length is out of range. It is negative.");
+            ThrowHelpers.Argument("Requested length is out of range. It is negative.");
 
         var endOfFile = Offset + Length;
         if (requestedEndOfFile > endOfFile)
@@ -174,7 +173,7 @@ public class FileSlice
     /// <summary>
     /// Converts the current file slice to an <see cref="OffsetRange"/>.
     /// </summary>
-    public OffsetRange ToOffsetRange() => OffsetRange.FromStartAndLength(Offset, Length - 1);
+    public OffsetRange ToOffsetRange() => OffsetRange.FromStartAndLength(Offset, Length);
 
     /// <inheritdoc />
     public override string ToString()
@@ -209,7 +208,15 @@ public class FileSlice
             return false;
         }
 
-        result = new FileSlice(slices.first.Offset, slices.first.Length + slices.second.Length, first.FilePath, first.Handle);
+        // Check for overflow.
+        var combinedLength = (long)slices.first.Length + slices.second.Length;
+        if (combinedLength > int.MaxValue)
+        {
+            result = null;
+            return false;
+        }
+
+        result = new FileSlice(slices.first.Offset, (int)combinedLength, first.FilePath, first.Handle);
         return true;
     }
 

@@ -35,6 +35,18 @@ For example, `English/Sound.afs/00000.adx` in `FEmulator/AFS`:
 
 Comparisons performed are case insensitive. Partial matches e.g. `nglish/Sound.afs` are allowed, but are discouraged from use.
 
+## Recursive Resolution
+
+!!! info
+
+    Emulators work recursively.  Meaning you can emulate a file inside an emulated file.
+
+In the case of archives, suppose you have `textures.one` and inside that `textures.txd`.  
+
+You can inject into `textures.txd` by doing the following:  
+- Add `FEmulator/ONE/textures.one/textures.txd`.  [inject unmodified `textures.txd` into `textures.one`].  
+- Add `FEmulator/TXD/textures.txd/texture_001.dds`. [inject texture_001 into `textures.txd`]  
+
 ## File Usage
 
 The [File Resolution](#file-resolution) section used the 'AFS Redirector' as an example of inserting/replacing files into an archive by using existing files.  

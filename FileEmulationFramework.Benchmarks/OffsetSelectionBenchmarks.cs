@@ -16,7 +16,7 @@ public class OffsetSelectionBenchmarks
     /// <summary>
     /// Individual offset ranges.
     /// </summary>
-    public OffsetRange[] Ranges { get; set; }
+    public OffsetRange[] Ranges { get; set; } = null!;
 
     [GlobalSetup]
     public void Setup()

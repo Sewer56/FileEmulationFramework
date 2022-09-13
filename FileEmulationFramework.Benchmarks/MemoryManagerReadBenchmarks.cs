@@ -1,6 +1,5 @@
 ﻿using BenchmarkDotNet.Attributes;
 using FileEmulationFramework.Lib.Memory;
-using System.IO;
 
 namespace FileEmulationFramework.Benchmarks;
 

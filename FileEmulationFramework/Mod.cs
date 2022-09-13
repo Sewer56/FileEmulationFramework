@@ -1,4 +1,5 @@
-﻿using FileEmulationFramework.Interfaces;
+﻿using System.Diagnostics;
+using FileEmulationFramework.Interfaces;
 using FileEmulationFramework.Lib.Utilities;
 using FileEmulationFramework.Template;
 using FileEmulationFramework.Utilities;
@@ -53,11 +54,14 @@ public class Mod : ModBase, IExports // <= Do not Remove.
         _owner = context.Owner;
         _configuration = context.Configuration;
         _modConfig = context.ModConfig;
+
         // For more information about this template, please see
         // https://reloaded-project.github.io/Reloaded-II/ModTemplate/
         _log = new Logger(_logger, _configuration.LogLevel);
         _log.Info("Starting FileEmulationFramework");
-        FileAccessServer.Init(_log, NativeFunctions.GetInstance(_hooks!));
+        var framework = new EmulationFramework();
+        _modLoader.AddOrReplaceController<IEmulationFramework>(context.Owner, framework);
+        FileAccessServer.Init(_log, NativeFunctions.GetInstance(_hooks!), framework);
     }
 
     #region Standard Overrides
@@ -68,6 +72,7 @@ public class Mod : ModBase, IExports // <= Do not Remove.
         // ... your code here.
         _configuration = configuration;
         _log.Info($"[{_modConfig.ModId}] Config Updated: Applying");
+        _log.LogLevel = configuration.LogLevel;
     }
     #endregion
 

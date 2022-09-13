@@ -3,10 +3,12 @@ using FileEmulationFramework.Utilities;
 using Reloaded.Hooks.Definitions;
 using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
-using FileEmulationFramework.Structs;
 using Reloaded.Memory.Pointers;
 using static FileEmulationFramework.Lib.Utilities.Native;
 using static FileEmulationFramework.Utilities.Native;
+using FileEmulationFramework.Interfaces;
+using FileEmulationFramework.Lib;
+using FileEmulationFramework.Structs;
 
 namespace FileEmulationFramework;
 
@@ -24,34 +26,23 @@ public static unsafe class FileAccessServer
     private static IHook<NtSetInformationFileFn> _setFilePointerHook = null!;
     private static IHook<NtQueryInformationFileFn> _getFileSizeHook = null!;
 
+    private static EmulationFramework _emulationFramework;
+    private static Route _currentRoute;
+
     // Extended to 64-bit, to use with NtReadFile
     private const long FILE_USE_FILE_POINTER_POSITION = unchecked((long)0xfffffffffffffffe);
 
     /// <summary>
     /// Initialises this instance.
     /// </summary>
-    public static void Init(Logger logger, NativeFunctions functions)
+    public static void Init(Logger logger, NativeFunctions functions, EmulationFramework emulationFramework)
     {
         _logger = logger;
+        _emulationFramework = emulationFramework;
         _createFileHook = functions.NtCreateFile.Hook(typeof(FileAccessServer), nameof(NtCreateFileImpl)).Activate();
         _readFileHook = functions.NtReadFile.Hook(typeof(FileAccessServer), nameof(NtReadFileImpl)).Activate();
         _setFilePointerHook = functions.SetFilePointer.Hook(typeof(FileAccessServer), nameof(SetInformationFileHook)).Activate();
         _getFileSizeHook = functions.GetFileSize.Hook(typeof(FileAccessServer), nameof(QueryInformationFileImpl)).Activate();
-    }
-
-    /// <summary>
-    /// Tries to get the information for a file behind a handle.
-    /// </summary>
-    public static bool TryGetInfoForHandle(IntPtr handle, out FileInformation? info)
-    {
-        if (!_handleToInfoMap.ContainsKey(handle))
-        {
-            info = null;
-            return false;
-        }
-
-        info = _handleToInfoMap[handle];
-        return true;
     }
 
     [UnmanagedCallersOnly(CallConvs = new[] { typeof(CallConvStdcall) })]
@@ -65,7 +56,7 @@ public static unsafe class FileAccessServer
 
             var information = (FILE_STANDARD_INFORMATION*)fileInformation;
             var oldSize = information->EndOfFile;
-            var newSize = info.Emulator.GetFileSize(hfile);
+            var newSize = info.Emulator.GetFileSize(hfile, info);
             if (newSize != -1)
                 information->EndOfFile = newSize;
 
@@ -89,7 +80,7 @@ public static unsafe class FileAccessServer
             return _setFilePointerHook.OriginalFunction.Value.Invoke(hfile, ioStatusBlock, fileInformation, length, fileInformationClass);
 
         var pointer = *(long*)fileInformation;
-        _handleToInfoMap[hfile].FilePointer = pointer;
+        _handleToInfoMap[hfile].FileOffset = pointer;
         return _setFilePointerHook.OriginalFunction.Value.Invoke(hfile, ioStatusBlock, fileInformation, length, fileInformationClass);
     }
 
@@ -105,14 +96,15 @@ public static unsafe class FileAccessServer
             // If it is, prepare to hook it.
             long requestedOffset = byteOffset != (void*)0 ? *byteOffset : FILE_USE_FILE_POINTER_POSITION; // -1 means use current location
             if (requestedOffset == FILE_USE_FILE_POINTER_POSITION)
-                requestedOffset = _handleToInfoMap[handle].FilePointer;
+                requestedOffset = _handleToInfoMap[handle].FileOffset;
 
             if (_logger.IsEnabled(LogSeverity.Debug))
-                _logger.Debug($"[AFSHook] Read Request, Buffer: {(long)buffer:X}, Length: {length}, Offset: {requestedOffset}");
+                _logger.Debug($"[FileAccessServer] Read Request, Buffer: {(long)buffer:X}, Length: {length}, Offset: {requestedOffset}");
 
-            bool result = info.Emulator.ReadData(handle, buffer, length, requestedOffset, out var numReadBytes);
+            bool result = info.Emulator.ReadData(handle, buffer, length, requestedOffset, info, out var numReadBytes);
             if (result)
             {
+                _logger.Debug("[FileAccessServer] Read Success, Length: {0}, Offset: {1}", numReadBytes, requestedOffset);
                 requestedOffset += numReadBytes;
                 SetInformationFileImpl(handle, ioStatus, (byte*)&requestedOffset, sizeof(long), FileInformationClass.FilePositionInformation);
 
@@ -131,38 +123,52 @@ public static unsafe class FileAccessServer
     {
         lock (_threadLock)
         {
-            string oldFileName = objectAttributes->ObjectName->ToString();
-            if (!TryGetFullPath(oldFileName, out var newFilePath))
-                return _createFileHook.OriginalFunction.Value.Invoke(handle, access, objectAttributes, ioStatus, allocSize, fileAttributes, share, createDisposition, createOptions, eaBuffer, eaLength);
-
-            // Blacklist DLLs to prevent JIT from locking when new assemblies used by this method are loaded.
-            // Might want to disable some other extensions in the future; but this is just a temporary bugfix.
-            if (newFilePath.EndsWith(".dll", StringComparison.OrdinalIgnoreCase))
-                return _createFileHook.OriginalFunction.Value.Invoke(handle, access, objectAttributes, ioStatus, allocSize, fileAttributes, share, createDisposition, createOptions, eaBuffer, eaLength);
-
-            _logger.Debug("[FileAccessServer] Accessing: {0}, {1}", *handle, newFilePath);
-            // TODO: Try Accept New File
-            // Check if AFS file and register if it is.
-            /*
-            if (newFilePath.Contains(Constants.AfsExtension, StringComparison.OrdinalIgnoreCase))
+            var currentRoute = _currentRoute;
+            try
             {
-                var result = _createFileHook.OriginalFunction.Value.Invoke(handle, access, objectAttributes, ioStatus, allocSize, fileAttributes, share, createDisposition, createOptions, eaBuffer, eaLength);
-                if (IsAfsFile(newFilePath))
+                string oldFileName = objectAttributes->ObjectName->ToString();
+                if (!TryGetFullPath(oldFileName, out var newFilePath))
+                    return _createFileHook.OriginalFunction.Value.Invoke(handle, access, objectAttributes, ioStatus, allocSize, fileAttributes, share, createDisposition, createOptions, eaBuffer, eaLength);
+
+                // Blacklist DLLs to prevent JIT from locking when new assemblies used by this method are loaded.
+                // Might want to disable some other extensions in the future; but this is just a temporary bugfix.
+                if (newFilePath.EndsWith(".dll", StringComparison.OrdinalIgnoreCase))
+                    return _createFileHook.OriginalFunction.Value.Invoke(handle, access, objectAttributes, ioStatus, allocSize, fileAttributes, share, createDisposition, createOptions, eaBuffer, eaLength);
+
+                // Open the handle.
+                var ntStatus = _createFileHook.OriginalFunction.Value.Invoke(handle, access, objectAttributes, ioStatus, allocSize, fileAttributes, share, createDisposition, createOptions, eaBuffer, eaLength);
+
+                // Append to route.
+                if (_currentRoute.IsEmpty())
+                    _currentRoute = new Route(newFilePath);
+                else
+                    _currentRoute = _currentRoute.Merge(newFilePath);
+
+                var hndl = *handle;
+                _logger.Debug("[FileAccessServer] Accessing: {0}, {1}, Route: {2}", hndl, newFilePath, _currentRoute.FullPath);
+
+                // Try Accept New File
+                for (var x = 0; x < _emulationFramework.Emulators.Count; x++)
                 {
-                    _logger.Info($"[FileAccessServer] Opening File Handle: {handle}, File: {newFilePath}");
-                    _handleToInfoMap[*handle.Pointer] = new(newFilePath, 0);
-                    OnAfsHandleOpened(handle, newFilePath);
+                    var emulator = _emulationFramework.Emulators[x];
+                    if (!emulator.TryCreateFile(hndl, newFilePath, currentRoute.FullPath))
+                        continue;
+
+                    _handleToInfoMap[hndl] = new(newFilePath, 0, emulator);
+                    return ntStatus;
                 }
-                return result;
+
+                // Invalidate Duplicate Handles (until we implement NtClose hook).
+                // We can't hook that right now because it deadlocks in native->managed transition for some reason.
+                if (_handleToInfoMap.Remove(hndl, out var value))
+                    _logger.Debug("[FileAccessServer] Removed old disposed handle: {0}, File: {1}", *handle, value.FilePath);
+
+                return ntStatus;
             }
-            */
-            var ntStatus = _createFileHook.OriginalFunction.Value.Invoke(handle, access, objectAttributes, ioStatus, allocSize, fileAttributes, share, createDisposition, createOptions, eaBuffer, eaLength);
-
-            // Invalidate Duplicate Handles (until we implement NtClose hook).
-            if (_handleToInfoMap.Remove(*handle, out var value))
-                _logger.Debug("[FileAccessServer] Removed old disposed handle: {0}, File: {1}", *handle, value.FilePath);
-
-            return ntStatus;
+            finally
+            {
+                _currentRoute = currentRoute;
+            }
         }
     }
 

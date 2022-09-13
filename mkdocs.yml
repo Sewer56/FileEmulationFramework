@@ -40,9 +40,11 @@ nav:
   - Home: index.md
   - Routing: routing.md
   - Emulator Development Guidance: 
-      - Emulator Types: emulator-types.md
-      - Implementation Rules: implementation-rules.md
-      - Utilities: implementation-utilities.md
+    - Emulator Types: emulator-types.md
+    - Implementation Rules: implementation-rules.md
+    - Utilities: implementation-utilities.md
+  - Existing Emulators: 
+    - AFS [CRI Middleware]: emulators/afs.md
 
   - Guides: 
     - Contributing Locally: guides/contributing-locally.md

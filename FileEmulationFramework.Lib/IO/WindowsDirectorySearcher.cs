@@ -1,6 +1,4 @@
 // ReSharper disable InconsistentNaming
-
-
 using System.Diagnostics.CodeAnalysis;
 using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
@@ -16,7 +14,7 @@ namespace FileEmulationFramework.Lib.IO;
 /// </summary>
 [ExcludeFromCodeCoverage(Justification = "Taken from Reloaded.IO. Known good implementation.")]
 [SupportedOSPlatform("windows5.1.2600")]
-public class NtQueryDirectoryFileSearcher
+public class WindowsDirectorySearcher
 {
     private const string Prefix = "\\??\\";
 
@@ -24,7 +22,7 @@ public class NtQueryDirectoryFileSearcher
     static unsafe delegate* unmanaged[Stdcall]<IntPtr, IntPtr, IntPtr, IntPtr, ref IO_STATUS_BLOCK, IntPtr, uint, uint, int, IntPtr, int, uint> NtQueryDirectoryFilePtr;
     static unsafe delegate* unmanaged[Stdcall]<IntPtr, int> NtClosePtr;
 
-    static unsafe NtQueryDirectoryFileSearcher()
+    static unsafe WindowsDirectorySearcher()
     {
         var ntdll = LoadLibrary("ntdll");
         NtCreateFilePtr = (delegate* unmanaged[Stdcall]<ref IntPtr, int, ref OBJECT_ATTRIBUTES, ref IO_STATUS_BLOCK, ref long, uint, FileShare, int, uint, IntPtr, uint, IntPtr>)GetProcAddress(ntdll, "NtCreateFile");
@@ -38,10 +36,25 @@ public class NtQueryDirectoryFileSearcher
     /// <param name="path">The path to search inside. Should not end with a backslash.</param>
     /// <param name="files">Files contained inside the target directory.</param>
     /// <param name="directories">Directories contained inside the target directory.</param>
-    /// <returns>True if the operation suceeded, else false.</returns>
+    /// <returns>True if the operation succeeded, else false.</returns>
+    public static bool TryGetDirectoryContents(string path, out List<FileInformation> files, out List<DirectoryInformation> directories)
+    {
+        files = new List<FileInformation>();
+        directories = new List<DirectoryInformation>();
+        return TryGetDirectoryContents(path, files, directories);
+    }
+
+    /// <summary>
+    /// Retrieves the total contents of a directory.
+    /// </summary>
+    /// <param name="path">The path to search inside. Should not end with a backslash.</param>
+    /// <param name="files">Files contained inside the target directory.</param>
+    /// <param name="directories">Directories contained inside the target directory.</param>
+    /// <returns>True if the operation succeeded, else false.</returns>
     [SkipLocalsInit]
     public static bool TryGetDirectoryContents(string path, List<FileInformation> files, List<DirectoryInformation> directories)
     {
+        path = Path.GetFullPath(path);
         return TryGetDirectoryContents_Internal(path, files, directories);
     }
 
@@ -51,7 +64,23 @@ public class NtQueryDirectoryFileSearcher
     /// <param name="path">The path to search inside. Should not end with a backslash.</param>
     /// <param name="files">Files contained inside the target directory.</param>
     /// <param name="directories">Directories contained inside the target directory.</param>
-    /// <returns>True if the operation suceeded, else false.</returns>
+    /// <returns>True if the operation succeeded, else false.</returns>
+    [SkipLocalsInit]
+    [MethodImpl(MethodImplOptions.AggressiveInlining | MethodImplOptions.AggressiveOptimization)]
+    public static void GetDirectoryContentsRecursive(string path, out List<FileInformation> files, out List<DirectoryInformation> directories)
+    {
+        files = new List<FileInformation>();
+        directories = new List<DirectoryInformation>();
+        GetDirectoryContentsRecursive(path, files, directories);
+    }
+
+    /// <summary>
+    /// Retrieves the total contents of a directory and all sub directories.
+    /// </summary>
+    /// <param name="path">The path to search inside. Should not end with a backslash.</param>
+    /// <param name="files">Files contained inside the target directory.</param>
+    /// <param name="directories">Directories contained inside the target directory.</param>
+    /// <returns>True if the operation succeeded, else false.</returns>
     [SkipLocalsInit]
     [MethodImpl(MethodImplOptions.AggressiveInlining | MethodImplOptions.AggressiveOptimization)]
     public static void GetDirectoryContentsRecursive(string path, List<FileInformation> files, List<DirectoryInformation> directories)
@@ -59,7 +88,8 @@ public class NtQueryDirectoryFileSearcher
         var newFiles = new List<FileInformation>();
         var initialDirectories = new List<DirectoryInformation>();
 
-        var initialDirSuccess = TryGetDirectoryContents(path, newFiles, initialDirectories);
+        path = Path.GetFullPath(path);
+        var initialDirSuccess = TryGetDirectoryContents_Internal(path, newFiles, initialDirectories);
         if (!initialDirSuccess)
             return;
 
@@ -88,6 +118,60 @@ public class NtQueryDirectoryFileSearcher
     }
 
     /// <summary>
+    /// Retrieves the total contents of a directory and all sub directories.
+    /// </summary>
+    /// <param name="path">The path to search inside. Should not end with a backslash.</param>
+    /// <param name="groups">Groupings of files to their corresponding directories.</param>
+    /// <returns>True if the operation succeeded, else false.</returns>
+    [SkipLocalsInit]
+    [MethodImpl(MethodImplOptions.AggressiveInlining | MethodImplOptions.AggressiveOptimization)]
+    public static void GetDirectoryContentsRecursiveGrouped(string path, out List<DirectoryFilesGroup> groups)
+    {
+        groups = new List<DirectoryFilesGroup>();
+        GetDirectoryContentsRecursiveGrouped(path, groups);
+    }
+
+    /// <summary>
+    /// Retrieves the total contents of a directory and all sub directories.
+    /// </summary>
+    /// <param name="path">The path to search inside. Should not end with a backslash.</param>
+    /// <param name="groups">Groupings of files to their corresponding directories.</param>
+    /// <returns>True if the operation succeeded, else false.</returns>
+    [SkipLocalsInit]
+    [MethodImpl(MethodImplOptions.AggressiveInlining | MethodImplOptions.AggressiveOptimization)]
+    public static void GetDirectoryContentsRecursiveGrouped(string path, List<DirectoryFilesGroup> groups)
+    {
+        var newFiles = new List<FileInformation>();
+        var initialDirectories = new List<DirectoryInformation>();
+
+        path = Path.GetFullPath(path);
+        var initialDirSuccess = TryGetDirectoryContents_Internal(path, newFiles, initialDirectories);
+        if (!initialDirSuccess)
+            return;
+
+        // Add initial files
+        groups.Add(new DirectoryFilesGroup(new DirectoryInformation(Path.GetFullPath(path), Directory.GetLastWriteTime(path)), newFiles));
+        if (initialDirectories.Count <= 0)
+            return;
+
+        // Loop in single stack until all done.
+        var remainingDirectories = new Stack<DirectoryInformation>(initialDirectories);
+        while (remainingDirectories.TryPop(out var dir))
+        {
+            newFiles.Clear();
+            initialDirectories.Clear();
+            TryGetDirectoryContents_Internal(dir.FullPath, newFiles, initialDirectories);
+
+            // Add to accumulator
+            groups.Add(new DirectoryFilesGroup(dir, newFiles));
+
+            // Add to remaining dirs
+            foreach (var newDir in initialDirectories)
+                remainingDirectories.Push(newDir);
+        }
+    }
+
+    /// <summary>
     /// Retrieves the total contents of a directory for a single directory.
     /// </summary>
     /// <param name="dirPath">The path for which to get the directory for. Must be full path.</param>
@@ -96,7 +180,7 @@ public class NtQueryDirectoryFileSearcher
     /// <returns>True on success, else false.</returns>
     [SkipLocalsInit]
     [MethodImpl(MethodImplOptions.AggressiveInlining | MethodImplOptions.AggressiveOptimization)]
-    public static unsafe bool TryGetDirectoryContents_Internal(string dirPath, List<FileInformation> files, List<DirectoryInformation> directories)
+    private static unsafe bool TryGetDirectoryContents_Internal(string dirPath, List<FileInformation> files, List<DirectoryInformation> directories)
     {
         // 128K seemed to have good enough size to fill most queries in while still preserving stack.
         const int BufferSize = 1024 * 16;
@@ -268,17 +352,81 @@ public class NtQueryDirectoryFileSearcher
         internal UIntPtr Information;
     }
     #endregion
+}
 
-    public struct FileInformation
+/// <summary>
+/// Represents information tied to an individual file.
+/// </summary>
+public struct FileInformation
+{
+    /// <summary>
+    /// Path to the directory containing this file.
+    /// </summary>
+    public string DirectoryPath;
+
+    /// <summary>
+    /// Name of the file relative to directory.
+    /// </summary>
+    public string FileName;
+
+    /// <summary>
+    /// Last time this file was written to.
+    /// </summary>
+    public DateTime LastWriteTime;
+
+    /// <inheritdoc/>
+    public override string ToString() => FileName;
+}
+
+/// <summary>
+/// Represents information tied to an individual directory.
+/// </summary>
+public struct DirectoryInformation
+{
+    /// <summary>
+    /// Full path to the directory.
+    /// </summary>
+    public string FullPath;
+
+    /// <summary>
+    /// Last time this directory was modified.
+    /// </summary>
+    public DateTime LastWriteTime;
+
+    public DirectoryInformation(string fullPath, DateTime lastWriteTime)
     {
-        public string DirectoryPath;
-        public string FileName;
-        public DateTime LastWriteTime;
+        FullPath = fullPath;
+        LastWriteTime = lastWriteTime;
     }
 
-    public struct DirectoryInformation
+    /// <inheritdoc/>
+    public override string ToString() => FullPath;
+}
+
+/// <summary>
+/// Groups a single directory and a list of files associated with it.
+/// </summary>
+public class DirectoryFilesGroup
+{
+    /// <summary>
+    /// The directory in question.
+    /// </summary>
+    public DirectoryInformation Directory;
+
+    /// <summary>
+    /// The relative file paths tied to this directory.
+    /// </summary>
+    public string[] Files;
+
+    /// <summary/>
+    public DirectoryFilesGroup(DirectoryInformation directory, List<FileInformation> files)
     {
-        public string FullPath;
-        public DateTime LastWriteTime;
+        Directory = directory;
+        Files = GC.AllocateUninitializedArray<string>(files.Count);
+        for (int x = 0; x < files.Count; x++)
+            Files[x] = files[x].FileName;
     }
+
+    /// <inheritdoc/>
+    public override string ToString() => Directory.FullPath;
 }

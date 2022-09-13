@@ -17,8 +17,9 @@ public struct OffsetRangeSelector
 
     /// <summary>
     /// The last selected index.
+    /// You can override this to hint the selector of what may likely be the next accessed item.
     /// </summary>
-    public int LastIndex { get; private set; } = 0;
+    public int LastIndex { get; set; } = 0;
 
     /// <summary/>
     /// <param name="offsets">
@@ -40,7 +41,7 @@ public struct OffsetRangeSelector
         if (OffsetRange.PointInRange(ref last, offset))
             return LastIndex;
         
-        if (Offsets.Length > 16)
+        if (Offsets.Length >= 13)
         {
             var result = SelectLoop(offset);
             if (result != -1)
@@ -80,8 +81,7 @@ public struct OffsetRangeSelector
     /// <param name="offset">The offset to check for.</param>
     /// <returns>Index of the element which contains this offset. Otherwise -1 if not found.</returns>
     public int SelectBinarySearch(long offset) => BinarySearchOffset(Offsets, offset);
-
-    [SkipLocalsInit]
+    
     private static int BinarySearchOffset(OffsetRange[] range, long item)
     {
         int minPtr = 0;

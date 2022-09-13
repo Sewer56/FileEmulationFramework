@@ -7,7 +7,6 @@ namespace FileEmulationFramework.Tests.Extensions;
 
 public static class StreamExtensions
 {
-    [SkipLocalsInit]
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static T Read<T>(this Stream stream) where T : unmanaged
     {

@@ -1,6 +1,13 @@
-﻿using AFS.Stream.Emulator.Template;
+﻿using System.Diagnostics;
+using System.Runtime.CompilerServices;
+using AFS.Stream.Emulator.Template;
+using FileEmulationFramework.Interfaces;
+using FileEmulationFramework.Lib.Utilities;
 using Reloaded.Hooks.ReloadedII.Interfaces;
 using Reloaded.Mod.Interfaces;
+using Reloaded.Mod.Interfaces.Internal;
+
+[module: SkipLocalsInit]
 
 namespace AFS.Stream.Emulator;
 
@@ -40,6 +47,9 @@ public class Mod : ModBase // <= Do not Remove.
     /// </summary>
     private readonly IModConfig _modConfig;
 
+    private Logger _log;
+    private AfsEmulator _emulator;
+
     public Mod(ModContext context)
     {
         _modLoader = context.ModLoader;
@@ -49,15 +59,29 @@ public class Mod : ModBase // <= Do not Remove.
         _configuration = context.Configuration;
         _modConfig = context.ModConfig;
 
-
         // For more information about this template, please see
         // https://reloaded-project.github.io/Reloaded-II/ModTemplate/
 
         // If you want to implement e.g. unload support in your mod,
         // and some other neat features, override the methods in ModBase.
+        _modLoader.ModLoading += OnModLoading;
+        _modLoader.OnModLoaderInitialized += OnModLoaderInitialized;
+        _log = new Logger(_logger, _configuration.LogLevel);
+        _log.Info("Starting AFS.Stream.Emulator");
+        _emulator = new AfsEmulator(_log);
 
-        // TODO: Implement some mod logic
+        _modLoader.GetController<IEmulationFramework>().TryGetTarget(out var framework);
+        framework!.Register(_emulator);
     }
+
+    private void OnModLoaderInitialized()
+    {
+        _modLoader.ModLoading -= OnModLoading;
+        _modLoader.OnModLoaderInitialized -= OnModLoaderInitialized;
+    }
+
+    private void OnModLoading(IModV1 mod, IModConfigV1 modConfig) => _emulator.OnModLoading(_modLoader.GetDirectoryForModId(modConfig.ModId));
+
     #region Standard Overrides
     public override void ConfigurationUpdated(Config configuration)
     {
@@ -65,6 +89,7 @@ public class Mod : ModBase // <= Do not Remove.
         // ... your code here.
         _configuration = configuration;
         _logger.WriteLine($"[{_modConfig.ModId}] Config Updated: Applying");
+        _log.LogLevel = configuration.LogLevel;
     }
     #endregion
     

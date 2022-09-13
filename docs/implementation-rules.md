@@ -65,6 +65,10 @@ if (afsFile.TryFindFile((int)offset, (int)length, out var virtualFile))
 
 Then you can just invoke this function multiple times until the requested amount of bytes have been filled.
 
+!!! tip
+
+    A recommended way of building stream (Type A) based emulators emulators is [MultiStream](./implementation-utilities.md#multi-stream). With MultiStream you can avoid this issue entirely, and usually implement `ReadData` in ~5 lines. 
+
 ### Hooks Always Enabled
 
 Don't deactivate your hooks at any point. All hooks should always be enabled to allow for recursive use of the emulators.

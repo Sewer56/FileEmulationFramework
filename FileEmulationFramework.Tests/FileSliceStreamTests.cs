@@ -50,7 +50,8 @@ public class FileSliceStreamTests
 
     private static void Read_CannotBeyondEndOfFile_Generic(Stream fileSliceStream)
     {
-        fileSliceStream.Seek(FileLength, SeekOrigin.Begin);
+        fileSliceStream.Seek(FileLength - 1, SeekOrigin.Begin);
+        Assert.NotEqual(-1, fileSliceStream.ReadByte()); // End of file.
         Assert.Equal(-1, fileSliceStream.ReadByte()); // End of file.
     }
 

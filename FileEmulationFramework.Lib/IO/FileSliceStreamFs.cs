@@ -1,4 +1,5 @@
-﻿using FileEmulationFramework.Lib.Utilities;
+﻿using FileEmulationFramework.Lib.IO.Interfaces;
+using FileEmulationFramework.Lib.Utilities;
 using Microsoft.Win32.SafeHandles;
 
 namespace FileEmulationFramework.Lib.IO;
@@ -8,7 +9,7 @@ namespace FileEmulationFramework.Lib.IO;
 /// Supports read and seek operations. Resizes and/or writes are not supported.
 /// This variant is backed by FileStream.
 /// </summary>
-public class FileSliceStreamFs : Stream
+public class FileSliceStreamFs : Stream, IFileSliceStream
 {
     /// <inheritdoc />
     public override bool CanRead { get; } = true;

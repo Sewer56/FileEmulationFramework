@@ -27,13 +27,14 @@ public class Logger
     public Logger(ILogger log, LogSeverity logLevel)
     {
         Log = log;
+        LogLevel = logLevel;
     }
 
     /// <summary>
     /// Returns true if a given log level is enabled, else false.
     /// </summary>
     /// <param name="severity">The severity to check if enabled.</param>
-    public bool IsEnabled(LogSeverity severity) => LogLevel >= severity;
+    public bool IsEnabled(LogSeverity severity) => LogLevel <= severity;
 
     /// <summary>
     /// Logs a message using the <see cref="LogSeverity.Fatal"/> severity.
@@ -51,7 +52,7 @@ public class Logger
     /// <param name="message">The message to log</param>
     public void Error(string message)
     {
-        if (LogLevel >= LogSeverity.Error)
+        if (IsEnabled(LogSeverity.Error))
             Log.WriteLineAsync(message, Log.ColorRed);
     }
 
@@ -62,7 +63,7 @@ public class Logger
     /// <param name="item1">The first generic item.</param>
     public void Error<T1>(string format, T1 item1)
     {
-        if (LogLevel >= LogSeverity.Error)
+        if (IsEnabled(LogSeverity.Error))
             Log.WriteLineAsync(string.Format(format, item1!.ToString(), Log.ColorRed));
     }
 
@@ -74,7 +75,7 @@ public class Logger
     /// <param name="item2">The second generic item.</param>
     public void Error<T1, T2>(string format, T1 item1, T2 item2)
     {
-        if (LogLevel >= LogSeverity.Error)
+        if (IsEnabled(LogSeverity.Error))
             Log.WriteLineAsync(string.Format(format, item1!.ToString(), item2!.ToString()), Log.ColorRed);
     }
 
@@ -87,7 +88,7 @@ public class Logger
     /// <param name="item3">The third generic item.</param>
     public void Error<T1, T2, T3>(string format, T1 item1, T2 item2, T3 item3)
     {
-        if (LogLevel >= LogSeverity.Error)
+        if (IsEnabled(LogSeverity.Error))
             Log.WriteLineAsync(string.Format(format, item1!.ToString(), item2!.ToString(), item3!.ToString()), Log.ColorRed);
     }
     #endregion
@@ -99,7 +100,7 @@ public class Logger
     /// <param name="message">The message to log</param>
     public void Warning(string message)
     {
-        if (LogLevel >= LogSeverity.Warning)
+        if (IsEnabled(LogSeverity.Warning))
             Log.WriteLineAsync(message, Log.ColorYellow);
     }
 
@@ -110,7 +111,7 @@ public class Logger
     /// <param name="item1">The first generic item.</param>
     public void Warning<T1>(string format, T1 item1)
     {
-        if (LogLevel >= LogSeverity.Warning)
+        if (IsEnabled(LogSeverity.Warning))
             Log.WriteLineAsync(string.Format(format, item1!.ToString(), Log.ColorYellow));
     }
 
@@ -122,7 +123,7 @@ public class Logger
     /// <param name="item2">The second generic item.</param>
     public void Warning<T1, T2>(string format, T1 item1, T2 item2)
     {
-        if (LogLevel >= LogSeverity.Warning)
+        if (IsEnabled(LogSeverity.Warning))
             Log.WriteLineAsync(string.Format(format, item1!.ToString(), item2!.ToString()), Log.ColorYellow);
     }
 
@@ -135,7 +136,7 @@ public class Logger
     /// <param name="item3">The third generic item.</param>
     public void Warning<T1, T2, T3>(string format, T1 item1, T2 item2, T3 item3)
     {
-        if (LogLevel >= LogSeverity.Warning)
+        if (IsEnabled(LogSeverity.Warning))
             Log.WriteLineAsync(string.Format(format, item1!.ToString(), item2!.ToString(), item3!.ToString()), Log.ColorYellow);
     }
     #endregion
@@ -147,7 +148,7 @@ public class Logger
     /// <param name="message">The message to log</param>
     public void Info(string message)
     {
-        if (LogLevel >= LogSeverity.Information)
+        if (IsEnabled(LogSeverity.Information))
             Log.WriteLineAsync(message, Log.ColorLightBlue);
     }
 
@@ -158,7 +159,7 @@ public class Logger
     /// <param name="item1">The first generic item.</param>
     public void Info<T1>(string format, T1 item1)
     {
-        if (LogLevel >= LogSeverity.Information)
+        if (IsEnabled(LogSeverity.Information))
             Log.WriteLineAsync(string.Format(format, item1!.ToString(), Log.ColorLightBlue));
     }
 
@@ -170,7 +171,7 @@ public class Logger
     /// <param name="item2">The second generic item.</param>
     public void Info<T1, T2>(string format, T1 item1, T2 item2)
     {
-        if (LogLevel >= LogSeverity.Information)
+        if (IsEnabled(LogSeverity.Information))
             Log.WriteLineAsync(string.Format(format, item1!.ToString(), item2!.ToString()), Log.ColorLightBlue);
     }
 
@@ -183,7 +184,7 @@ public class Logger
     /// <param name="item3">The third generic item.</param>
     public void Info<T1, T2, T3>(string format, T1 item1, T2 item2, T3 item3)
     {
-        if (LogLevel >= LogSeverity.Information)
+        if (IsEnabled(LogSeverity.Information))
             Log.WriteLineAsync(string.Format(format, item1!.ToString(), item2!.ToString(), item3!.ToString()), Log.ColorLightBlue);
     }
     #endregion
@@ -195,7 +196,7 @@ public class Logger
     /// <param name="message">The message to log</param>
     public void Debug(string message)
     {
-        if (LogLevel >= LogSeverity.Debug)
+        if (IsEnabled(LogSeverity.Debug))
             Log.WriteLineAsync(message);
     }
 
@@ -206,7 +207,7 @@ public class Logger
     /// <param name="item1">The first generic item.</param>
     public void Debug<T1>(string format, T1 item1)
     {
-        if (LogLevel >= LogSeverity.Debug)
+        if (IsEnabled(LogSeverity.Debug))
             Log.WriteLineAsync(string.Format(format, item1!.ToString()));
     }
 
@@ -218,7 +219,7 @@ public class Logger
     /// <param name="item2">The second generic item.</param>
     public void Debug<T1, T2>(string format, T1 item1, T2 item2)
     {
-        if (LogLevel >= LogSeverity.Debug)
+        if (IsEnabled(LogSeverity.Debug))
             Log.WriteLineAsync(string.Format(format, item1!.ToString(), item2!.ToString()));
     }
 
@@ -231,7 +232,7 @@ public class Logger
     /// <param name="item3">The third generic item.</param>
     public void Debug<T1, T2, T3>(string format, T1 item1, T2 item2, T3 item3)
     {
-        if (LogLevel >= LogSeverity.Debug)
+        if (IsEnabled(LogSeverity.Debug))
             Log.WriteLineAsync(string.Format(format, item1!.ToString(), item2!.ToString(), item3!.ToString()));
     }
     #endregion

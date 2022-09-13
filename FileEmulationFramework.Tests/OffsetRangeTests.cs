@@ -13,10 +13,10 @@ public class OffsetRangeTests
     {
         var offsets = new OffsetRange[]
         {
-            new OffsetRange(0, 15),
-            new OffsetRange(16, 31),
+            new OffsetRange(0, 16),
+            new OffsetRange(16, 32),
             new OffsetRange(32, 64),
-            new OffsetRange(65, 100)
+            new OffsetRange(64, 100)
         };
 
         Assert.True(OffsetRangeExtensions.AreAllJoined(offsets));
@@ -27,7 +27,7 @@ public class OffsetRangeTests
     {
         var offsets = new OffsetRange[]
         {
-            new OffsetRange(0, 15),
+            new OffsetRange(0, 16),
             new OffsetRange(15, 31)
         };
 

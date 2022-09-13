@@ -83,6 +83,7 @@ public class FileSliceTests
         var second = new FileSlice(16, 32, Assets.StreamTestFile);
 
         Assert.True(FileSlice.TryMerge(first, second, out var result));
+        Assert.Equal(48, result.Length);
     }
 
     [Fact]

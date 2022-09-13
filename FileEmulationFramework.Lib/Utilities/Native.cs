@@ -1,7 +1,6 @@
 ﻿using System.Diagnostics.CodeAnalysis;
 using System.Runtime.InteropServices;
 using System.Text;
-using static FileEmulationFramework.Lib.IO.NtQueryDirectoryFileSearcher;
 // ReSharper disable InconsistentNaming
 
 namespace FileEmulationFramework.Lib.Utilities;
