@@ -7,7 +7,7 @@
 
 # The Website
 
-[***Click here to visit the full documentation.***](https://sewer56.dev/SonicRiders.Index/)
+[***Click here to visit the full documentation.***](https://sewer56.dev/FileEmulationFramework/)
 
 ## About The Framework
 
