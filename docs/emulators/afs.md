@@ -1,6 +1,7 @@
 !!! info
 
     AFS is a general purpose data container from CRI Middleware.  
+    Code for this emulator lives inside main project's GitHub repository.  
 
 ## Supported Applications
 
@@ -24,13 +25,9 @@ B. Add a folder called `FEmulator/AFS` in your mod folder.
 C. Make folders corresponding to AFS Archive names, e.g. `SH_VOICE_E.AFS`.  
 
 Files inside AFS Archives are accessed by index, i.e. order in the archive: 0, 1, 2, 3 etc.  
+
+
 Inside each folder make files, with names corresponding to the file's index.  
-
-## Folder Support
-
-This redirector supports 2 folders inside mods:  
-- `AfsRedirector` (for support of legacy mod)  
-- `FEmulator/AFS` (use this)
 
 ### Example(s)
 
@@ -40,7 +37,20 @@ Adding `FEmulator/AFS/EVENT_ADX_E.AFS/0.adx` to your mod would replace the 0th i
 
 Adding `FEmulator/AFS/EVENT_ADX_E.AFS/32.aix` to your mod would replace the 32th item in the original AFS Archive.
 
-**Note 1:**
-Generally, for audio playback, you can place ADX/AHX/AIX files interchangeably, e.g. You can place a `32.adx` file even if the original AFS archive has an AIX file inside in that slot. 
+![example](../images/afs/afs_example.png)
 
-**Note 2:** A common misconception is that AFS archives can only be used to store audio. This is in fact wrong. AFS archives can store any kind of data, it's just that using AFS for audio was very popular.
+File names can contain other text, but must start with a number corresponding to the index.  
+
+!!! info 
+
+    For audio playback, you can usually place ADX/AHX/AIX files interchangeably. e.g. You can place a `32.adx` file even if the original AFS archive has an AIX/AHX file inside in that slot. 
+
+!!! info 
+
+    A common misconception is that AFS archives can only be used to store audio. This is in fact wrong. AFS archives can store any kind of data, it's just that using AFS for audio was very popular.
+
+## Folder Support
+
+This redirector supports 2 folders inside mods:  
+- `AfsRedirector` (for support of legacy mod)  
+- `FEmulator/AFS` (use this)
