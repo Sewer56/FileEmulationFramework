@@ -49,6 +49,10 @@ File names can contain other text, but must start with a number corresponding to
 
     A common misconception is that AFS archives can only be used to store audio. This is in fact wrong. AFS archives can store any kind of data, it's just that using AFS for audio was very popular.
 
+!!! info 
+
+    If dealing with AFS audio; you might need to make sure your new files have the same channel count as the originals.   
+
 ## Folder Support
 
 This redirector supports 2 folders inside mods:  
