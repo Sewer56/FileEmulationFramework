@@ -26,7 +26,6 @@ C. Make folders corresponding to AFS Archive names, e.g. `SH_VOICE_E.AFS`.
 
 Files inside AFS Archives are accessed by index, i.e. order in the archive: 0, 1, 2, 3 etc.  
 
-
 Inside each folder make files, with names corresponding to the file's index.  
 
 ### Example(s)
@@ -52,9 +51,3 @@ File names can contain other text, but must start with a number corresponding to
 !!! info 
 
     If dealing with AFS audio; you might need to make sure your new files have the same channel count as the originals.   
-
-## Folder Support
-
-This redirector supports 2 folders inside mods:  
-- `AfsRedirector` (for support of legacy mod)  
-- `FEmulator/AFS` (use this)

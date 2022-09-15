@@ -75,11 +75,8 @@ public class AfsEmulator : IEmulator
     public void OnModLoading(string modFolder)
     {
         var redirectorFolder = $"{modFolder}/{Constants.RedirectorFolder}";
-        var legacyFolder = $"{modFolder}/{Constants.LegacyRedirectorFolder}";
 
         if (Directory.Exists(redirectorFolder))
             _builderFactory.AddFromFolders(redirectorFolder);
-        else if (Directory.Exists($"{modFolder}/{Constants.RedirectorFolder}"))
-            _builderFactory.AddFromFolders(legacyFolder);
     }
 }
