@@ -126,17 +126,17 @@ public static unsafe class FileAccessServer
             var currentRoute = _currentRoute;
             try
             {
-                string oldFileName = objectAttributes->ObjectName->ToString();
-                if (!TryGetFullPath(oldFileName, out var newFilePath))
-                    return _createFileHook.OriginalFunction.Value.Invoke(handle, access, objectAttributes, ioStatus, allocSize, fileAttributes, share, createDisposition, createOptions, eaBuffer, eaLength);
+                // Open the handle.
+                var ntStatus = _createFileHook.OriginalFunction.Value.Invoke(handle, access, objectAttributes, ioStatus, allocSize, fileAttributes, share, createDisposition, createOptions, eaBuffer, eaLength);
+
+                // We get the file path by asking the OS; as to not clash with redirector.
+                if (!FilePathResolver.TryGetFinalPathName(*handle, out var newFilePath))
+                    return ntStatus;
 
                 // Blacklist DLLs to prevent JIT from locking when new assemblies used by this method are loaded.
                 // Might want to disable some other extensions in the future; but this is just a temporary bugfix.
                 if (newFilePath.EndsWith(".dll", StringComparison.OrdinalIgnoreCase))
-                    return _createFileHook.OriginalFunction.Value.Invoke(handle, access, objectAttributes, ioStatus, allocSize, fileAttributes, share, createDisposition, createOptions, eaBuffer, eaLength);
-
-                // Open the handle.
-                var ntStatus = _createFileHook.OriginalFunction.Value.Invoke(handle, access, objectAttributes, ioStatus, allocSize, fileAttributes, share, createDisposition, createOptions, eaBuffer, eaLength);
+                    return ntStatus;
 
                 // Append to route.
                 if (_currentRoute.IsEmpty())
@@ -170,26 +170,5 @@ public static unsafe class FileAccessServer
                 _currentRoute = currentRoute;
             }
         }
-    }
-
-    /// <summary>
-    /// Tries to resolve a given file path from NtCreateFile to a full file path.
-    /// </summary>
-    private static bool TryGetFullPath(string oldFilePath, out string newFilePath)
-    {
-        const string prefix = "\\??\\";
-        const int prefixLength = 4;
-
-        if (oldFilePath.StartsWith(prefix, StringComparison.InvariantCultureIgnoreCase))
-            oldFilePath = oldFilePath.Substring(prefixLength);
-
-        if (!String.IsNullOrEmpty(oldFilePath))
-        {
-            newFilePath = Path.GetFullPath(oldFilePath);
-            return true;
-        }
-
-        newFilePath = oldFilePath;
-        return false;
     }
 }

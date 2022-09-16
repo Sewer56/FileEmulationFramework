@@ -40,10 +40,15 @@ public sealed unsafe class MemoryManager : IDisposable
     }
 
     /// <inheritdoc />
+    ~MemoryManager() => Dispose();
+
+    /// <inheritdoc />
     public void Dispose()
     {
         foreach (var file in _files)
             file.Dispose();
+
+        GC.SuppressFinalize(this);
     }
 
     /// <summary>

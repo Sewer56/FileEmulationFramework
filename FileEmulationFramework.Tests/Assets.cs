@@ -14,4 +14,5 @@ internal static class Assets
     internal static string AssetArgMario = $"{AssetsSoundFolder}/6_arg_mario_6.flac";
 
     internal static string AfsEmulatorSampleFile = "Emulators/AFS/original.afs";
+    internal static string OneEmulatorSampleFile = "Emulators/ONE/arg_swag.one";
 }

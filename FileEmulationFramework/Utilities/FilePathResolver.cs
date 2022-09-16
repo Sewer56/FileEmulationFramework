@@ -1,0 +1,44 @@
+﻿using System.Runtime.InteropServices;
+using FileEmulationFramework.Lib.Utilities;
+
+namespace FileEmulationFramework.Utilities;
+
+/// <summary>
+/// Handy class for resolving symlinks in Windows.
+/// </summary>
+public static unsafe class FilePathResolver
+{
+    private const short MaxPath = short.MaxValue; // Windows 10 with path extension.
+
+    [DllImport("Kernel32.dll", SetLastError = true, CharSet = CharSet.Unicode)]
+    static extern uint GetFinalPathNameByHandleW(IntPtr hFile, void* data, uint cchFilePath, uint dwFlags);
+
+    /// <summary>
+    /// Resolves a symbolic link and normalizes the path.
+    /// </summary>
+    /// <param name="handle">The handle to be resolved.</param>
+    /// <param name="result">Resulting path name.</param>
+    public static bool TryGetFinalPathName(IntPtr handle, out string result)
+    {
+        var buffer = stackalloc char[MaxPath];
+        var res = GetFinalPathNameByHandleW(handle, buffer, (uint)MaxPath, 0);
+        if (res == 0)
+        {
+            result = "";
+            return false;
+        }
+
+        // Use GetFullPath to normalize returned path.
+        result = RemoveDevicePrefix(new ReadOnlySpan<char>(buffer, (int)res));
+        return true;
+    }
+
+    private static string RemoveDevicePrefix(ReadOnlySpan<char> path)
+    {
+        const string DevicePrefix = @"\\?\";
+        if (path.StartsWith(DevicePrefix))
+            return path.Slice(DevicePrefix.Length).ToString();
+
+        return path.ToString();
+    }
+}

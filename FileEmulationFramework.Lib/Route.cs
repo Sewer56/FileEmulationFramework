@@ -54,7 +54,13 @@ public struct Route
     /// </summary>
     /// <param name="filePath">The route/file to test.</param>
     /// <returns>True if the route matches, else false.</returns>
-    public readonly bool Matches(string filePath) => FullPath.Contains(filePath, StringComparison.OrdinalIgnoreCase);
+    public readonly bool Matches(string filePath)
+    {
+        if (string.IsNullOrEmpty(filePath))
+            return false;
+        
+        return FullPath.Contains(filePath, StringComparison.OrdinalIgnoreCase);
+    }
 
     /// <summary>
     /// Creates a route given full path of a file and the folder where a given emulator's files are contained.

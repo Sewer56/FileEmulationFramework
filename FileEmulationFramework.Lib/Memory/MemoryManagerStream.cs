@@ -72,6 +72,9 @@ public unsafe class MemoryManagerStream : Stream, IDisposable
     }
 
     /// <inheritdoc />
+    ~MemoryManagerStream() => Dispose(true);
+
+    /// <inheritdoc />
     protected override void Dispose(bool disposing)
     {
         if (disposing)
@@ -79,6 +82,8 @@ public unsafe class MemoryManagerStream : Stream, IDisposable
             _mappedRegion.Dispose();
             if (_ownsManager)
                 _memoryManager.Dispose();
+
+            GC.SuppressFinalize(this);
         }
 
         base.Dispose(disposing);

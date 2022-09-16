@@ -1,0 +1,25 @@
+{
+  "ModId": "reloaded.universal.fileemulationframework.heroes.one",
+  "ModName": "Heroes ONE Emulator for File Emulation Framework",
+  "ModAuthor": "Sewer56",
+  "ModVersion": "1.0.0",
+  "ModDescription": "Simulates Sonic Heroes' ONE files. Allows mods to add or replace existing files using files on disk.",
+  "ModDll": "ONE.Heroes.Stream.Emulator.dll",
+  "ModIcon": "Preview.png",
+  "ModR2RManagedDll32": "x86/ONE.Heroes.Stream.Emulator.dll",
+  "ModR2RManagedDll64": "x64/ONE.Heroes.Stream.Emulator.dll",
+  "ModNativeDll32": "",
+  "ModNativeDll64": "",
+  "IsLibrary": false,
+  "ReleaseMetadataFileName": "ONE.Heroes.Stream.Emulator.ReleaseMetadata.json",
+  "PluginData": {},
+  "IsUniversalMod": false,
+  "ModDependencies": [
+    "reloaded.sharedlib.hooks",
+    "reloaded.sharedlib.csharp.prs",
+    "reloaded.universal.fileemulationframework"
+  ],
+  "OptionalDependencies": [],
+  "SupportedAppId": [ "tsonic_win.exe" ],
+  "ProjectUrl": ""
+}

@@ -57,7 +57,7 @@ public class AfsBuilder
     public unsafe MultiStream Build(IntPtr handle, string filepath, Logger? logger = null)
     {
         // Spec: http://wiki.xentax.com/index.php/GRAF:AFS_AFS
-        logger?.Info($"[{nameof(AfsBuilder)}] Building AFS File.");
+        logger?.Info($"[{nameof(AfsBuilder)}] Building AFS File | {{0}}", filepath);
 
         // Get original file's entries.
         var entries = GetEntriesFromFile(handle);

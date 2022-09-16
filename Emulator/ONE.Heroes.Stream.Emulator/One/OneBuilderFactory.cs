@@ -1,9 +1,9 @@
 ﻿using FileEmulationFramework.Lib;
 using FileEmulationFramework.Lib.IO;
 
-namespace AFS.Stream.Emulator.Afs;
+namespace ONE.Heroes.Stream.Emulator.One;
 
-public class AfsBuilderFactory
+public class OneBuilderFactory
 {
     private List<RouteGroupTuple> _routeGroupTuples = new();
 
@@ -23,7 +23,6 @@ public class AfsBuilderFactory
                 continue;
 
             var route = Route.GetRoute(redirectorFolder, group.Directory.FullPath);
-
             _routeGroupTuples.Add(new RouteGroupTuple()
             {
                 Route = new Route(route),
@@ -33,12 +32,12 @@ public class AfsBuilderFactory
     }
 
     /// <summary>
-    /// Tries to create an AFS from a given route.
+    /// Tries to create an ONE from a given route.
     /// </summary>
-    /// <param name="path">The file path/route to create AFS Builder for.</param>
+    /// <param name="path">The file path/route to create ONE Builder for.</param>
     /// <param name="builder">The created builder.</param>
-    /// <returns>True if a builder could be made, else false (if there are no files to modify this AFS).</returns>
-    public bool TryCreateFromPath(string path, out AfsBuilder? builder)
+    /// <returns>True if a builder could be made, else false (if there are no files to modify this ONE).</returns>
+    public bool TryCreateFromPath(string path, out OneBuilder? builder)
     {
         builder = default;
         var route = new Route(path);
@@ -48,12 +47,12 @@ public class AfsBuilderFactory
                 continue;
 
             // Make builder if not made.
-            builder ??= new AfsBuilder();
+            builder ??= new OneBuilder();
 
             // Add files to builder.
             var dir = group.Files.Directory.FullPath;
             foreach (var file in group.Files.Files)
-                builder.AddOrReplaceFile(Path.Combine(dir, file));
+                builder.AddInputFile(Path.Combine(dir, file));
         }
 
         return builder != null;

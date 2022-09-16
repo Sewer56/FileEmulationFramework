@@ -45,6 +45,7 @@ nav:
     - Utilities: implementation-utilities.md
   - Existing Emulators: 
     - AFS [CRI Middleware]: emulators/afs.md
+    - ONE [Sonic Heroes]: emulators/one-heroes.md
 
   - Guides: 
     - Contributing Locally: guides/contributing-locally.md

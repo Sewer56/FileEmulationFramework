@@ -28,4 +28,7 @@ public struct StreamOffsetPair<TStream> where TStream : Stream
         Stream = stream;
         Offset = offset;
     }
+
+    /// <inheritdoc />
+    public override string ToString() => $"{Offset}, {Stream}";
 }
