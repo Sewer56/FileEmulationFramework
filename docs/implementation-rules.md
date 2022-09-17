@@ -2,7 +2,9 @@
 
 !!! danger
 
-    Please do not implement hacks for things such as `hotswapping` files at runtime by serving different data on future loads; or writing to buffers passed by the application. Not only are these hard to debug but emulators should be as application agnostic as possible. 
+    Please do not implement hacks for things such as `hotswapping` files at runtime by serving different data on future loads; or writing to buffers passed by the application. Not only are these hard to debug but emulators should be as application agnostic as possible.  
+
+    APIs to enable those features can be provided for other mods to use (e.g. via Dependency Injection), but must not be enabled by default.  
 
 This framework prioritises performance and compatibility first.  
 
