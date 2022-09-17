@@ -155,7 +155,7 @@ jobs:
             return
         }
         
-        $items = Get-ChildItem -Path "$env:PUBLISH_COMMON_PATH/**.nupkg"
+        $items = Get-ChildItem -Recurse -Path "$env:PUBLISH_COMMON_PATH/*.nupkg"
         Foreach ($item in $items)
         {
             Write-Host "Pushing $item"
