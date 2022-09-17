@@ -7,6 +7,7 @@
     <LangVersion>10.0</LangVersion>
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
     <GenerateDocumentationFile>True</GenerateDocumentationFile>
+    <IsTrimmable>true</IsTrimmable>
   </PropertyGroup>
 
   <ItemGroup>

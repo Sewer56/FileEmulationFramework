@@ -10,12 +10,29 @@
   "ModR2RManagedDll64": "x64/AFS.Stream.Emulator.dll",
   "ModNativeDll32": "",
   "ModNativeDll64": "",
-  "IsLibrary": false,
+  "IsLibrary": true,
   "ReleaseMetadataFileName": "AFS.Stream.Emulator.ReleaseMetadata.json",
-  "PluginData": {},
+  "PluginData": {
+    "GitHubDependencies": {
+      "IdToConfigMap": {
+        "reloaded.sharedlib.hooks": {
+          "Config": {
+            "UserName": "Reloaded.SharedLib.Hooks.ReloadedII",
+            "RepositoryName": "Sewer56",
+            "UseReleaseTag": true,
+            "AssetFileName": "reloaded.sharedlib.hooks.zip"
+          },
+          "ReleaseMetadataName": "Sewer56.Update.ReleaseMetadata.json"
+        }
+      }
+    }
+  },
   "IsUniversalMod": true,
-  "ModDependencies": [ "reloaded.sharedlib.hooks", "reloaded.universal.fileemulationframework" ],
+  "ModDependencies": [
+    "reloaded.sharedlib.hooks",
+    "reloaded.universal.fileemulationframework"
+  ],
   "OptionalDependencies": [],
   "SupportedAppId": [],
-  "ProjectUrl": ""
+  "ProjectUrl": "https://github.com/Sewer56/FileEmulationFramework"
 }

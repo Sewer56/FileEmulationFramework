@@ -3,16 +3,30 @@
   "ModName": "Heroes ONE Emulator for File Emulation Framework",
   "ModAuthor": "Sewer56",
   "ModVersion": "1.0.0",
-  "ModDescription": "Simulates Sonic Heroes' ONE files. Allows mods to add or replace existing files using files on disk.",
+  "ModDescription": "Simulates Sonic Heroes\u0027 ONE files. Allows mods to add or replace existing files using files on disk.",
   "ModDll": "ONE.Heroes.Stream.Emulator.dll",
   "ModIcon": "Preview.png",
   "ModR2RManagedDll32": "x86/ONE.Heroes.Stream.Emulator.dll",
   "ModR2RManagedDll64": "x64/ONE.Heroes.Stream.Emulator.dll",
   "ModNativeDll32": "",
   "ModNativeDll64": "",
-  "IsLibrary": false,
+  "IsLibrary": true,
   "ReleaseMetadataFileName": "ONE.Heroes.Stream.Emulator.ReleaseMetadata.json",
-  "PluginData": {},
+  "PluginData": {
+    "GitHubDependencies": {
+      "IdToConfigMap": {
+        "reloaded.sharedlib.hooks": {
+          "Config": {
+            "UserName": "Reloaded.SharedLib.Hooks.ReloadedII",
+            "RepositoryName": "Sewer56",
+            "UseReleaseTag": true,
+            "AssetFileName": "reloaded.sharedlib.hooks.zip"
+          },
+          "ReleaseMetadataName": "Sewer56.Update.ReleaseMetadata.json"
+        }
+      }
+    }
+  },
   "IsUniversalMod": false,
   "ModDependencies": [
     "reloaded.sharedlib.hooks",
@@ -20,6 +34,8 @@
     "reloaded.universal.fileemulationframework"
   ],
   "OptionalDependencies": [],
-  "SupportedAppId": [ "tsonic_win.exe" ],
-  "ProjectUrl": ""
+  "SupportedAppId": [
+    "tsonic_win.exe"
+  ],
+  "ProjectUrl": "https://github.com/Sewer56/FileEmulationFramework"
 }
