@@ -10,6 +10,11 @@ public class Config : Configurable<Config>
     [Description("Declares which elements should be logged to the console.\nMessages less important than this level will not be logged.")]
     [DefaultValue(LogSeverity.Warning)]
     public LogSeverity LogLevel { get; set; } = LogSeverity.Information;
+
+    [DisplayName("Dump Emulated AFS Files")]
+    [Description("Creates a dump of emulated AFS files as they are written.")]
+    [DefaultValue(LogSeverity.Information)]
+    public bool DumpAfs { get; set; } = false;
 }
 
 /// <summary>

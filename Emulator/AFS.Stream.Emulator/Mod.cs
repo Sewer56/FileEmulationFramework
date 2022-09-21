@@ -68,7 +68,7 @@ public class Mod : ModBase // <= Do not Remove.
         _modLoader.OnModLoaderInitialized += OnModLoaderInitialized;
         _log = new Logger(_logger, _configuration.LogLevel);
         _log.Info("Starting AFS.Stream.Emulator");
-        _emulator = new AfsEmulator(_log);
+        _emulator = new AfsEmulator(_log, _configuration.DumpAfs);
 
         _modLoader.GetController<IEmulationFramework>().TryGetTarget(out var framework);
         framework!.Register(_emulator);
@@ -90,6 +90,7 @@ public class Mod : ModBase // <= Do not Remove.
         _configuration = configuration;
         _logger.WriteLine($"[{_modConfig.ModId}] Config Updated: Applying");
         _log.LogLevel = configuration.LogLevel;
+        _configuration.DumpAfs = configuration.DumpAfs;
     }
     #endregion
     

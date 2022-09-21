@@ -11,13 +11,22 @@ namespace AFS.Stream.Emulator;
 /// </summary>
 public class AfsEmulator : IEmulator
 {
+    /// <summary>
+    /// If enabled, dumps newly emulated files.
+    /// </summary>
+    public bool DumpFiles { get; set; } = false;
+    
     // Note: Handle->Stream exists because hashing IntPtr is easier; thus can resolve reads faster.
     private readonly AfsBuilderFactory _builderFactory = new();
     private Dictionary<IntPtr, MultiStream> _handleToStream = new();
     private Dictionary<string, MultiStream?> _pathToStream = new(StringComparer.OrdinalIgnoreCase);
     private Logger _log;
 
-    public AfsEmulator(Logger log) => _log = log;
+    public AfsEmulator(Logger log, bool dumpFiles)
+    {
+        _log = log;
+        DumpFiles = dumpFiles;
+    }
 
     public string Folder => Constants.RedirectorFolder;
 
@@ -53,6 +62,9 @@ public class AfsEmulator : IEmulator
         var stream = builder!.Build(handle, filepath, _log);
         _pathToStream[filepath] = stream;
         _handleToStream[handle] = stream;
+
+        if (DumpFiles)
+            DumpFile(filepath, stream);
         
         return true;
     }
@@ -78,5 +90,14 @@ public class AfsEmulator : IEmulator
 
         if (Directory.Exists(redirectorFolder))
             _builderFactory.AddFromFolders(redirectorFolder);
+    }
+    
+    private void DumpFile(string filepath, MultiStream stream)
+    {
+        var filePath = Path.GetFullPath($"{Constants.DumpFolder}/{Path.GetFileName(filepath)}");
+        Directory.CreateDirectory(Constants.DumpFolder);
+        _log.Info($"Dumping {filepath}");
+        using var fileStream = new FileStream(filePath, FileMode.Create);
+        stream.CopyTo(fileStream);
     }
 }
