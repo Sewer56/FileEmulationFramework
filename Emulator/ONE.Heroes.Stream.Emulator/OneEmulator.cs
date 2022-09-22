@@ -71,6 +71,8 @@ public class OneEmulator : IEmulator
         return numReadBytes > 0;
     }
 
+    public void CloseHandle(IntPtr handle, IFileInformation info) => _handleToStream.Remove(handle);
+
     /// <summary>
     /// Called when a mod is being loaded.
     /// </summary>

@@ -2,6 +2,7 @@
 using System.Text;
 using System;
 using Reloaded.Hooks.Definitions.Structs;
+using Reloaded.Hooks.Definitions.X86;
 using Reloaded.Memory.Pointers;
 using static FileEmulationFramework.Lib.Utilities.Native;
 
@@ -11,6 +12,26 @@ namespace FileEmulationFramework.Utilities;
 
 public unsafe class Native
 {
+    [Reloaded.Hooks.Definitions.X64.Function(Reloaded.Hooks.Definitions.X64.CallingConventions.Microsoft)]
+    [Reloaded.Hooks.Definitions.X86.Function(Reloaded.Hooks.Definitions.X86.CallingConventions.Stdcall)]
+    public struct CloseHandleFn
+    {
+        public FuncPtr<
+            IntPtr, // handle 
+            int // status
+        > Value;
+    }
+    
+    [Reloaded.Hooks.Definitions.X64.Function(Reloaded.Hooks.Definitions.X64.CallingConventions.Microsoft)]
+    [Reloaded.Hooks.Definitions.X86.Function(Reloaded.Hooks.Definitions.X86.CallingConventions.Stdcall)]
+    public struct GetFileTypeFn
+    {
+        public FuncPtr<
+            IntPtr, // handle 
+            int // status
+        > Value;
+    }
+    
     [Reloaded.Hooks.Definitions.X64.Function(Reloaded.Hooks.Definitions.X64.CallingConventions.Microsoft)]
     [Reloaded.Hooks.Definitions.X86.Function(Reloaded.Hooks.Definitions.X86.CallingConventions.Stdcall)]
     public struct NtCreateFileFn

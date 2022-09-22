@@ -49,4 +49,12 @@ public interface IEmulator
     /// <param name="numReadBytes">Number of bytes read by the function call.</param>
     /// <returns>True if the operation succeeded, else false. Return true if at least 1 byte was read.</returns>
     public unsafe bool ReadData(IntPtr handle, byte* buffer, uint length, long offset, IFileInformation info, out int numReadBytes);
+    
+    /// <summary>
+    /// Called when a handle to the given file is closed..
+    /// </summary>
+    /// <param name="handle">The handle of the file.</param>
+    /// <param name="info">Additional information about the current file being processed.</param>
+    /// <remarks>This function will only be invoked if you have accepted the file with <see cref="TryCreateFile"/>.</remarks>
+    public void CloseHandle(IntPtr handle, IFileInformation info);
 }

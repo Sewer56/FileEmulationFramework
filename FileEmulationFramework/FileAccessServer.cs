@@ -1,4 +1,5 @@
-﻿using FileEmulationFramework.Lib.Utilities;
+﻿using System.Diagnostics;
+using FileEmulationFramework.Lib.Utilities;
 using FileEmulationFramework.Utilities;
 using Reloaded.Hooks.Definitions;
 using System.Runtime.CompilerServices;
@@ -9,6 +10,8 @@ using static FileEmulationFramework.Utilities.Native;
 using FileEmulationFramework.Interfaces;
 using FileEmulationFramework.Lib;
 using FileEmulationFramework.Structs;
+using Reloaded.Hooks.Definitions.Enums;
+using IReloadedHooks = Reloaded.Hooks.ReloadedII.Interfaces.IReloadedHooks;
 
 namespace FileEmulationFramework;
 
@@ -25,6 +28,7 @@ public static unsafe class FileAccessServer
     private static IHook<NtReadFileFn> _readFileHook = null!;
     private static IHook<NtSetInformationFileFn> _setFilePointerHook = null!;
     private static IHook<NtQueryInformationFileFn> _getFileSizeHook = null!;
+    private static IAsmHook _closeHandleHook = null!;
 
     private static EmulationFramework _emulationFramework;
     private static Route _currentRoute;
@@ -35,7 +39,7 @@ public static unsafe class FileAccessServer
     /// <summary>
     /// Initialises this instance.
     /// </summary>
-    public static void Init(Logger logger, NativeFunctions functions, EmulationFramework emulationFramework)
+    public static void Init(Logger logger, NativeFunctions functions, IReloadedHooks? hooks, EmulationFramework emulationFramework)
     {
         _logger = logger;
         _emulationFramework = emulationFramework;
@@ -43,8 +47,88 @@ public static unsafe class FileAccessServer
         _readFileHook = functions.NtReadFile.Hook(typeof(FileAccessServer), nameof(NtReadFileImpl)).Activate();
         _setFilePointerHook = functions.SetFilePointer.Hook(typeof(FileAccessServer), nameof(SetInformationFileHook)).Activate();
         _getFileSizeHook = functions.GetFileSize.Hook(typeof(FileAccessServer), nameof(QueryInformationFileImpl)).Activate();
+        
+        // We need to cook some assembly for NtClose, because Native->Managed
+        // transition can invoke thread setup code which will call CloseHandle again
+        // and that will lead to infinite recursion
+        var utilities = hooks.Utilities;
+        var getFileTypeAddr = functions.GetFileType.Address;
+        var closeHandleCallbackAddr = (long)utilities.GetFunctionPointer(typeof(FileAccessServer), nameof(CloseHandleCallback));
+        
+        if (IntPtr.Size == 4)
+        {
+            _closeHandleHook = hooks.CreateAsmHook(new[]
+            {
+                "use32",
+                
+                // we put called address in EDI
+                "push edi", // backup EDI (it's non-volatile)
+                "push dword [esp+8]", // push handle
+                
+                // call the function
+                $"mov edi, {getFileTypeAddr}", 
+                $"call edi",
+                
+                // Check result
+                $"cmp eax, 1",
+                $"jne exit",
+                    
+                    // It's a file, let's fire our callback.
+                    "push dword [esp+8]", // push handle
+                    $"mov edi, {closeHandleCallbackAddr}",
+                    $"call edi",
+
+                // It is a file, call our callback.
+                $"exit:",
+                $"pop edi",
+            }, functions.CloseHandle.Address, AsmHookBehaviour.ExecuteFirst);
+        }
+        else
+        {
+            _closeHandleHook = hooks.CreateAsmHook(new[]
+            {
+                "use64",
+
+                // handle in (RCX)
+                $"push rdi", // Backup RDI as it's non-volatile.
+                $"mov rdi, rcx", // Backup handle for later.
+
+                // We must allocate 'shadow space' for the functions we will call in the future under MSFT x64 ABI
+                $"sub rsp, 32",
+
+                // Call function to determine if file.
+                $"mov rax, {getFileTypeAddr}",
+                $"call rax",
+
+                // Check result, 
+                $"cmp eax, 1",
+                $"jne exit",
+
+                    // It's a file, let's fire our callback.
+                    $"mov rcx, rdi", // pass first parameter.
+                    $"mov rax, {closeHandleCallbackAddr}",
+                    $"call rax",
+                
+                $"exit:",
+                $"add rsp, 32",
+                $"mov rcx, rdi", // must restore parameter, to pass to orig function.
+                $"pop rdi", // must restore, non-volatile
+            }, functions.CloseHandle.Address, AsmHookBehaviour.ExecuteFirst);
+        }
+        
+        _closeHandleHook.Activate();
     }
 
+    [UnmanagedCallersOnly(CallConvs = new[] { typeof(CallConvStdcall) })]
+    private static void CloseHandleCallback(IntPtr hfile)
+    {
+        if (!_handleToInfoMap.Remove(hfile, out var value)) 
+            return;
+        
+        value.Emulator.CloseHandle(hfile, value);
+        _logger.Debug("[FileAccessServer] Closed emulated handle: {0}, File: {1}", hfile, value.FilePath);
+    }
+    
     [UnmanagedCallersOnly(CallConvs = new[] { typeof(CallConvStdcall) })]
     private static int QueryInformationFileImpl(IntPtr hfile, IO_STATUS_BLOCK* ioStatusBlock, byte* fileInformation, uint length, FileInformationClass fileInformationClass)
     {
@@ -160,12 +244,7 @@ public static unsafe class FileAccessServer
                     _handleToInfoMap[hndl] = new(newFilePath, 0, emulator);
                     return ntStatus;
                 }
-
-                // Invalidate Duplicate Handles (until we implement NtClose hook).
-                // We can't hook that right now because it deadlocks in native->managed transition for some reason.
-                if (_handleToInfoMap.Remove(hndl, out var value))
-                    _logger.Debug("[FileAccessServer] Removed old disposed handle: {0}, File: {1}", hndl, value.FilePath);
-
+                
                 return ntStatus;
             }
             finally
