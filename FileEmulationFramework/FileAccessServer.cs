@@ -60,7 +60,7 @@ public static unsafe class FileAccessServer
             if (newSize != -1)
                 information->EndOfFile = newSize;
 
-            _logger.Info("File Size Override | Old: {0}, New: {1} | {2}", oldSize, information->EndOfFile, info.FilePath);
+            _logger.Info("File Size Override | Old: {0}, New: {1} | {2}", oldSize, newSize, info.FilePath);
             return result;
         }
     }
@@ -130,8 +130,12 @@ public static unsafe class FileAccessServer
                 var ntStatus = _createFileHook.OriginalFunction.Value.Invoke(handle, access, objectAttributes, ioStatus, allocSize, fileAttributes, share, createDisposition, createOptions, eaBuffer, eaLength);
 
                 // We get the file path by asking the OS; as to not clash with redirector.
-                if (!FilePathResolver.TryGetFinalPathName(*handle, out var newFilePath))
+                var hndl = *handle;
+                if (!FilePathResolver.TryGetFinalPathName(hndl, out var newFilePath))
+                {
+                    _logger.Debug("[FileAccessServer] Can't get final file name.");
                     return ntStatus;
+                }
 
                 // Blacklist DLLs to prevent JIT from locking when new assemblies used by this method are loaded.
                 // Might want to disable some other extensions in the future; but this is just a temporary bugfix.
@@ -144,7 +148,6 @@ public static unsafe class FileAccessServer
                 else
                     _currentRoute = _currentRoute.Merge(newFilePath);
 
-                var hndl = *handle;
                 _logger.Debug("[FileAccessServer] Accessing: {0}, {1}, Route: {2}", hndl, newFilePath, _currentRoute.FullPath);
 
                 // Try Accept New File
@@ -161,7 +164,7 @@ public static unsafe class FileAccessServer
                 // Invalidate Duplicate Handles (until we implement NtClose hook).
                 // We can't hook that right now because it deadlocks in native->managed transition for some reason.
                 if (_handleToInfoMap.Remove(hndl, out var value))
-                    _logger.Debug("[FileAccessServer] Removed old disposed handle: {0}, File: {1}", *handle, value.FilePath);
+                    _logger.Debug("[FileAccessServer] Removed old disposed handle: {0}, File: {1}", hndl, value.FilePath);
 
                 return ntStatus;
             }
