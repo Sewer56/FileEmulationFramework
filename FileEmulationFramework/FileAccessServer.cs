@@ -29,6 +29,7 @@ public static unsafe class FileAccessServer
     private static IHook<NtSetInformationFileFn> _setFilePointerHook = null!;
     private static IHook<NtQueryInformationFileFn> _getFileSizeHook = null!;
     private static IAsmHook _closeHandleHook = null!;
+    private static NtQueryInformationFileFn _ntQueryInformationFile;
 
     private static EmulationFramework _emulationFramework;
     private static Route _currentRoute;
@@ -47,6 +48,7 @@ public static unsafe class FileAccessServer
         _readFileHook = functions.NtReadFile.Hook(typeof(FileAccessServer), nameof(NtReadFileImpl)).Activate();
         _setFilePointerHook = functions.SetFilePointer.Hook(typeof(FileAccessServer), nameof(SetInformationFileHook)).Activate();
         _getFileSizeHook = functions.GetFileSize.Hook(typeof(FileAccessServer), nameof(QueryInformationFileImpl)).Activate();
+        _ntQueryInformationFile = _getFileSizeHook.OriginalFunction;
         
         // We need to cook some assembly for NtClose, because Native->Managed
         // transition can invoke thread setup code which will call CloseHandle again
@@ -226,6 +228,10 @@ public static unsafe class FileAccessServer
                 if (newFilePath.EndsWith(".dll", StringComparison.OrdinalIgnoreCase))
                     return ntStatus;
 
+                // We don't support directory emulation, yet.
+                if (IsDirectory(hndl))
+                    return ntStatus;
+                
                 // Append to route.
                 if (_currentRoute.IsEmpty())
                     _currentRoute = new Route(newFilePath);
@@ -252,5 +258,18 @@ public static unsafe class FileAccessServer
                 _currentRoute = currentRoute;
             }
         }
+    }
+
+    /// <summary>
+    /// Determines if the given handle refers to a directory.
+    /// </summary>
+    private static bool IsDirectory(IntPtr hndl)
+    {
+        // We could use Kernel32 API or C# API itself, but calling deepmost API directly is more efficient. 
+        // IntPtr hfile, IO_STATUS_BLOCK* ioStatusBlock, byte* fileInformation, uint length, FileInformationClass fileInformationClass
+        var statusBlock = new IO_STATUS_BLOCK();
+        var fileInfo = new FILE_STANDARD_INFORMATION();
+        _ntQueryInformationFile.Value.Invoke(hndl, &statusBlock, (byte*)&fileInfo, (uint)sizeof(FILE_STANDARD_INFORMATION), FileInformationClass.FileStandardInformation);
+        return fileInfo.Directory;
     }
 }
