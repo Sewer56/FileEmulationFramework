@@ -141,7 +141,7 @@ public class AfsBuilder
     /// </summary>
     private AfsFileEntry[] GetEntriesFromFile(IntPtr handle)
     {
-        using FileStream stream = new(new SafeFileHandle(handle, false), FileAccess.Read);
+        var stream = new FileStream(new SafeFileHandle(handle, false), FileAccess.Read);
         var pos = stream.Position;
         try
         {
@@ -156,7 +156,8 @@ public class AfsBuilder
         }
         finally
         {
-            stream.Position = pos;
+            stream.Dispose();
+            Native.SetFilePointerEx(handle, pos, IntPtr.Zero, 0);
         }
     }
 }

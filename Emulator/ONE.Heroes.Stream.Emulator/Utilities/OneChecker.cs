@@ -15,8 +15,8 @@ public static class OneChecker
     /// <param name="handle">The file handle to use.</param>
     public static bool IsOneFile(IntPtr handle)
     {
-        using var fileStream = new FileStream(new SafeFileHandle(handle, false), FileAccess.Read);
-        var pos = fileStream.Position;
+        var fileStream = new FileStream(new SafeFileHandle(handle, false), FileAccess.Read);
+        var originalPos = fileStream.Position;
 
         try
         {
@@ -26,7 +26,8 @@ public static class OneChecker
         }
         finally
         {
-            fileStream.Position = pos;
+            fileStream.Dispose();
+            Native.SetFilePointerEx(handle, originalPos, IntPtr.Zero, 0);
         }
     }
 }

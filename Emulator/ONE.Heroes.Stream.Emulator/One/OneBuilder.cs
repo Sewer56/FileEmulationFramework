@@ -141,9 +141,10 @@ public class OneBuilder
     /// <summary>
     /// Retrieves the existing files from the existing ONE file.
     /// </summary>
-    private unsafe Dictionary<string, OneBuilderItem> GetExistingFiles(IntPtr intPtr, string filePath, Logger? logger, out RwVersion rwVersion)
+    private unsafe Dictionary<string, OneBuilderItem> GetExistingFiles(IntPtr hFile, string filePath, Logger? logger, out RwVersion rwVersion)
     {
-        using var fileStream = new FileStream(new SafeFileHandle(intPtr, false), FileAccess.Read);
+        var fileStream = new FileStream(new SafeFileHandle(hFile, false), FileAccess.Read);
+        var originalPos = fileStream.Position;
         using var reader = new BufferedStreamReader(fileStream, 4096); // common cluster size on Windows
         var result = new Dictionary<string, OneBuilderItem>();
 
@@ -183,7 +184,9 @@ public class OneBuilder
 
             reader.Seek(fileSize, SeekOrigin.Current);
         }
-
+        
+        fileStream.Dispose();
+        Native.SetFilePointerEx(hFile, originalPos, IntPtr.Zero, 0);
         return result;
     }
 }

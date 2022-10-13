@@ -16,7 +16,7 @@ public static class AfsChecker
     /// <param name="handle">The file handle to use.</param>
     public static bool IsAfsFile(IntPtr handle)
     {
-        using var fileStream = new FileStream(new SafeFileHandle(handle, false), FileAccess.Read);
+        var fileStream = new FileStream(new SafeFileHandle(handle, false), FileAccess.Read);
         var pos = fileStream.Position;
 
         try
@@ -25,7 +25,8 @@ public static class AfsChecker
         }
         finally
         {
-            fileStream.Position = pos;
+            fileStream.Dispose();
+            Native.SetFilePointerEx(handle, pos, IntPtr.Zero, 0);
         }
     }
     
