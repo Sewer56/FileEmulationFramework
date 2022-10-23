@@ -8,6 +8,12 @@
     <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
     <GenerateDocumentationFile>True</GenerateDocumentationFile>
     <IsTrimmable>true</IsTrimmable>
+    <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
+    <Title>Reloaded File Emulation Library</Title>
+    <Authors>Sewer56</Authors>
+    <Description>Library for Sewer's File Emulation framework for Reloaded</Description>
+    <PackageProjectUrl>https://github.com/Sewer56/FileEmulationFramework</PackageProjectUrl>
+    <PackageLicenseFile>LICENSE.md</PackageLicenseFile>
   </PropertyGroup>
 
   <ItemGroup>
@@ -19,4 +25,10 @@
     <Folder Include="IO\Struct\" />
   </ItemGroup>
 
+  <ItemGroup>
+    <None Include="..\LICENSE.md">
+      <Pack>True</Pack>
+      <PackagePath></PackagePath>
+    </None>
+  </ItemGroup>
 </Project>
