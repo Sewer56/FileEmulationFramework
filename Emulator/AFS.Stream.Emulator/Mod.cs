@@ -3,7 +3,6 @@ using System.Runtime.CompilerServices;
 using AFS.Stream.Emulator.Template;
 using FileEmulationFramework.Interfaces;
 using FileEmulationFramework.Lib.Utilities;
-using Reloaded.Hooks.ReloadedII.Interfaces;
 using Reloaded.Mod.Interfaces;
 using Reloaded.Mod.Interfaces.Internal;
 
@@ -20,12 +19,6 @@ public class Mod : ModBase // <= Do not Remove.
     /// Provides access to the mod loader API.
     /// </summary>
     private readonly IModLoader _modLoader;
-
-    /// <summary>
-    /// Provides access to the Reloaded.Hooks API.
-    /// </summary>
-    /// <remarks>This is null if you remove dependency on Reloaded.SharedLib.Hooks in your mod.</remarks>
-    private readonly IReloadedHooks? _hooks;
 
     /// <summary>
     /// Provides access to the Reloaded logger.
@@ -53,7 +46,6 @@ public class Mod : ModBase // <= Do not Remove.
     public Mod(ModContext context)
     {
         _modLoader = context.ModLoader;
-        _hooks = context.Hooks;
         _logger = context.Logger;
         _owner = context.Owner;
         _configuration = context.Configuration;

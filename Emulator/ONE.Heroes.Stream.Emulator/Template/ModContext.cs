@@ -1,5 +1,4 @@
 ﻿using Reloaded.Mod.Interfaces;
-using IReloadedHooks = Reloaded.Hooks.ReloadedII.Interfaces.IReloadedHooks;
 
 namespace ONE.Heroes.Stream.Emulator.Template;
 
@@ -12,11 +11,6 @@ public class ModContext
     /// Provides access to the mod loader API.
     /// </summary>
     public IModLoader ModLoader { get; set; } = null!;
-
-    /// <summary>
-    /// Provides access to the Reloaded.Hooks API.
-    /// </summary>
-    public IReloadedHooks? Hooks { get; set; } = null!;
 
     /// <summary>
     /// Provides access to the Reloaded logger.
