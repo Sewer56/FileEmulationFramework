@@ -81,7 +81,10 @@ public class AcbPatcherEmulator : IEmulator
             fixed (byte* dataPtr = &data[0])
             {
                 if (!AcbPatcher.TryHashAwbHeader(_scannerFac, dataPtr, data.Length, out var afs2HeaderPtr, out var hash))
+                {
+                    _pathToStream.Remove(filepath);
                     return false;
+                }
 
                 if (!_headerHashToHeader.TryGetValue(hash, out var patcherEntry))
                 {
@@ -89,10 +92,18 @@ public class AcbPatcherEmulator : IEmulator
                     
                     // No entry to patch, some games can open ACB before AWB, so let's try open AWB if it exists.
                     var awbPath = Path.ChangeExtension(filepath, ".awb");
+                    if (!File.Exists(awbPath))
+                    {
+                        _log.Info("No AWB file found {0}", filepath);
+                        _pathToStream.Remove(filepath);
+                        return false;
+                    }
+                    
                     var fileSlice = new FileSlice(awbPath); // should open a handle, triggering AWB hook.
                     if (!_headerHashToHeader.TryGetValue(hash, out patcherEntry))
                     {
                         _log.Info("No AWB entry found {0}", filepath);
+                        _pathToStream.Remove(filepath);
                         return false;
                     }
                 }
