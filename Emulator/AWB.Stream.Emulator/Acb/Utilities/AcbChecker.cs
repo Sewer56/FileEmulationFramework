@@ -1,4 +1,5 @@
-﻿using AwbLib.Structs;
+﻿using System.Buffers.Binary;
+using AwbLib.Structs;
 using FileEmulationFramework.Lib.Utilities;
 using Microsoft.Win32.SafeHandles;
 
@@ -26,7 +27,7 @@ public class AcbChecker
             // Test for ACB
             if (magic == 0x46545540) // '@UTF'
             {
-                var acbLength = fileStream.Read<int>();
+                var acbLength = BinaryPrimitives.ReverseEndianness(fileStream.Read<int>());
                 return acbLength == fileLength - 8;
             }
             else if (magic == 0x584442) // 'BDX ' (Bayonetta)

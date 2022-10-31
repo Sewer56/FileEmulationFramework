@@ -16,6 +16,6 @@
   "IsUniversalMod": false,
   "ModDependencies": [ "reloaded.universal.fileemulationframework", "Reloaded.Memory.SigScan.ReloadedII" ],
   "OptionalDependencies": [],
-  "SupportedAppId": [ "bayonetta.exe" ],
+  "SupportedAppId": [ "bayonetta.exe", "p5r.exe" ],
   "ProjectUrl": ""
 }

@@ -70,7 +70,7 @@ public class Mod : ModBase // <= Do not Remove.
         
         // Create ACB & BDX Overwriters
         _modLoader.GetController<IScannerFactory>().TryGetTarget(out var factory);
-        _acbEmulator = new AcbPatcherEmulator(_awbEmulator, _log, factory, _configuration.CheckAcbExtension);
+        _acbEmulator = new AcbPatcherEmulator(_awbEmulator, _log, factory!, _configuration.CheckAcbExtension);
         framework!.Register(_acbEmulator);
     }
     
