@@ -38,13 +38,23 @@ Adding `FEmulator/AWB/BGM000.AWB/32.aix` to your mod would replace the 32th item
 
 File names can contain other text, but must start with a number corresponding to the index.  
 
-!!! info 
+## ACB & BDX Patching 
 
-    A common misconception is that AWB archives can only be used to store audio. This is in fact wrong. AWB archives can store any kind of data, it's just that using AWB for audio was very popular.
+!!! info
 
-## Limitations (AFS)
+    When an AWB is accompanied by an ACB file, the header of the AWB file is usually ignored and instead read from ACB which makes life difficult.  
 
-The following limitations are known to exist in AFS, and may still apply in AWB, they have been untested.
+    When the emulator sees an ACB file, it will automatically try to match any found AWB header with previously patched AWB and patch it inside the ACB if there's a match. 
+
+!!! warning
+
+    In some cases, the ACB may be loaded BEFORE the AWB, in which case the emulator will try load the AWB by replacing the extension of the file from `.acb` to `.awb`.  
+
+    If you run into a title where the ACB and AWB names don't match and require custom file linking, let me know.
+
+## Notes (AFS)
+
+The following notes/limitations are known to exist in AFS, and may still apply in AWB, they have been untested.
 
 !!! info 
 

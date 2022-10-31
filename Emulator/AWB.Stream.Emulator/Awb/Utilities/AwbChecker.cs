@@ -22,20 +22,12 @@ public static class AwbChecker
 
         try
         {
-            return Read<int>(fileStream) == Afs2Header.ExpectedMagic; // 'AFS2'
+            return fileStream.Read<int>() == Afs2Header.ExpectedMagic; // 'AFS2'
         }
         finally
         {
             fileStream.Dispose();
             Native.SetFilePointerEx(handle, pos, IntPtr.Zero, 0);
         }
-    }
-    
-    [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    private static T Read<T>(this System.IO.Stream stream) where T : unmanaged
-    {
-        Span<T> stackSpace = stackalloc T[1];
-        stream.TryRead(MemoryMarshal.Cast<T, byte>(stackSpace), out _);
-        return stackSpace[0];
     }
 }

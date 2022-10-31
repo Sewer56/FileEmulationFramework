@@ -14,7 +14,7 @@
   "ReleaseMetadataFileName": "AWB.Stream.Emulator.ReleaseMetadata.json",
   "PluginData": {},
   "IsUniversalMod": false,
-  "ModDependencies": [  "reloaded.universal.fileemulationframework" ],
+  "ModDependencies": [ "reloaded.universal.fileemulationframework", "Reloaded.Memory.SigScan.ReloadedII" ],
   "OptionalDependencies": [],
   "SupportedAppId": [ "bayonetta.exe" ],
   "ProjectUrl": ""

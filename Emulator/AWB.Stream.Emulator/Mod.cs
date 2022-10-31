@@ -1,7 +1,10 @@
-﻿using System.Runtime.CompilerServices;
+﻿using System.Diagnostics;
+using System.Runtime.CompilerServices;
+using AWB.Stream.Emulator.Acb;
 using AWB.Stream.Emulator.Template;
 using FileEmulationFramework.Interfaces;
 using FileEmulationFramework.Lib.Utilities;
+using Reloaded.Memory.Sigscan.Definitions;
 using Reloaded.Mod.Interfaces;
 using Reloaded.Mod.Interfaces.Internal;
 
@@ -39,7 +42,8 @@ public class Mod : ModBase // <= Do not Remove.
     private readonly IModConfig _modConfig;
 
     private Logger _log;
-    private AwbEmulator _emulator;
+    private AwbEmulator _awbEmulator;
+    private AcbPatcherEmulator _acbEmulator;
     
     public Mod(ModContext context)
     {
@@ -59,10 +63,15 @@ public class Mod : ModBase // <= Do not Remove.
         _modLoader.OnModLoaderInitialized += OnModLoaderInitialized;
         _log = new Logger(_logger, _configuration.LogLevel);
         _log.Info("Starting AWB.Stream.Emulator");
-        _emulator = new AwbEmulator(_log, _configuration.DumpAwb);
+        _awbEmulator = new AwbEmulator(_log, _configuration.DumpAwb);
 
         _modLoader.GetController<IEmulationFramework>().TryGetTarget(out var framework);
-        framework!.Register(_emulator);
+        framework!.Register(_awbEmulator);
+        
+        // Create ACB & BDX Overwriters
+        _modLoader.GetController<IScannerFactory>().TryGetTarget(out var factory);
+        _acbEmulator = new AcbPatcherEmulator(_awbEmulator, _log, factory, _configuration.CheckAcbExtension);
+        framework!.Register(_acbEmulator);
     }
     
     private void OnModLoaderInitialized()
@@ -71,7 +80,7 @@ public class Mod : ModBase // <= Do not Remove.
         _modLoader.OnModLoaderInitialized -= OnModLoaderInitialized;
     }
 
-    private void OnModLoading(IModV1 mod, IModConfigV1 modConfig) => _emulator.OnModLoading(_modLoader.GetDirectoryForModId(modConfig.ModId));
+    private void OnModLoading(IModV1 mod, IModConfigV1 modConfig) => _awbEmulator.OnModLoading(_modLoader.GetDirectoryForModId(modConfig.ModId));
 
     #region Standard Overrides
     public override void ConfigurationUpdated(Config configuration)
@@ -82,6 +91,7 @@ public class Mod : ModBase // <= Do not Remove.
         _logger.WriteLine($"[{_modConfig.ModId}] Config Updated: Applying");
         _log.LogLevel = configuration.LogLevel;
         _configuration.DumpAwb = configuration.DumpAwb;
+        _configuration.CheckAcbExtension = configuration.CheckAcbExtension;
     }
     #endregion
 

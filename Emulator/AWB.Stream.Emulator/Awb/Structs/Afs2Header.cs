@@ -43,7 +43,12 @@ public struct Afs2Header
     /// <summary>
     /// Alignment of files in this archive, in bytes.
     /// </summary>
-    public int Alignment;
+    public short Alignment;
+    
+    /// <summary>
+    /// a.k.a. subkey.
+    /// </summary>
+    public short EncryptionKey;
     
     /// <summary>
     /// Retrieves the complete size of the file header, including padding.

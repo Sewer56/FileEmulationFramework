@@ -1,0 +1,55 @@
+﻿using AWB.Stream.Emulator.Awb;
+using FileEmulationFramework.Lib.IO;
+
+namespace AWB.Stream.Emulator.Acb;
+
+/// <summary>
+/// Represents individual entry in ACB Patcher.
+/// This entry contains stream and length/offset pair for AWB header.
+/// </summary>
+public struct AcbPatcherEntry
+{
+    /// <summary>
+    /// The stream containing the data.
+    /// </summary>
+    public System.IO.Stream Stream;
+    
+    // Header should be at start of file so int is enough.
+    
+    /// <summary>
+    /// Offset of the data.
+    /// </summary>
+    public int Offset;
+    
+    /// <summary>
+    /// Length of the header data in contained stream.
+    /// </summary>
+    public int DataLength;
+
+    /// <summary>
+    /// Creates a patcher entry from the stream.
+    /// </summary>
+    /// <param name="stream">Stream that starts with AWB header. Stream is not advanced.</param>
+    /// <returns>The entry to the ACB Patcher.</returns>
+    public static AcbPatcherEntry FromAwbStream(System.IO.Stream stream)
+    {
+        var offset = stream.Position;
+        var length = AwbHeaderReader.GetHeaderLength(stream);
+        return new AcbPatcherEntry()
+        {
+            Offset = (int)offset,
+            DataLength = length,
+            Stream = stream
+        };
+    }
+
+    /// <summary>
+    /// Writes the contents of the stream to a given address.
+    /// </summary>
+    /// <param name="ptr">The address.</param>
+    public unsafe void WriteToAddress(byte* ptr)
+    {
+        Stream.Position = Offset;
+        Stream.Read(new Span<byte>(ptr, DataLength));
+    }
+};

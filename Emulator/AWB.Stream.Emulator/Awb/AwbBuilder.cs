@@ -60,7 +60,7 @@ public class AwbBuilder
         logger?.Info($"[{nameof(AwbBuilder)}] Building AWB File | {{0}}", filepath);
         
         // Get original file's entries.
-        var entries = GetEntriesFromOriginalFile(handle);
+        var entries = GetEntriesFromOriginalFile(handle, out var subKey);
         var maxFileNo = entries.Keys.Max() + 1;
         
         // Maximum ID of AWB file.
@@ -80,13 +80,14 @@ public class AwbBuilder
 
         // Write header magic and file count
         headerStream.Write<int>(Afs2Header.ExpectedMagic); // 'AFS2'
-        headerStream.Write<byte>(1); // 'Type'
+        headerStream.Write<byte>((byte)(subKey != 0 ? 2 : 1)); // 'Type'
         headerStream.Write<byte>(posFieldSize); // 'PosLength'
         headerStream.Write<byte>(idFieldSize); // 'IdLength'
         headerStream.Write<byte>(0); // 'Pad'
         headerStream.Write<int>(numFiles); // 'Entry Count'
-        headerStream.Write<int>(AwbAlignment); // 'Alignment'
-        
+        headerStream.Write<short>(AwbAlignment); // 'Alignment'
+        headerStream.Write<short>(subKey); // 'Encryption Key'
+
         // Make MultiStream
         var pairs = new List<StreamOffsetPair<Strim>>()
         {
@@ -204,7 +205,7 @@ public class AwbBuilder
     /// Reads in the entries from the original AWB file.
     /// </summary>
     /// <returns>Dictionary of original file ID to entry.</returns>
-    private unsafe Dictionary<int, FileEntry> GetEntriesFromOriginalFile(IntPtr handle)
+    private unsafe Dictionary<int, FileEntry> GetEntriesFromOriginalFile(IntPtr handle, out short encryptionKey)
     {
         var stream = new FileStream(new SafeFileHandle(handle, false), FileAccess.Read);
         var pos = stream.Position;
@@ -223,6 +224,7 @@ public class AwbBuilder
                 foreach (var entry in entries)
                     result[(int)entry.Id] = entry;
 
+                encryptionKey = viewer.Header->EncryptionKey;
                 return result;
             }
         }

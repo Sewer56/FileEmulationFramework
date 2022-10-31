@@ -16,10 +16,15 @@ public class AwbEmulator : IEmulator
     /// </summary>
     public bool DumpFiles { get; set; } = false;
     
+    /// <summary>
+    /// Event that is fired when a stream is created, before redirection kicks in.
+    /// </summary>
+    public event Action<IntPtr, MultiStream> OnStreamCreated;
+    
     // Note: Handle->Stream exists because hashing IntPtr is easier; thus can resolve reads faster.
     private readonly AwbBuilderFactory _builderFactory = new();
     private Dictionary<IntPtr, MultiStream> _handleToStream = new();
-    private Dictionary<string, MultiStream?> _pathToStream = new(StringComparer.OrdinalIgnoreCase);
+    private readonly Dictionary<string, MultiStream?> _pathToStream = new(StringComparer.OrdinalIgnoreCase);
     private Logger _log;
 
     public AwbEmulator(Logger log, bool dumpFiles)
@@ -32,7 +37,7 @@ public class AwbEmulator : IEmulator
 
     public bool TryCreateFile(IntPtr handle, string filepath, string route)
     {
-        // Check if we already made a custom AFS for this file.
+        // Check if we already made a custom AWB for this file.
         if (_pathToStream.TryGetValue(filepath, out var multiStream))
         {
             // Avoid recursion into same file.
@@ -60,12 +65,13 @@ public class AwbEmulator : IEmulator
         _pathToStream[filepath] = null; // Avoid recursion into same file.
 
         var stream = builder!.Build(handle, filepath, _log);
+        OnStreamCreated(handle, stream);
         _pathToStream[filepath] = stream;
         _handleToStream[handle] = stream;
 
         if (DumpFiles)
             DumpFile(filepath, stream);
-        
+
         return true;
     }
 
@@ -75,7 +81,6 @@ public class AwbEmulator : IEmulator
     {
         var stream     = _handleToStream[handle];
         var bufferSpan = new Span<byte>(buffer, (int)length);
-        _log.Debug("Read from: {0}, length: {1}", offset, length);
         stream.Seek(offset, SeekOrigin.Begin);
         stream.TryRead(bufferSpan, out numReadBytes);
         return numReadBytes > 0;
