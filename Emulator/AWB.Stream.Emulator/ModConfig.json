@@ -1,0 +1,21 @@
+{
+  "ModId": "reloaded.universal.fileemulationframework.awb",
+  "ModName": "AWB Emulator for File Emulation Framework",
+  "ModAuthor": "Sewer56",
+  "ModVersion": "1.0.0",
+  "ModDescription": "Simulates CRIWARE AWB (AFS2) files. Allows mods to add or replace existing files using files on disk.",
+  "ModDll": "AWB.Stream.Emulator.dll",
+  "ModIcon": "Preview.png",
+  "ModR2RManagedDll32": "x86/AWB.Stream.Emulator.dll",
+  "ModR2RManagedDll64": "x64/AWB.Stream.Emulator.dll",
+  "ModNativeDll32": "",
+  "ModNativeDll64": "",
+  "IsLibrary": false,
+  "ReleaseMetadataFileName": "AWB.Stream.Emulator.ReleaseMetadata.json",
+  "PluginData": {},
+  "IsUniversalMod": false,
+  "ModDependencies": [  "reloaded.universal.fileemulationframework" ],
+  "OptionalDependencies": [],
+  "SupportedAppId": [ "bayonetta.exe" ],
+  "ProjectUrl": ""
+}

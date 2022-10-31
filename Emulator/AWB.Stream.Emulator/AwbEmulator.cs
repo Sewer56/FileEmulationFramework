@@ -1,28 +1,28 @@
-﻿using AFS.Stream.Emulator.Afs;
-using AFS.Stream.Emulator.Utilities;
+﻿using AWB.Stream.Emulator.Awb;
+using AwbLib.Utilities;
 using FileEmulationFramework.Interfaces;
 using FileEmulationFramework.Lib.IO;
 using FileEmulationFramework.Lib.Utilities;
 
-namespace AFS.Stream.Emulator;
+namespace AWB.Stream.Emulator;
 
 /// <summary>
-/// Simple emulator for CRI AFS files.
+/// Simple emulator for CRI AWB (AFS2) files.
 /// </summary>
-public class AfsEmulator : IEmulator
-{
+public class AwbEmulator : IEmulator
+{ 
     /// <summary>
     /// If enabled, dumps newly emulated files.
     /// </summary>
     public bool DumpFiles { get; set; } = false;
     
     // Note: Handle->Stream exists because hashing IntPtr is easier; thus can resolve reads faster.
-    private readonly AfsBuilderFactory _builderFactory = new();
+    private readonly AwbBuilderFactory _builderFactory = new();
     private Dictionary<IntPtr, MultiStream> _handleToStream = new();
     private Dictionary<string, MultiStream?> _pathToStream = new(StringComparer.OrdinalIgnoreCase);
     private Logger _log;
 
-    public AfsEmulator(Logger log, bool dumpFiles)
+    public AwbEmulator(Logger log, bool dumpFiles)
     {
         _log = log;
         DumpFiles = dumpFiles;
@@ -44,7 +44,7 @@ public class AfsEmulator : IEmulator
         }
 
         // Check extension.
-        if (!filepath.EndsWith(Constants.AfsExtension, StringComparison.OrdinalIgnoreCase))
+        if (!filepath.EndsWith(Constants.AwbExtension, StringComparison.OrdinalIgnoreCase))
             return false;
 
         // Check if there's a known route for this file
@@ -53,7 +53,7 @@ public class AfsEmulator : IEmulator
             return false;
 
         // Check file type.
-        if (!AfsChecker.IsAfsFile(handle))
+        if (!AwbChecker.IsAwbFile(handle))
             return false;
 
         // Make the AFS file.
@@ -75,6 +75,7 @@ public class AfsEmulator : IEmulator
     {
         var stream     = _handleToStream[handle];
         var bufferSpan = new Span<byte>(buffer, (int)length);
+        _log.Debug("Read from: {0}, length: {1}", offset, length);
         stream.Seek(offset, SeekOrigin.Begin);
         stream.TryRead(bufferSpan, out numReadBytes);
         return numReadBytes > 0;

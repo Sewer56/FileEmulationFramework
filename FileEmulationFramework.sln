@@ -17,11 +17,13 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Emulators", "Emulators", "{
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "AFS.Stream.Emulator", "Emulator\AFS.Stream.Emulator\AFS.Stream.Emulator.csproj", "{3365837F-814B-4478-AA6F-E932986E4652}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ONE.Heroes.Stream.Emulator", "Emulator\ONE.Heroes.Stream.Emulator\ONE.Heroes.Stream.Emulator.csproj", "{3A0C238F-28E4-49BC-95FA-2F3A538A3EED}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "ONE.Heroes.Stream.Emulator", "Emulator\ONE.Heroes.Stream.Emulator\ONE.Heroes.Stream.Emulator.csproj", "{3A0C238F-28E4-49BC-95FA-2F3A538A3EED}"
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Submodules", "Submodules", "{732CB582-B44E-4EF6-9FDC-B1126309A9E0}"
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Heroes.SDK", "Submodules\Heroes.SDK\Heroes.SDK.Library\Heroes.SDK.csproj", "{F0CB5B64-CC0C-4511-A454-EC6515C9217A}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AWB.Stream.Emulator", "Emulator\AWB.Stream.Emulator\AWB.Stream.Emulator.csproj", "{6D8656F8-3C54-469B-909C-8C9200D6C200}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -61,6 +63,10 @@ Global
 		{F0CB5B64-CC0C-4511-A454-EC6515C9217A}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{F0CB5B64-CC0C-4511-A454-EC6515C9217A}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{F0CB5B64-CC0C-4511-A454-EC6515C9217A}.Release|Any CPU.Build.0 = Release|Any CPU
+		{6D8656F8-3C54-469B-909C-8C9200D6C200}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{6D8656F8-3C54-469B-909C-8C9200D6C200}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{6D8656F8-3C54-469B-909C-8C9200D6C200}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{6D8656F8-3C54-469B-909C-8C9200D6C200}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -70,6 +76,7 @@ Global
 		{3A0C238F-28E4-49BC-95FA-2F3A538A3EED} = {E530561A-D74E-48FD-B16B-8ECA7EE35ED6}
 		{732CB582-B44E-4EF6-9FDC-B1126309A9E0} = {E530561A-D74E-48FD-B16B-8ECA7EE35ED6}
 		{F0CB5B64-CC0C-4511-A454-EC6515C9217A} = {732CB582-B44E-4EF6-9FDC-B1126309A9E0}
+		{6D8656F8-3C54-469B-909C-8C9200D6C200} = {E530561A-D74E-48FD-B16B-8ECA7EE35ED6}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {33D4FC90-A513-4AB4-BF0A-704F0E193DCC}
