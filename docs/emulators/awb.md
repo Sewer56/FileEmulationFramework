@@ -10,6 +10,7 @@ This emulator should support every application out there.
 
 It has been tested with the following:  
 - Bayonetta (PC)  
+- Persona 5 Royal (PC) [Note: ADX files Require Encryption]  
 
 ## Example Usage
 
