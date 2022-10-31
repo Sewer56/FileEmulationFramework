@@ -194,7 +194,6 @@ public class AwbBuilder
         // TODO: I don't know if CRI uses signed or unsigned, better on safe side though.
         return maxValue switch
         {
-            <= sbyte.MaxValue => sizeof(byte),
             <= short.MaxValue => sizeof(short),
             <= int.MaxValue => sizeof(int),
             <= long.MaxValue => sizeof(long)
