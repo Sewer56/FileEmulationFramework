@@ -12,10 +12,60 @@
   "ModNativeDll64": "",
   "IsLibrary": false,
   "ReleaseMetadataFileName": "AWB.Stream.Emulator.ReleaseMetadata.json",
-  "PluginData": {},
+  "PluginData": {
+    "GitHubDependencies": {
+      "IdToConfigMap": {
+        "reloaded.universal.fileemulationframework": {
+          "Config": {
+            "UserName": "Sewer56",
+            "RepositoryName": "FileEmulationFramework",
+            "UseReleaseTag": false,
+            "AssetFileName": "Mod.zip"
+          },
+          "ReleaseMetadataName": "Reloaded.Universal.FileEmulationFramework.ReleaseMetadata.json"
+        },
+        "Reloaded.Memory.SigScan.ReloadedII": {
+          "Config": {
+            "UserName": "Reloaded.Memory.SigScan",
+            "RepositoryName": "Reloaded-Project",
+            "UseReleaseTag": false,
+            "AssetFileName": "Mod.zip"
+          },
+          "ReleaseMetadataName": "Reloaded.Memory.SigScan.ReloadedII.ReleaseMetadata.json"
+        },
+        "reloaded.sharedlib.hooks": {
+          "Config": {
+            "UserName": "Reloaded.SharedLib.Hooks.ReloadedII",
+            "RepositoryName": "Sewer56",
+            "UseReleaseTag": true,
+            "AssetFileName": "reloaded.sharedlib.hooks.zip"
+          },
+          "ReleaseMetadataName": "Sewer56.Update.ReleaseMetadata.json"
+        }
+      }
+    },
+    "NuGet": {
+      "AllowUpdateFromAnyRepository": false,
+      "DefaultRepositoryUrls": [
+        "http://packages.sewer56.moe:5000/v3/index.json"
+      ]
+    },
+    "GitHubRelease": {
+      "UserName": "Sewer56",
+      "RepositoryName": "FileEmulationFramework",
+      "UseReleaseTag": false,
+      "AssetFileName": "Mod.zip"
+    }
+  },
   "IsUniversalMod": false,
-  "ModDependencies": [ "reloaded.universal.fileemulationframework", "Reloaded.Memory.SigScan.ReloadedII" ],
+  "ModDependencies": [
+    "Reloaded.Memory.SigScan.ReloadedII",
+    "reloaded.universal.fileemulationframework"
+  ],
   "OptionalDependencies": [],
-  "SupportedAppId": [ "bayonetta.exe", "p5r.exe" ],
-  "ProjectUrl": ""
+  "SupportedAppId": [
+    "bayonetta.exe",
+    "p5r.exe"
+  ],
+  "ProjectUrl": "https://sewer56.dev/FileEmulationFramework/"
 }
