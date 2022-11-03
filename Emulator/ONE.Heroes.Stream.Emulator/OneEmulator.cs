@@ -54,7 +54,7 @@ public class OneEmulator : IEmulator
 
         var stream = builder!.Build(handle, filepath, _log);
         _pathToStream[filepath] = stream;
-        emulatedFile = new EmulatedFile<MultiStream>(multiStream);
+        emulatedFile = new EmulatedFile<MultiStream>(stream);
         
         return true;
     }
