@@ -3,7 +3,8 @@
 using BenchmarkDotNet.Running;
 using FileEmulationFramework.Benchmarks;
 
-BenchmarkRunner.Run<RouteMergingBenchmarks>();
+//BenchmarkRunner.Run<RouteMergingBenchmarks>();
 //BenchmarkRunner.Run<MemoryManagerReadBenchmarks>();
 //BenchmarkRunner.Run<MemoryManagerWriteBenchmarks>();
 //BenchmarkRunner.Run<OffsetSelectionBenchmarks>();
+BenchmarkRunner.Run<DelegateCallVsDoubleDictLookup>();
