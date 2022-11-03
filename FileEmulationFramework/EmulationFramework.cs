@@ -8,5 +8,5 @@ public class EmulationFramework : IEmulationFramework
     public void Register(IEmulator emulator) => FileAccessServer.AddEmulator(emulator);
 
     /// <inheritdoc/>
-    public void RegisterVirtualFile(string filePath, Stream stream) => FileAccessServer.RegisterVirtualFile(filePath, stream);
+    public void RegisterVirtualFile(string filePath, IEmulatedFile emulated) => FileAccessServer.RegisterVirtualFile(filePath, emulated);
 }

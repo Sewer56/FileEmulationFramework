@@ -274,6 +274,14 @@ public static class Native
     public static extern IntPtr CreateFileW(string filename, FileAccess access, FileShare share, IntPtr securityAttributes, FileMode creationDisposition, FileAttributes flagsAndAttributes, IntPtr templateFile);
 
     /// <summary>
+    /// Closes an open object handle.
+    /// </summary>
+    /// <param name="hObject">A valid handle to an open object.</param>
+    /// <returns>If the function succeeds, the return value is nonzero.</returns>
+    [DllImport("kernel32.dll")]
+    public static extern IntPtr CloseHandle(IntPtr hObject);
+    
+    /// <summary>
     /// The OBJECT_ATTRIBUTES structure specifies attributes that can be applied to objects or object
     /// handles by routines that create objects and/or return handles to objects.
     /// </summary>

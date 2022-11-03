@@ -10,6 +10,7 @@ using FileEmulationFramework.Lib;
 using FileEmulationFramework.Structs;
 using Reloaded.Hooks.Definitions.Enums;
 using IReloadedHooks = Reloaded.Hooks.ReloadedII.Interfaces.IReloadedHooks;
+using Native = FileEmulationFramework.Lib.Utilities.Native;
 
 namespace FileEmulationFramework;
 
@@ -26,6 +27,8 @@ public static unsafe class FileAccessServer
     private static List<IEmulator> _emulators { get; set; } = new();
     
     private static readonly Dictionary<IntPtr, FileInformation> _handleToInfoMap = new();
+    private static readonly Dictionary<string, FileInformation> _pathToVirtualFileMap = new(StringComparer.OrdinalIgnoreCase);
+    
     private static readonly object _threadLock = new();
     private static IHook<NtCreateFileFn> _createFileHook = null!;
     private static IHook<NtReadFileFn> _readFileHook = null!;
@@ -243,7 +246,15 @@ public static unsafe class FileAccessServer
 
                 _logger.Debug("[FileAccessServer] Accessing: {0}, {1}, Route: {2}", hndl, newFilePath, _currentRoute.FullPath);
 
-                // Try Accept New File
+                // Try Accept New File (virtual override)
+                if (_pathToVirtualFileMap.TryGetValue(newFilePath, out var fileInfo))
+                {
+                    // Reuse of emulated file (backed by stream) is safe because file access is single threaded.
+                    _handleToInfoMap[hndl] = new(fileInfo.FilePath, 0, fileInfo.File);
+                    return ntStatus;
+                }
+
+                // Try accept new file (emulator)
                 for (var x = 0; x < _emulators.Count; x++)
                 {
                     var emulator = _emulators[x];
@@ -278,5 +289,12 @@ public static unsafe class FileAccessServer
     
     // PUBLIC API
     internal static void AddEmulator(IEmulator emulator) => _emulators.Add(emulator);
-    internal static void RegisterVirtualFile(string filePath, Stream stream) => throw new NotImplementedException();
+    internal static void RegisterVirtualFile(string filePath, IEmulatedFile file)
+    {
+        var info = new FileInformation(filePath, 0, file);
+        
+        // Create dummy file
+        Native.CloseHandle(Native.CreateFileW(filePath, FileAccess.ReadWrite, FileShare.ReadWrite, IntPtr.Zero, FileMode.Create, FileAttributes.Normal, IntPtr.Zero));
+        _pathToVirtualFileMap[filePath] = info;
+    }
 }
