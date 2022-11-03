@@ -1,10 +1,8 @@
-﻿using System.Diagnostics;
-using FileEmulationFramework.Lib.Utilities;
+﻿using FileEmulationFramework.Lib.Utilities;
 using FileEmulationFramework.Utilities;
 using Reloaded.Hooks.Definitions;
 using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
-using Reloaded.Memory.Pointers;
 using static FileEmulationFramework.Lib.Utilities.Native;
 using static FileEmulationFramework.Utilities.Native;
 using FileEmulationFramework.Interfaces;
@@ -21,7 +19,12 @@ namespace FileEmulationFramework;
 public static unsafe class FileAccessServer
 {
     private static Logger _logger = null!;
-
+    
+    /// <summary>
+    /// The emulators currently held by the framework.
+    /// </summary>
+    private static List<IEmulator> _emulators { get; set; } = new();
+    
     private static readonly Dictionary<IntPtr, FileInformation> _handleToInfoMap = new();
     private static readonly object _threadLock = new();
     private static IHook<NtCreateFileFn> _createFileHook = null!;
@@ -53,7 +56,7 @@ public static unsafe class FileAccessServer
         // We need to cook some assembly for NtClose, because Native->Managed
         // transition can invoke thread setup code which will call CloseHandle again
         // and that will lead to infinite recursion
-        var utilities = hooks.Utilities;
+        var utilities = hooks!.Utilities;
         var getFileTypeAddr = functions.GetFileType.Address;
         var closeHandleCallbackAddr = (long)utilities.GetFunctionPointer(typeof(FileAccessServer), nameof(CloseHandleCallback));
         
@@ -127,7 +130,7 @@ public static unsafe class FileAccessServer
         if (!_handleToInfoMap.Remove(hfile, out var value)) 
             return;
         
-        value.Emulator.CloseHandle(hfile, value);
+        value.File.CloseHandle(hfile, value);
         _logger.Debug("[FileAccessServer] Closed emulated handle: {0}, File: {1}", hfile, value.FilePath);
     }
     
@@ -142,7 +145,7 @@ public static unsafe class FileAccessServer
 
             var information = (FILE_STANDARD_INFORMATION*)fileInformation;
             var oldSize = information->EndOfFile;
-            var newSize = info.Emulator.GetFileSize(hfile, info);
+            var newSize = info.File.GetFileSize(hfile, info);
             if (newSize != -1)
                 information->EndOfFile = newSize;
 
@@ -187,7 +190,7 @@ public static unsafe class FileAccessServer
             if (_logger.IsEnabled(LogSeverity.Debug))
                 _logger.Debug($"[FileAccessServer] Read Request, Buffer: {(long)buffer:X}, Length: {length}, Offset: {requestedOffset}");
 
-            bool result = info.Emulator.ReadData(handle, buffer, length, requestedOffset, info, out var numReadBytes);
+            bool result = info.File.ReadData(handle, buffer, length, requestedOffset, info, out var numReadBytes);
             if (result)
             {
                 _logger.Debug("[FileAccessServer] Read Success, Length: {0}, Offset: {1}", numReadBytes, requestedOffset);
@@ -241,13 +244,13 @@ public static unsafe class FileAccessServer
                 _logger.Debug("[FileAccessServer] Accessing: {0}, {1}, Route: {2}", hndl, newFilePath, _currentRoute.FullPath);
 
                 // Try Accept New File
-                for (var x = 0; x < _emulationFramework.Emulators.Count; x++)
+                for (var x = 0; x < _emulators.Count; x++)
                 {
-                    var emulator = _emulationFramework.Emulators[x];
-                    if (!emulator.TryCreateFile(hndl, newFilePath, currentRoute.FullPath))
+                    var emulator = _emulators[x];
+                    if (!emulator.TryCreateFile(hndl, newFilePath, currentRoute.FullPath, out var emulatedFile))
                         continue;
 
-                    _handleToInfoMap[hndl] = new(newFilePath, 0, emulator);
+                    _handleToInfoMap[hndl] = new(newFilePath, 0, emulatedFile);
                     return ntStatus;
                 }
                 
@@ -272,4 +275,8 @@ public static unsafe class FileAccessServer
         _ntQueryInformationFile.Value.Invoke(hndl, &statusBlock, (byte*)&fileInfo, (uint)sizeof(FILE_STANDARD_INFORMATION), FileInformationClass.FileStandardInformation);
         return fileInfo.Directory;
     }
+    
+    // PUBLIC API
+    internal static void AddEmulator(IEmulator emulator) => _emulators.Add(emulator);
+    internal static void RegisterVirtualFile(string filePath, Stream stream) => throw new NotImplementedException();
 }

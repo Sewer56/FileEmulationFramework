@@ -1,6 +1,7 @@
 ﻿using AWB.Stream.Emulator.Awb;
 using AwbLib.Utilities;
 using FileEmulationFramework.Interfaces;
+using FileEmulationFramework.Interfaces.Reference;
 using FileEmulationFramework.Lib.IO;
 using FileEmulationFramework.Lib.Utilities;
 
@@ -19,11 +20,10 @@ public class AwbEmulator : IEmulator
     /// <summary>
     /// Event that is fired when a stream is created, before redirection kicks in.
     /// </summary>
-    public event Action<IntPtr, MultiStream> OnStreamCreated;
+    public event Action<IntPtr, MultiStream>? OnStreamCreated;
     
     // Note: Handle->Stream exists because hashing IntPtr is easier; thus can resolve reads faster.
     private readonly AwbBuilderFactory _builderFactory = new();
-    private Dictionary<IntPtr, MultiStream> _handleToStream = new();
     private readonly Dictionary<string, MultiStream?> _pathToStream = new(StringComparer.OrdinalIgnoreCase);
     private Logger _log;
 
@@ -33,18 +33,17 @@ public class AwbEmulator : IEmulator
         DumpFiles = dumpFiles;
     }
 
-    public string Folder => Constants.RedirectorFolder;
-
-    public bool TryCreateFile(IntPtr handle, string filepath, string route)
+    public bool TryCreateFile(IntPtr handle, string filepath, string route, out IEmulatedFile emulated)
     {
         // Check if we already made a custom AWB for this file.
+        emulated = null!;
         if (_pathToStream.TryGetValue(filepath, out var multiStream))
         {
             // Avoid recursion into same file.
             if (multiStream == null)
                 return false;
 
-            _handleToStream[handle] = multiStream;
+            emulated = new EmulatedFile<MultiStream>(multiStream);
             return true;
         }
 
@@ -65,28 +64,15 @@ public class AwbEmulator : IEmulator
         _pathToStream[filepath] = null; // Avoid recursion into same file.
 
         var stream = builder!.Build(handle, filepath, _log);
-        OnStreamCreated(handle, stream);
+        OnStreamCreated?.Invoke(handle, stream);
         _pathToStream[filepath] = stream;
-        _handleToStream[handle] = stream;
+        emulated = new EmulatedFile<MultiStream>(stream);
 
         if (DumpFiles)
             DumpFile(filepath, stream);
 
         return true;
     }
-
-    public long GetFileSize(IntPtr handle, IFileInformation info) => _handleToStream[handle].Length;
-
-    public unsafe bool ReadData(IntPtr handle, byte* buffer, uint length, long offset, IFileInformation info, out int numReadBytes)
-    {
-        var stream     = _handleToStream[handle];
-        var bufferSpan = new Span<byte>(buffer, (int)length);
-        stream.Seek(offset, SeekOrigin.Begin);
-        stream.TryRead(bufferSpan, out numReadBytes);
-        return numReadBytes > 0;
-    }
-
-    public void CloseHandle(IntPtr handle, IFileInformation info) => _handleToStream.Remove(handle);
 
     /// <summary>
     /// Called when a mod is being loaded.

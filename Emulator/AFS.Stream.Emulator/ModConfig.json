@@ -2,7 +2,7 @@
   "ModId": "reloaded.universal.fileemulationframework.afs",
   "ModName": "AFS Emulator for File Emulation Framework",
   "ModAuthor": "Sewer56",
-  "ModVersion": "1.1.5",
+  "ModVersion": "2.0.0",
   "ModDescription": "Simulates CRIWARE AFS files. Allows mods to add or replace existing files using files on disk.",
   "ModDll": "AFS.Stream.Emulator.dll",
   "ModIcon": "Preview.png",
