@@ -1,10 +1,8 @@
-﻿using System.Diagnostics;
-using FileEmulationFramework.Lib.Utilities;
+﻿using FileEmulationFramework.Lib.Utilities;
 using FileEmulationFramework.Utilities;
 using Reloaded.Hooks.Definitions;
 using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
-using Reloaded.Memory.Pointers;
 using static FileEmulationFramework.Lib.Utilities.Native;
 using static FileEmulationFramework.Utilities.Native;
 using FileEmulationFramework.Interfaces;
@@ -21,7 +19,12 @@ namespace FileEmulationFramework;
 public static unsafe class FileAccessServer
 {
     private static Logger _logger = null!;
-
+    
+    /// <summary>
+    /// The emulators currently held by the framework.
+    /// </summary>
+    private static List<IEmulator> _emulators { get; set; } = new();
+    
     private static readonly Dictionary<IntPtr, FileInformation> _handleToInfoMap = new();
     private static readonly object _threadLock = new();
     private static IHook<NtCreateFileFn> _createFileHook = null!;
@@ -241,9 +244,9 @@ public static unsafe class FileAccessServer
                 _logger.Debug("[FileAccessServer] Accessing: {0}, {1}, Route: {2}", hndl, newFilePath, _currentRoute.FullPath);
 
                 // Try Accept New File
-                for (var x = 0; x < _emulationFramework.Emulators.Count; x++)
+                for (var x = 0; x < _emulators.Count; x++)
                 {
-                    var emulator = _emulationFramework.Emulators[x];
+                    var emulator = _emulators[x];
                     if (!emulator.TryCreateFile(hndl, newFilePath, currentRoute.FullPath))
                         continue;
 
@@ -272,4 +275,8 @@ public static unsafe class FileAccessServer
         _ntQueryInformationFile.Value.Invoke(hndl, &statusBlock, (byte*)&fileInfo, (uint)sizeof(FILE_STANDARD_INFORMATION), FileInformationClass.FileStandardInformation);
         return fileInfo.Directory;
     }
+    
+    // PUBLIC API
+    internal static void AddEmulator(IEmulator emulator) => _emulators.Add(emulator);
+    internal static void RegisterVirtualFile(string filePath, Stream stream) => throw new NotImplementedException();
 }
