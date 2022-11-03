@@ -1,6 +1,7 @@
 ﻿using AWB.Stream.Emulator.Acb.Utilities;
 using AWB.Stream.Emulator.Awb;
 using FileEmulationFramework.Interfaces;
+using FileEmulationFramework.Interfaces.Reference;
 using FileEmulationFramework.Lib.IO;
 using FileEmulationFramework.Lib.Utilities;
 using Microsoft.Win32.SafeHandles;
@@ -17,7 +18,6 @@ public class AcbPatcherEmulator : IEmulator
     private readonly IScannerFactory _scannerFac;
     
     private readonly Dictionary<ulong, AcbPatcherEntry> _headerHashToHeader = new();
-    private Dictionary<IntPtr, MemoryStream> _handleToStream = new();
     private readonly Dictionary<string, MemoryStream?> _pathToStream = new(StringComparer.OrdinalIgnoreCase);
     private bool _checkAcbExtension = false;
     
@@ -40,18 +40,17 @@ public class AcbPatcherEmulator : IEmulator
         _headerHashToHeader[hash] = AcbPatcherEntry.FromAwbStream(newAwbStream);
     }
 
-    public string Folder { get; } = "";
-
-    public unsafe bool TryCreateFile(IntPtr handle, string filepath, string route)
+    public unsafe bool TryCreateFile(IntPtr handle, string filepath, string route, out IEmulatedFile emulatedFile)
     {
         // Check if we already made a custom ACB for this file.
+        emulatedFile = null!;
         if (_pathToStream.TryGetValue(filepath, out var multiStream))
         {
             // Avoid recursion into same file.
             if (multiStream == null)
                 return false;
 
-            _handleToStream[handle] = multiStream;
+            emulatedFile = new EmulatedFile<MemoryStream>(multiStream);
             return true;
         }
 
@@ -123,20 +122,7 @@ public class AcbPatcherEmulator : IEmulator
         }
         
         _pathToStream[filepath] = stream;
-        _handleToStream[handle] = stream;
+        emulatedFile = new EmulatedFile<MemoryStream>(stream);
         return true;
     }
-
-    public long GetFileSize(IntPtr handle, IFileInformation info) => _handleToStream[handle].Length;
-
-    public unsafe bool ReadData(IntPtr handle, byte* buffer, uint length, long offset, IFileInformation info, out int numReadBytes)
-    {
-        var stream     = _handleToStream[handle];
-        var bufferSpan = new Span<byte>(buffer, (int)length);
-        stream.Seek(offset, SeekOrigin.Begin);
-        stream.TryRead(bufferSpan, out numReadBytes);
-        return numReadBytes > 0;
-    }
-
-    public void CloseHandle(IntPtr handle, IFileInformation info) => _handleToStream.Remove(handle);
 }

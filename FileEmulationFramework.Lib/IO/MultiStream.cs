@@ -6,7 +6,7 @@ namespace FileEmulationFramework.Lib.IO;
 /// <summary>
 /// A stream type that concatenates multiple external streams into one.
 /// </summary>
-public class MultiStream : Stream
+public sealed class MultiStream : Stream
 {
     private readonly Logger? _log;
 

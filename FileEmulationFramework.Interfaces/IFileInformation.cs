@@ -16,7 +16,7 @@ public interface IFileInformation
     long FileOffset { get; }
 
     /// <summary>
-    /// The emulator associated with this file.
+    /// The emulated file.
     /// </summary>
-    IEmulator Emulator { get; }
+    IEmulatedFile File { get; }
 }

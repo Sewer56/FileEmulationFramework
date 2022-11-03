@@ -56,7 +56,7 @@ public static unsafe class FileAccessServer
         // We need to cook some assembly for NtClose, because Native->Managed
         // transition can invoke thread setup code which will call CloseHandle again
         // and that will lead to infinite recursion
-        var utilities = hooks.Utilities;
+        var utilities = hooks!.Utilities;
         var getFileTypeAddr = functions.GetFileType.Address;
         var closeHandleCallbackAddr = (long)utilities.GetFunctionPointer(typeof(FileAccessServer), nameof(CloseHandleCallback));
         
@@ -130,7 +130,7 @@ public static unsafe class FileAccessServer
         if (!_handleToInfoMap.Remove(hfile, out var value)) 
             return;
         
-        value.Emulator.CloseHandle(hfile, value);
+        value.File.CloseHandle(hfile, value);
         _logger.Debug("[FileAccessServer] Closed emulated handle: {0}, File: {1}", hfile, value.FilePath);
     }
     
@@ -145,7 +145,7 @@ public static unsafe class FileAccessServer
 
             var information = (FILE_STANDARD_INFORMATION*)fileInformation;
             var oldSize = information->EndOfFile;
-            var newSize = info.Emulator.GetFileSize(hfile, info);
+            var newSize = info.File.GetFileSize(hfile, info);
             if (newSize != -1)
                 information->EndOfFile = newSize;
 
@@ -190,7 +190,7 @@ public static unsafe class FileAccessServer
             if (_logger.IsEnabled(LogSeverity.Debug))
                 _logger.Debug($"[FileAccessServer] Read Request, Buffer: {(long)buffer:X}, Length: {length}, Offset: {requestedOffset}");
 
-            bool result = info.Emulator.ReadData(handle, buffer, length, requestedOffset, info, out var numReadBytes);
+            bool result = info.File.ReadData(handle, buffer, length, requestedOffset, info, out var numReadBytes);
             if (result)
             {
                 _logger.Debug("[FileAccessServer] Read Success, Length: {0}, Offset: {1}", numReadBytes, requestedOffset);
@@ -247,10 +247,10 @@ public static unsafe class FileAccessServer
                 for (var x = 0; x < _emulators.Count; x++)
                 {
                     var emulator = _emulators[x];
-                    if (!emulator.TryCreateFile(hndl, newFilePath, currentRoute.FullPath))
+                    if (!emulator.TryCreateFile(hndl, newFilePath, currentRoute.FullPath, out var emulatedFile))
                         continue;
 
-                    _handleToInfoMap[hndl] = new(newFilePath, 0, emulator);
+                    _handleToInfoMap[hndl] = new(newFilePath, 0, emulatedFile);
                     return ntStatus;
                 }
                 

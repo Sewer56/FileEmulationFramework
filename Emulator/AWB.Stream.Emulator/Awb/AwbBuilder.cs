@@ -47,8 +47,8 @@ public class AwbBuilder
     /// <param name="filePath">Full path to the file.</param>
     public void AddOrReplaceFile(int index, string filePath)
     {
-        if (index > long.MaxValue)
-            ThrowHelpers.Argument($"Attempted to add file with index > {index}, this is not supported by the AWB container.");
+        if (index > int.MaxValue)
+            ThrowHelpers.Argument($"Attempted to add file with index > {int.MaxValue}, this is not supported by the AWB emulator.");
 
         _customFiles[index] = new(filePath);
     }
@@ -174,8 +174,6 @@ public class AwbBuilder
         // Add size of all files.
         for (int x = 0; x < numFiles; x++)
         {
-            long lengthWithPadding = 0;
-            
             // Sourced from custom file, else sourced from original.
             if (_customFiles.TryGetValue(x, out var overwrittenFile))
                 fileSize += Mathematics.RoundUp(overwrittenFile.Length, AwbAlignment);
@@ -213,7 +211,7 @@ public class AwbBuilder
             if (!AwbHeaderReader.TryReadHeader(stream, out var headerBytes))
                 ThrowHelpers.IO("Failed to read original AWB header .");
 
-            fixed (byte* ptr = &headerBytes[0])
+            fixed (byte* ptr = &headerBytes![0])
             {
                 var viewer = AwbViewer.FromMemory(ptr);
                 var entries = GC.AllocateUninitializedArray<FileEntry>(viewer.FileCount);
