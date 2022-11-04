@@ -1,4 +1,6 @@
-﻿namespace AWB.Stream.Emulator.Interfaces;
+﻿using AWB.Stream.Emulator.Interfaces.Structures.IO;
+
+namespace AWB.Stream.Emulator.Interfaces;
 
 /// <summary>
 /// APIs exposed by AWB Emulator.
@@ -13,4 +15,9 @@ public interface IAwbEmulator
     /// <param name="route">The route of the emulated file.</param>
     /// <param name="destinationPath">Path to where the emulated file should be put.</param>
     public bool TryCreateFromFileSlice(string sourcePath, long offset, string route, string destinationPath);
+
+    /// <summary>
+    /// Gets the list of input files from other mods fed into the emulator.
+    /// </summary>
+    public RouteGroupTuple[] GetEmulatorInput();
 }

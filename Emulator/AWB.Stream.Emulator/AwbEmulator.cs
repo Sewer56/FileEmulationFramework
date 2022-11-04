@@ -111,4 +111,6 @@ public class AwbEmulator : IEmulator
         stream.CopyTo(fileStream);
         _log.Info($"Written To {filePath}");
     }
+
+    internal List<RouteGroupTuple> GetInput() => _builderFactory.RouteGroupTuples;
 }

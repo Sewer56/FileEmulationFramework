@@ -5,7 +5,7 @@ namespace AWB.Stream.Emulator.Awb;
 
 public class AwbBuilderFactory
 {
-    private List<RouteGroupTuple> _routeGroupTuples = new();
+    internal List<RouteGroupTuple> RouteGroupTuples = new();
 
     /// <summary>
     /// Adds all available routes from folders.
@@ -24,7 +24,7 @@ public class AwbBuilderFactory
 
             var route = Route.GetRoute(redirectorFolder, group.Directory.FullPath);
 
-            _routeGroupTuples.Add(new RouteGroupTuple()
+            RouteGroupTuples.Add(new RouteGroupTuple()
             {
                 Route = new Route(route),
                 Files = group
@@ -42,7 +42,7 @@ public class AwbBuilderFactory
     {
         builder = default;
         var route = new Route(path);
-        foreach (var group in _routeGroupTuples)
+        foreach (var group in RouteGroupTuples)
         {
             if (!route.Matches(group.Route.FullPath))
                 continue;

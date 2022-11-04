@@ -1,5 +1,6 @@
 ﻿using System.Runtime.InteropServices;
 using AWB.Stream.Emulator.Interfaces;
+using AWB.Stream.Emulator.Interfaces.Structures.IO;
 using FileEmulationFramework.Interfaces;
 using FileEmulationFramework.Lib.Utilities;
 
@@ -41,5 +42,31 @@ public class AwbEmulatorApi : IAwbEmulator
         
         _framework.RegisterVirtualFile(destinationPath, emulated);
         return true;
+    }
+
+    public RouteGroupTuple[] GetEmulatorInput()
+    {
+        // Map input to API.
+        var input = _awbEmulator.GetInput();
+        var result = GC.AllocateUninitializedArray<RouteGroupTuple>(input.Count);
+        for (int x = 0; x < result.Length; x++)
+        {
+            var original = input[x];
+            result[x] = new RouteGroupTuple()
+            {
+                Route = original.Route.FullPath,
+                Files = new DirectoryFilesGroup()
+                {
+                    Files = original.Files.Files,
+                    Directory = new DirectoryInformation()
+                    {
+                        FullPath = original.Files.Directory.FullPath,
+                        LastWriteTime = original.Files.Directory.LastWriteTime
+                    }
+                }
+            };
+        }
+
+        return result;
     }
 }
