@@ -1,3 +1,8 @@
+# 2.0.0
+
+- Improved: Performance by a few nanoseconds per read.  
+- Added: `RegisterVirtualFile` API for creating files with custom path backed by custom data.  
+
 # 1.1.3
 
 - Changed: Use Thread Local buffer for Symlink Resolution to avoid potential stack overflow.  
