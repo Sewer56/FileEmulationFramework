@@ -1,6 +1,7 @@
 ﻿using System.Diagnostics;
 using System.Runtime.CompilerServices;
 using AWB.Stream.Emulator.Acb;
+using AWB.Stream.Emulator.Interfaces;
 using AWB.Stream.Emulator.Template;
 using FileEmulationFramework.Interfaces;
 using FileEmulationFramework.Lib.Utilities;
@@ -14,7 +15,7 @@ namespace AWB.Stream.Emulator;
 /// <summary>
 /// Your mod logic goes here.
 /// </summary>
-public class Mod : ModBase // <= Do not Remove.
+public class Mod : ModBase, IExports // <= Do not Remove.
 {
     /// <summary>
     /// Provides access to the mod loader API.
@@ -72,6 +73,9 @@ public class Mod : ModBase // <= Do not Remove.
         _modLoader.GetController<IScannerFactory>().TryGetTarget(out var factory);
         _acbEmulator = new AcbPatcherEmulator(_awbEmulator, _log, factory!, _configuration.CheckAcbExtension);
         framework!.Register(_acbEmulator);
+        
+        // Expose API
+        _modLoader.AddOrReplaceController<IAwbEmulator>(context.Owner, new AwbEmulatorApi(framework, _awbEmulator, _log));
     }
     
     private void OnModLoaderInitialized()
@@ -100,4 +104,7 @@ public class Mod : ModBase // <= Do not Remove.
     public Mod() { }
 #pragma warning restore CS8618
     #endregion
+
+    /// <inheritdoc/>
+    public Type[] GetTypes() => new[] { typeof(IAwbEmulator) };
 }

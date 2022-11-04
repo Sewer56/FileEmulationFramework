@@ -50,6 +50,7 @@
   <ItemGroup>
     <ProjectReference Include="..\..\FileEmulationFramework.Interfaces\FileEmulationFramework.Interfaces.csproj" />
     <ProjectReference Include="..\..\FileEmulationFramework.Lib\FileEmulationFramework.Lib.csproj" />
+    <ProjectReference Include="..\Interfaces\AWB.Stream.Emulator.Interfaces\AWB.Stream.Emulator.Interfaces.csproj" />
   </ItemGroup>
 
 </Project>

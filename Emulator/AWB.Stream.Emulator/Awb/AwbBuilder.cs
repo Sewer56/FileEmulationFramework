@@ -60,7 +60,7 @@ public class AwbBuilder
         logger?.Info($"[{nameof(AwbBuilder)}] Building AWB File | {{0}}", filepath);
         
         // Get original file's entries.
-        var entries = GetEntriesFromOriginalFile(handle, out var subKey);
+        var entries = GetEntriesFromOriginalFile(handle, out var existingFilePos, out var subKey);
         var maxFileNo = entries.Keys.Max() + 1;
         
         // Maximum ID of AWB file.
@@ -135,7 +135,7 @@ public class AwbBuilder
                 length = (int)existingFile.Length;
                 lengthWithPadding = Mathematics.RoundUp(length, AwbAlignment);
 
-                var originalEntry = new FileSlice(existingFile.Position, lengthWithPadding, filepath);
+                var originalEntry = new FileSlice(existingFile.Position + existingFilePos, lengthWithPadding, filepath);
                 var stream = new FileSliceStreamW32(originalEntry, logger);
                 mergeAbleStreams.Add(new(stream, OffsetRange.FromStartAndLength(currentOffset, lengthWithPadding)));
             }
@@ -202,10 +202,10 @@ public class AwbBuilder
     /// Reads in the entries from the original AWB file.
     /// </summary>
     /// <returns>Dictionary of original file ID to entry.</returns>
-    private unsafe Dictionary<int, FileEntry> GetEntriesFromOriginalFile(IntPtr handle, out short encryptionKey)
+    private unsafe Dictionary<int, FileEntry> GetEntriesFromOriginalFile(IntPtr handle, out long existingFilePos, out short encryptionKey)
     {
         var stream = new FileStream(new SafeFileHandle(handle, false), FileAccess.Read);
-        var pos = stream.Position;
+        existingFilePos = stream.Position;
         try
         {
             if (!AwbHeaderReader.TryReadHeader(stream, out var headerBytes))
@@ -228,7 +228,7 @@ public class AwbBuilder
         finally
         {
             stream.Dispose();
-            Native.SetFilePointerEx(handle, pos, IntPtr.Zero, 0);
+            Native.SetFilePointerEx(handle, existingFilePos, IntPtr.Zero, 0);
         }
     }
 }

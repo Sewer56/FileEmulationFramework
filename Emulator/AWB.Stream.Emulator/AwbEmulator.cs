@@ -51,9 +51,25 @@ public class AwbEmulator : IEmulator
         if (!filepath.EndsWith(Constants.AwbExtension, StringComparison.OrdinalIgnoreCase))
             return false;
 
+        if (!TryCreateEmulatedFile(handle, filepath, filepath, filepath, ref emulated)) 
+            return false;
+
+        return true;
+    }
+
+    /// <summary>
+    /// Tries to create an emulated file from a given file handle.
+    /// </summary>
+    /// <param name="handle">Handle of the file where the data is sourced from.</param>
+    /// <param name="srcDataPath">Path of the file where the handle refers to.</param>
+    /// <param name="route">The route of the emulated file, for builder to pick up.</param>
+    /// <param name="emulated">The emulated file.</param>
+    /// <returns></returns>
+    public bool TryCreateEmulatedFile(IntPtr handle, string srcDataPath, string outputPath, string route, ref IEmulatedFile emulated)
+    {
         // Check if there's a known route for this file
         // Put this before actual file check because I/O.
-        if (!_builderFactory.TryCreateFromPath(filepath, out var builder))
+        if (!_builderFactory.TryCreateFromPath(route, out var builder))
             return false;
 
         // Check file type.
@@ -61,16 +77,16 @@ public class AwbEmulator : IEmulator
             return false;
 
         // Make the AFS file.
-        _pathToStream[filepath] = null; // Avoid recursion into same file.
+        _pathToStream[outputPath] = null; // Avoid recursion into same file.
 
-        var stream = builder!.Build(handle, filepath, _log);
+        var stream = builder!.Build(handle, srcDataPath, _log);
         OnStreamCreated?.Invoke(handle, stream);
-        _pathToStream[filepath] = stream;
+        _pathToStream[outputPath] = stream;
         emulated = new EmulatedFile<MultiStream>(stream);
 
         if (DumpFiles)
-            DumpFile(filepath, stream);
-
+            DumpFile(outputPath, stream);
+        
         return true;
     }
 

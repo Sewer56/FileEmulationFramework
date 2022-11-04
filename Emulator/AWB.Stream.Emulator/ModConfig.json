@@ -65,7 +65,8 @@
   "OptionalDependencies": [],
   "SupportedAppId": [
     "bayonetta.exe",
-    "p5r.exe"
+    "p5r.exe",
+    "p4g.exe"
   ],
   "ProjectUrl": "https://sewer56.dev/FileEmulationFramework/"
 }
