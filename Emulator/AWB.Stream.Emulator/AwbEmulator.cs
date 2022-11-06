@@ -62,6 +62,7 @@ public class AwbEmulator : IEmulator
     /// </summary>
     /// <param name="handle">Handle of the file where the data is sourced from.</param>
     /// <param name="srcDataPath">Path of the file where the handle refers to.</param>
+    /// <param name="outputPath">Path where the emulated file is stored.</param>
     /// <param name="route">The route of the emulated file, for builder to pick up.</param>
     /// <param name="emulated">The emulated file.</param>
     /// <returns></returns>
