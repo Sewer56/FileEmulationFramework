@@ -19,5 +19,11 @@ public interface IEmulationFramework
     /// <param name="filePath">Path to the file to be registered.</param>
     /// <param name="emulated">The stream from which the data for this file will be sourced.</param>
     /// <remarks>If file already exists, it will be overwritten.</remarks>
-    public void RegisterVirtualFile(string filePath, IEmulatedFile emulated);
+    public void RegisterVirtualFile(string filePath, IEmulatedFile emulate);
+    
+    /// <summary>
+    /// Unregisters a virtual file registered with <see cref="RegisterVirtualFile"/>.
+    /// </summary>
+    /// <param name="filePath">Path to the file to be unregistered.</param>
+    public void UnregisterVirtualFile(string filePath);
 }

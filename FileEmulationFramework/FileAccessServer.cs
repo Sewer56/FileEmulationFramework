@@ -297,4 +297,11 @@ public static unsafe class FileAccessServer
         Native.CloseHandle(Native.CreateFileW(filePath, FileAccess.ReadWrite, FileShare.ReadWrite, IntPtr.Zero, FileMode.Create, FileAttributes.Normal, IntPtr.Zero));
         _pathToVirtualFileMap[filePath] = info;
     }
+
+    public static void UnregisterVirtualFile(string filePath)
+    {
+        _pathToVirtualFileMap.Remove(filePath);
+        try { File.Delete(filePath); }
+        catch (Exception) { }
+    }
 }
