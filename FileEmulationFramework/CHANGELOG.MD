@@ -1,3 +1,7 @@
+# 2.1.0
+
+- Added: `UnregisterVirtualFile` for unregistering files [untested].  
+
 # 2.0.0
 
 - Improved: Performance by a few nanoseconds per read.  

@@ -1,3 +1,7 @@
+# 2.1.0
+
+- Added: `InvalidateFile` for unregistering files made with `TryCreateFromFileSlice`.  
+
 # 2.0.0
 
 - Improved: Performance by a few nanoseconds per read.  
