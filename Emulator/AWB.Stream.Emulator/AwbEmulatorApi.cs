@@ -1,4 +1,5 @@
 ﻿using System.Runtime.InteropServices;
+using AWB.Stream.Emulator.Acb;
 using AWB.Stream.Emulator.Interfaces;
 using AWB.Stream.Emulator.Interfaces.Structures.IO;
 using FileEmulationFramework.Interfaces;
@@ -13,12 +14,14 @@ public class AwbEmulatorApi : IAwbEmulator
 {
     private readonly IEmulationFramework _framework;
     private readonly AwbEmulator _awbEmulator;
+    private readonly AcbPatcherEmulator _acbEmulator;
     private readonly Logger _logger;
 
-    public AwbEmulatorApi(IEmulationFramework framework, AwbEmulator awbEmulator, Logger logger)
+    public AwbEmulatorApi(IEmulationFramework framework, AwbEmulator awbEmulator, AcbPatcherEmulator acbEmulator, Logger logger)
     {
         _framework = framework;
         _awbEmulator = awbEmulator;
+        _acbEmulator = acbEmulator;
         _logger = logger;
     }
 
@@ -42,6 +45,13 @@ public class AwbEmulatorApi : IAwbEmulator
         
         _framework.RegisterVirtualFile(destinationPath, emulated);
         return true;
+    }
+
+    public void InvalidateFile(string awbPath)
+    {
+        _awbEmulator.UnregisterFile(awbPath);
+        _acbEmulator.UnregisterFile(awbPath);
+        _framework.UnregisterVirtualFile(awbPath);
     }
 
     public RouteGroupTuple[] GetEmulatorInput()

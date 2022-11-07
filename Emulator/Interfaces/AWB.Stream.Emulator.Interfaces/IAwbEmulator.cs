@@ -17,6 +17,12 @@ public interface IAwbEmulator
     public bool TryCreateFromFileSlice(string sourcePath, long offset, string route, string destinationPath);
 
     /// <summary>
+    /// Invalidates a file, i.e. unregisters it, will be recreated on next access.
+    /// </summary>
+    /// <param name="awbPath">Path of the AWB file.</param>
+    public void InvalidateFile(string awbPath);
+    
+    /// <summary>
     /// Gets the list of input files from other mods fed into the emulator.
     /// </summary>
     public RouteGroupTuple[] GetEmulatorInput();

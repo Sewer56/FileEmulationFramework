@@ -27,11 +27,17 @@ public struct AcbPatcherEntry
     public int DataLength;
 
     /// <summary>
+    /// Path of the AWB file tied to this ACB entry.
+    /// </summary>
+    public string AwbPath;
+
+    /// <summary>
     /// Creates a patcher entry from the stream.
     /// </summary>
     /// <param name="stream">Stream that starts with AWB header. Stream is not advanced.</param>
+    /// <param name="awbPath">Path of the AWB file tied to this patcher entry.</param>
     /// <returns>The entry to the ACB Patcher.</returns>
-    public static AcbPatcherEntry FromAwbStream(System.IO.Stream stream)
+    public static AcbPatcherEntry FromAwbStream(System.IO.Stream stream, string awbPath)
     {
         var offset = stream.Position;
         var length = AwbHeaderReader.GetHeaderLength(stream);
@@ -39,7 +45,8 @@ public struct AcbPatcherEntry
         {
             Offset = (int)offset,
             DataLength = length,
-            Stream = stream
+            Stream = stream,
+            AwbPath = awbPath
         };
     }
 

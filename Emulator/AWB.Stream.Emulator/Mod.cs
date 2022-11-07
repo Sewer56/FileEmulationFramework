@@ -75,7 +75,7 @@ public class Mod : ModBase, IExports // <= Do not Remove.
         framework!.Register(_acbEmulator);
         
         // Expose API
-        _modLoader.AddOrReplaceController<IAwbEmulator>(context.Owner, new AwbEmulatorApi(framework, _awbEmulator, _log));
+        _modLoader.AddOrReplaceController<IAwbEmulator>(context.Owner, new AwbEmulatorApi(framework, _awbEmulator, _acbEmulator, _log));
     }
     
     private void OnModLoaderInitialized()

@@ -20,7 +20,7 @@ public class AwbEmulator : IEmulator
     /// <summary>
     /// Event that is fired when a stream is created, before redirection kicks in.
     /// </summary>
-    public event Action<IntPtr, MultiStream>? OnStreamCreated;
+    public event Action<IntPtr, string, MultiStream>? OnStreamCreated;
     
     // Note: Handle->Stream exists because hashing IntPtr is easier; thus can resolve reads faster.
     private readonly AwbBuilderFactory _builderFactory = new();
@@ -81,7 +81,7 @@ public class AwbEmulator : IEmulator
         _pathToStream[outputPath] = null; // Avoid recursion into same file.
 
         var stream = builder!.Build(handle, srcDataPath, _log);
-        OnStreamCreated?.Invoke(handle, stream);
+        OnStreamCreated?.Invoke(handle, outputPath, stream);
         _pathToStream[outputPath] = stream;
         emulated = new EmulatedFile<MultiStream>(stream);
 
@@ -102,6 +102,12 @@ public class AwbEmulator : IEmulator
         if (Directory.Exists(redirectorFolder))
             _builderFactory.AddFromFolders(redirectorFolder);
     }
+
+    /// <summary>
+    /// Invalidates an AWB file with a specified name.
+    /// </summary>
+    /// <param name="awbPath">Full path to the file.</param>
+    public void UnregisterFile(string awbPath) => _pathToStream.Remove(awbPath);
     
     private void DumpFile(string filepath, MultiStream stream)
     {

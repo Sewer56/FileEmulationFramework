@@ -19,6 +19,7 @@ public class AcbPatcherEmulator : IEmulator
     
     private readonly Dictionary<ulong, AcbPatcherEntry> _headerHashToHeader = new();
     private readonly Dictionary<string, MemoryStream?> _pathToStream = new(StringComparer.OrdinalIgnoreCase);
+    private readonly Dictionary<string, AwbToAcbEntry?> _awbToAcbMap = new(StringComparer.OrdinalIgnoreCase);
     private bool _checkAcbExtension = false;
     
     public AcbPatcherEmulator(AwbEmulator awbEmulator, Logger log, IScannerFactory scannerFactory, bool checkAcbExtension)
@@ -29,7 +30,7 @@ public class AcbPatcherEmulator : IEmulator
         awbEmulator.OnStreamCreated += OnAwbCreated;
     }
 
-    private void OnAwbCreated(IntPtr handle, MultiStream newAwbStream)
+    private void OnAwbCreated(IntPtr handle, string awbPath, MultiStream newAwbStream)
     {
         if (!AwbHeaderReader.TryHashHeader(handle, out var hash))
         {
@@ -37,7 +38,7 @@ public class AcbPatcherEmulator : IEmulator
             return;
         }
         
-        _headerHashToHeader[hash] = AcbPatcherEntry.FromAwbStream(newAwbStream);
+        _headerHashToHeader[hash] = AcbPatcherEntry.FromAwbStream(newAwbStream, awbPath);
     }
 
     public unsafe bool TryCreateFile(IntPtr handle, string filepath, string route, out IEmulatedFile emulatedFile)
@@ -88,7 +89,7 @@ public class AcbPatcherEmulator : IEmulator
                 if (!_headerHashToHeader.TryGetValue(hash, out var patcherEntry))
                 {
                     _log.Info("No AWB entry for ACB found {0}, gonna try opening file.", filepath);
-                    
+
                     // No entry to patch, some games can open ACB before AWB, so let's try open AWB if it exists.
                     var awbPath = Path.ChangeExtension(filepath, ".awb");
                     if (!File.Exists(awbPath))
@@ -113,6 +114,7 @@ public class AcbPatcherEmulator : IEmulator
                 // and they are large enough to exceed 64K granularity.
                 stream = new MemoryStream(data);
                 _log.Info("Overwritten ACB header in {0}", filepath);
+                _awbToAcbMap[patcherEntry.AwbPath] = new AwbToAcbEntry(filepath, hash);
             }
         }
         finally
@@ -125,4 +127,15 @@ public class AcbPatcherEmulator : IEmulator
         emulatedFile = new EmulatedFile<MemoryStream>(stream);
         return true;
     }
+
+    public void UnregisterFile(string awbPath)
+    {
+        if (!_awbToAcbMap.Remove(awbPath, out var mapEntry)) 
+            return;
+        
+        _pathToStream.Remove(mapEntry.Value.acbPath);
+        _headerHashToHeader.Remove(mapEntry.Value.hash);
+    }
+    
+    internal record struct AwbToAcbEntry(string acbPath, ulong hash);
 }
