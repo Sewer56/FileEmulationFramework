@@ -24,7 +24,7 @@ public unsafe class AcbPatcherTests
         originalStream.Position = 0;
 
         // Setup the necessary data for injection.
-        var entry   = AcbPatcherEntry.FromAwbStream(originalStream);
+        var entry   = AcbPatcherEntry.FromAwbStream(originalStream, Assets.AwbEmulatorSampleFile);
         var factory = new ScannerFactory();
         Assert.True(AwbHeaderReader.TryHashHeader(originalStream, out ulong hash));
         originalStream.Position = 0;
@@ -46,7 +46,7 @@ public unsafe class AcbPatcherTests
         originalStream.Position = 0;
 
         // Setup the necessary data for injection.
-        var entry   = AcbPatcherEntry.FromAwbStream(originalStream);
+        var entry   = AcbPatcherEntry.FromAwbStream(originalStream, Assets.AwbEmulatorSampleFile);
         var factory = new ScannerFactory();
         
         Assert.True(AwbHeaderReader.TryHashHeader(originalStream, out ulong hash));
@@ -70,7 +70,7 @@ public unsafe class AcbPatcherTests
         originalStream.Position = 0;
 
         // Setup the necessary data for injection.
-        var entry   = AcbPatcherEntry.FromAwbStream(originalStream);
+        var entry   = AcbPatcherEntry.FromAwbStream(originalStream, Assets.AwbEmulatorSampleFile);
         var factory = new ScannerFactory();
         
         Assert.True(AwbHeaderReader.TryHashHeader(originalStream, out ulong hash));
