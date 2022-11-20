@@ -84,9 +84,9 @@ public class AfsEmulator : IEmulator
     {
         var filePath = Path.GetFullPath($"{Constants.DumpFolder}/{Path.GetFileName(filepath)}");
         Directory.CreateDirectory(Constants.DumpFolder);
-        _log.Info($"Dumping {filepath}");
+        _log.Info($"[{nameof(AfsEmulator)}] Dumping {filepath}");
         using var fileStream = new FileStream(filePath, FileMode.Create);
         stream.CopyTo(fileStream);
-        _log.Info($"Written To {filePath}");
+        _log.Info($"[{nameof(AfsEmulator)}] Written To {filePath}");
     }
 }

@@ -1,3 +1,7 @@
+# 2.1.1
+
+- Added: Source to start of various log commands.  
+
 # 2.1.0
 
 - Added: `InvalidateFile` for unregistering files made with `TryCreateFromFileSlice`.  

@@ -1,3 +1,7 @@
+# 2.1.1
+
+- Added: Source to start of various log commands.  
+
 # 2.1.0
 
 - Added: `UnregisterVirtualFile` for unregistering files [untested].  

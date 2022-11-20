@@ -28,10 +28,11 @@ public class AwbEmulatorApi : IAwbEmulator
     /// <inheritdoc/>
     public bool TryCreateFromFileSlice(string sourcePath, long offset, string route, string destinationPath)
     {
+        _logger.Info("[AwbEmulatorApi] TryCreateFromFileSlice: {0}, Ofs {1}, Route {2}", sourcePath, offset, route);
         var handle = Native.CreateFileW(sourcePath, FileAccess.Read, FileShare.ReadWrite, IntPtr.Zero, FileMode.Open, FileAttributes.Normal, IntPtr.Zero);
         if (handle == new IntPtr(-1))
         {
-            _logger.Error("TryCreateFromFileSlice: Failed to open base file with Win32 Error: {0}, Path {1}", Marshal.GetLastWin32Error(), sourcePath);
+            _logger.Error("[AwbEmulatorApi] TryCreateFromFileSlice: Failed to open base file with Win32 Error: {0}, Path {1}", Marshal.GetLastWin32Error(), sourcePath);
             return false;
         }
 
@@ -39,10 +40,11 @@ public class AwbEmulatorApi : IAwbEmulator
         Native.SetFilePointerEx(handle, offset, IntPtr.Zero, 0);
         if (!_awbEmulator.TryCreateEmulatedFile(handle, sourcePath, destinationPath, route, ref emulated))
         {
-            _logger.Error("TryCreateFromFileSlice: Failed to Create Emulated File at Path {0}", sourcePath);
+            _logger.Error("[AwbEmulatorApi] TryCreateFromFileSlice: Failed to Create Emulated File at Path {0}", sourcePath);
             return false;
         }
         
+        _logger.Info("[AwbEmulatorApi] TryCreateFromFileSlice: Registering {0}", destinationPath);
         _framework.RegisterVirtualFile(destinationPath, emulated);
         return true;
     }

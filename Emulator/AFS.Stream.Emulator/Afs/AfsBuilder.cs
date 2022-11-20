@@ -46,7 +46,7 @@ public class AfsBuilder
     public void AddOrReplaceFile(int index, string filePath)
     {
         if (index > ushort.MaxValue)
-            ThrowHelpers.Argument($"Attempted to add file with index > {index}, this is not supported by the AFS container.");
+            ThrowHelpers.Argument($"[{nameof(AfsBuilder)}] Attempted to add file with index > {index}, this is not supported by the AFS container.");
 
         _customFiles[index] = new(filePath);
     }

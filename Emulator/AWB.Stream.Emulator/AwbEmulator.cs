@@ -113,10 +113,10 @@ public class AwbEmulator : IEmulator
     {
         var filePath = Path.GetFullPath($"{Constants.DumpFolder}/{Path.GetFileName(filepath)}");
         Directory.CreateDirectory(Constants.DumpFolder);
-        _log.Info($"Dumping {filepath}");
+        _log.Info($"[AwbEmulator] Dumping {filepath}");
         using var fileStream = new FileStream(filePath, FileMode.Create);
         stream.CopyTo(fileStream);
-        _log.Info($"Written To {filePath}");
+        _log.Info($"[AwbEmulator] Written To {filePath}");
     }
 
     internal List<RouteGroupTuple> GetInput() => _builderFactory.RouteGroupTuples;

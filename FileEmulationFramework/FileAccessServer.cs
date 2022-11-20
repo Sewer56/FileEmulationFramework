@@ -152,7 +152,7 @@ public static unsafe class FileAccessServer
             if (newSize != -1)
                 information->EndOfFile = newSize;
 
-            _logger.Info("File Size Override | Old: {0}, New: {1} | {2}", oldSize, newSize, info.FilePath);
+            _logger.Info("[FileAccessServer] File Size Override | Old: {0}, New: {1} | {2}", oldSize, newSize, info.FilePath);
             return result;
         }
     }
