@@ -51,20 +51,28 @@ public struct Afs2Header
     public short EncryptionKey;
     
     /// <summary>
-    /// Retrieves the complete size of the file header, including padding.
+    /// Retrieves the complete size of the file header, excluding padding.
     /// </summary>
-    public int GetTotalSizeOfHeader() => GetTotalSizeOfHeader(IdFieldLength, EntryCount, PositionFieldLength, Alignment);
+    public int GetTotalSizeOfHeader() => GetTotalSizeOfHeader(IdFieldLength, EntryCount, PositionFieldLength);
 
     /// <summary>
-    /// Retrieves the complete size of the file header, including padding.
+    /// Retrieves the complete size of the file header, excluding padding.
     /// </summary>
-    public static unsafe int GetTotalSizeOfHeader(int idFieldLength, int entryCount, int positionFieldLength, int alignment)
+    public static unsafe int GetTotalSizeOfHeader(int idFieldLength, int entryCount, int positionFieldLength)
     {
         var baseSize = sizeof(Afs2Header);
         baseSize += (idFieldLength + positionFieldLength) * entryCount;
         baseSize += positionFieldLength;
-        baseSize = Mathematics.RoundUp(baseSize, alignment);
         return baseSize;
+    }
+    
+    /// <summary>
+    /// Retrieves the complete size of the file header, including padding.
+    /// </summary>
+    public static unsafe int GetTotalSizeOfHeaderWithPadding(int idFieldLength, int entryCount, int positionFieldLength, int alignment)
+    {
+        var size = GetTotalSizeOfHeader(idFieldLength, entryCount, positionFieldLength);
+        return Mathematics.RoundUp(size, alignment);
     }
 
     /// <summary>

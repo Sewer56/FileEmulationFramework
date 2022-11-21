@@ -72,7 +72,7 @@ public class AwbBuilder
         var posFieldSize = CalculateFieldSizeBytes(EstimateTotalNumBytes(entries, maxFileNo, idFieldSize));
         
         // Get header size.
-        var headerLength = Afs2Header.GetTotalSizeOfHeader(idFieldSize, numFiles, posFieldSize, AwbAlignment);
+        var headerLength = Afs2Header.GetTotalSizeOfHeaderWithPadding(idFieldSize, numFiles, posFieldSize, AwbAlignment);
         
         // Get header stream
         var headerStream = new MemoryStream(headerLength);
@@ -168,8 +168,7 @@ public class AwbBuilder
     private long EstimateTotalNumBytes(Dictionary<int, FileEntry> entries, int numFiles, int idFieldSize)
     {
         // Get header size.
-        var fileSize = (long)Afs2Header.GetTotalSizeOfHeader(idFieldSize, numFiles, 8, AwbAlignment);
-        fileSize = Mathematics.RoundUp(fileSize, AwbAlignment);
+        var fileSize = (long)Afs2Header.GetTotalSizeOfHeaderWithPadding(idFieldSize, numFiles, 8, AwbAlignment);
         
         // Add size of all files.
         for (int x = 0; x < numFiles; x++)

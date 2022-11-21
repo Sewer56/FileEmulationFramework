@@ -14,6 +14,6 @@ public class AwbHeaderReaderTests
     {
         var stream = new FileStream(Assets.AwbEmulatorSampleFile, FileMode.Open);
         Assert.True(AwbHeaderReader.TryReadHeader(stream, out var data));
-        Assert.Equal(64, data.Length);
+        Assert.Equal(50, data.Length);
     }
 }
