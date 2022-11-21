@@ -39,7 +39,7 @@ public class AcbPatcherEmulator : IEmulator
         }
         
         _headerHashToHeader[hash] = AcbPatcherEntry.FromAwbStream(newAwbStream, awbPath);
-        _log.Info("[AcbPatcherEmulator] Added AWB Hash for File {0}", awbPath);
+        _log.Info("[AcbPatcherEmulator] Added AWB Header Hash {0} for File {1}", hash, awbPath);
     }
 
     public unsafe bool TryCreateFile(IntPtr handle, string filepath, string route, out IEmulatedFile emulatedFile)
@@ -87,6 +87,7 @@ public class AcbPatcherEmulator : IEmulator
                     return false;
                 }
 
+                _log.Info("[AcbPatcherEmulator] ACB Hash {0} for {1}.", hash, filepath);
                 if (!_headerHashToHeader.TryGetValue(hash, out var patcherEntry))
                 {
                     _log.Info("[AcbPatcherEmulator] No AWB entry for ACB found {0}, gonna try opening file.", filepath);

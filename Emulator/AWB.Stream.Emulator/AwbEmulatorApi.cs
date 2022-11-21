@@ -38,14 +38,15 @@ public class AwbEmulatorApi : IAwbEmulator
 
         IEmulatedFile? emulated = null;
         Native.SetFilePointerEx(handle, offset, IntPtr.Zero, 0);
-        if (!_awbEmulator.TryCreateEmulatedFile(handle, sourcePath, destinationPath, route, ref emulated))
+        if (!_awbEmulator.TryCreateEmulatedFile(handle, sourcePath, destinationPath, route, false, ref emulated, out var stream))
         {
             _logger.Error("[AwbEmulatorApi] TryCreateFromFileSlice: Failed to Create Emulated File at Path {0}", sourcePath);
             return false;
         }
         
         _logger.Info("[AwbEmulatorApi] TryCreateFromFileSlice: Registering {0}", destinationPath);
-        _framework.RegisterVirtualFile(destinationPath, emulated);
+        _framework.RegisterVirtualFile(destinationPath, emulated!);
+        _awbEmulator.InvokeOnStreamCreated(handle, destinationPath, stream!);
         return true;
     }
 

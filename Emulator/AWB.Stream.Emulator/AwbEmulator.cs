@@ -51,7 +51,7 @@ public class AwbEmulator : IEmulator
         if (!filepath.EndsWith(Constants.AwbExtension, StringComparison.OrdinalIgnoreCase))
             return false;
 
-        if (!TryCreateEmulatedFile(handle, filepath, filepath, filepath, ref emulated)) 
+        if (!TryCreateEmulatedFile(handle, filepath, filepath, filepath, true, ref emulated!, out _)) 
             return false;
 
         return true;
@@ -64,10 +64,14 @@ public class AwbEmulator : IEmulator
     /// <param name="srcDataPath">Path of the file where the handle refers to.</param>
     /// <param name="outputPath">Path where the emulated file is stored.</param>
     /// <param name="route">The route of the emulated file, for builder to pick up.</param>
+    /// <param name="invokeOnStreamCreated">Invokes the <see cref="OnStreamCreated"/> event.</param>
     /// <param name="emulated">The emulated file.</param>
+    /// <param name="stream">The created stream under the hood.</param>
     /// <returns></returns>
-    public bool TryCreateEmulatedFile(IntPtr handle, string srcDataPath, string outputPath, string route, ref IEmulatedFile emulated)
+    public bool TryCreateEmulatedFile(IntPtr handle, string srcDataPath, string outputPath, string route, bool invokeOnStreamCreated, ref IEmulatedFile? emulated, out MultiStream? stream)
     {
+        stream = null;
+        
         // Check if there's a known route for this file
         // Put this before actual file check because I/O.
         if (!_builderFactory.TryCreateFromPath(route, out var builder))
@@ -80,11 +84,14 @@ public class AwbEmulator : IEmulator
         // Make the AFS file.
         _pathToStream[outputPath] = null; // Avoid recursion into same file.
 
-        var stream = builder!.Build(handle, srcDataPath, _log);
-        OnStreamCreated?.Invoke(handle, outputPath, stream);
+        stream = builder!.Build(handle, srcDataPath, _log);
+        if (invokeOnStreamCreated)
+            OnStreamCreated?.Invoke(handle, outputPath, stream);
+        
         _pathToStream[outputPath] = stream;
         emulated = new EmulatedFile<MultiStream>(stream);
-
+        _log.Info("[AwbEmulator] Created Emulated file with Path {0}", outputPath);
+        
         if (DumpFiles)
             DumpFile(outputPath, stream);
         
@@ -120,4 +127,9 @@ public class AwbEmulator : IEmulator
     }
 
     internal List<RouteGroupTuple> GetInput() => _builderFactory.RouteGroupTuples;
+    
+    /// <summary>
+    /// Manually invokes the <see cref="OnStreamCreated"/> event. For internal use only.
+    /// </summary>
+    internal void InvokeOnStreamCreated(IntPtr handle, string outputPath, MultiStream stream) => OnStreamCreated?.Invoke(handle, outputPath, stream);
 }
