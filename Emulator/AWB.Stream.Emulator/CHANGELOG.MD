@@ -1,6 +1,7 @@
 # 2.1.1
 
-- Added: Source to start of various log commands.  
+- Added: Source to start of various log commands.
+- Changed: AWB Header reads no longer include padding where unnecessary. Fixes P5R.  
 
 # 2.1.0
 
