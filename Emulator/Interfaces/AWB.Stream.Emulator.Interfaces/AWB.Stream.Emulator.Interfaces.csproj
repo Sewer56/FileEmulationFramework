@@ -4,6 +4,13 @@
         <TargetFramework>net7.0</TargetFramework>
         <ImplicitUsings>enable</ImplicitUsings>
         <Nullable>enable</Nullable>
+        <GenerateDocumentationFile>true</GenerateDocumentationFile>
+        <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
+        <Title>Reloaded II AWB Emulator Interfaces</Title>
+        <Authors>Sewer56</Authors>
+        <Description>API for interacting with the AWB Emulator for File Emulation Framework using Reloaded II DI.</Description>
+        <PackageProjectUrl>https://github.com/Sewer56/FileEmulationFramework</PackageProjectUrl>
+        <PackageLicenseUrl>https://github.com/Sewer56/FileEmulationFramework/blob/main/LICENSE.md</PackageLicenseUrl>
     </PropertyGroup>
 
 </Project>
