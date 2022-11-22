@@ -11,24 +11,24 @@ namespace FileEmulationFramework.Lib.IO;
 public class FileSliceStreamW32 : Stream, IFileSliceStream
 {
     /// <inheritdoc />
-    public override bool CanRead { get; } = true;
+    public override bool CanRead => true;
 
     /// <inheritdoc />
-    public override bool CanSeek { get; } = true;
+    public override bool CanSeek => true;
 
     /// <inheritdoc />
-    public override bool CanWrite { get; } = false;
+    public override bool CanWrite => false;
 
     /// <inheritdoc />
     public override long Length { get; }
 
     /// <inheritdoc />
-    public override long Position { get; set; } = 0;
+    public override long Position { get; set; }
     
     /// <summary>
     /// Position of the pointer in the actual file.
     /// </summary>
-    public long FilePosition { get; private set; } = 0;
+    public long FilePosition { get; private set; }
 
     /// <summary>
     /// The backing file slice for this stream.

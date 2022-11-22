@@ -1,4 +1,5 @@
 ﻿using Reloaded.Mod.Interfaces;
+// ReSharper disable All
 
 namespace ONE.Heroes.Stream.Emulator.Template.Configuration;
 

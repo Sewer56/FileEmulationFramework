@@ -1,5 +1,4 @@
 ﻿using System.Runtime.InteropServices;
-using FileEmulationFramework.Lib.Utilities;
 
 namespace FileEmulationFramework.Utilities;
 
@@ -43,9 +42,9 @@ public static unsafe class FilePathResolver
 
     private static string RemoveDevicePrefix(ReadOnlySpan<char> path)
     {
-        const string DevicePrefix = @"\\?\";
-        if (path.StartsWith(DevicePrefix))
-            return path.Slice(DevicePrefix.Length).ToString();
+        const string devicePrefix = @"\\?\";
+        if (path.StartsWith(devicePrefix))
+            return path.Slice(devicePrefix.Length).ToString();
 
         return path.ToString();
     }

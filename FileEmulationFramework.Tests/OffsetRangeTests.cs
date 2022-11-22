@@ -13,10 +13,10 @@ public class OffsetRangeTests
     {
         var offsets = new OffsetRange[]
         {
-            new OffsetRange(0, 16),
-            new OffsetRange(16, 32),
-            new OffsetRange(32, 64),
-            new OffsetRange(64, 100)
+            new(0, 16),
+            new(16, 32),
+            new(32, 64),
+            new(64, 100)
         };
 
         Assert.True(OffsetRangeExtensions.AreAllJoined(offsets));
@@ -27,8 +27,8 @@ public class OffsetRangeTests
     {
         var offsets = new OffsetRange[]
         {
-            new OffsetRange(0, 16),
-            new OffsetRange(15, 31)
+            new(0, 16),
+            new(15, 31)
         };
 
         Assert.False(OffsetRangeExtensions.AreAllJoined(offsets));
@@ -39,8 +39,8 @@ public class OffsetRangeTests
     {
         var offsets = new OffsetRange[]
         {
-            new OffsetRange(0, 15),
-            new OffsetRange(14, 31)
+            new(0, 15),
+            new(14, 31)
         };
 
         Assert.False(OffsetRangeExtensions.AreAllJoined(offsets));
@@ -51,8 +51,8 @@ public class OffsetRangeTests
     {
         var offsets = new OffsetRange[]
         {
-            new OffsetRange(1, 15),
-            new OffsetRange(15, 31)
+            new(1, 15),
+            new(15, 31)
         };
 
         Assert.False(OffsetRangeExtensions.AreAllJoined(offsets));
@@ -63,8 +63,8 @@ public class OffsetRangeTests
     {
         var offsets = new OffsetRange[]
         {
-            new OffsetRange(0, 15),
-            new OffsetRange(17, 31)
+            new(0, 15),
+            new(17, 31)
         };
 
         Assert.False(OffsetRangeExtensions.AreAllJoined(offsets));

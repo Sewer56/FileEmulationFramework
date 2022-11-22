@@ -1,5 +1,4 @@
-﻿using System.Diagnostics;
-using csharp_prs_interfaces;
+﻿using csharp_prs_interfaces;
 using FileEmulationFramework.Interfaces;
 using FileEmulationFramework.Lib.Utilities;
 using Heroes.SDK;
@@ -26,11 +25,6 @@ public class Mod : ModBase // <= Do not Remove.
     private readonly ILogger _logger;
 
     /// <summary>
-    /// Entry point into the mod, instance that created this class.
-    /// </summary>
-    private readonly IMod _owner;
-
-    /// <summary>
     /// Provides access to this mod's configuration.
     /// </summary>
     private Config _configuration;
@@ -40,14 +34,12 @@ public class Mod : ModBase // <= Do not Remove.
     /// </summary>
     private readonly IModConfig _modConfig;
 
-    private Logger _log;
     private OneEmulator _emulator;
 
     public Mod(ModContext context)
     {
         _modLoader = context.ModLoader;
         _logger = context.Logger;
-        _owner = context.Owner;
         _configuration = context.Configuration;
         _modConfig = context.ModConfig;
 
@@ -58,9 +50,9 @@ public class Mod : ModBase // <= Do not Remove.
         // and some other neat features, override the methods in ModBase.
         _modLoader.ModLoading += OnModLoading;
         _modLoader.OnModLoaderInitialized += OnModLoaderInitialized;
-        _log = new Logger(_logger, _configuration.LogLevel);
-        _log.Info("Starting ONE.Heroes.Stream.Emulator");
-        _emulator = new OneEmulator(_log);
+        var log = new Logger(_logger, _configuration.LogLevel);
+        log.Info("Starting ONE.Heroes.Stream.Emulator");
+        _emulator = new OneEmulator(log);
 
         _modLoader.GetController<IEmulationFramework>().TryGetTarget(out var framework);
         _modLoader.GetController<IPrsInstance>().TryGetTarget(out var prsCompressor);

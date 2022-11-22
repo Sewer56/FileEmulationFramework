@@ -1,9 +1,7 @@
-﻿using System.Diagnostics;
-using FileEmulationFramework.Interfaces;
+﻿using FileEmulationFramework.Interfaces;
 using FileEmulationFramework.Lib.Utilities;
 using FileEmulationFramework.Template;
 using FileEmulationFramework.Utilities;
-using Reloaded.Hooks.ReloadedII.Interfaces;
 using Reloaded.Mod.Interfaces;
 
 namespace FileEmulationFramework;
@@ -13,27 +11,6 @@ namespace FileEmulationFramework;
 /// </summary>
 public class Mod : ModBase, IExports // <= Do not Remove.
 {
-    /// <summary>
-    /// Provides access to the mod loader API.
-    /// </summary>
-    private readonly IModLoader _modLoader;
-
-    /// <summary>
-    /// Provides access to the Reloaded.Hooks API.
-    /// </summary>
-    /// <remarks>This is null if you remove dependency on Reloaded.SharedLib.Hooks in your mod.</remarks>
-    private readonly IReloadedHooks? _hooks;
-
-    /// <summary>
-    /// Provides access to the Reloaded logger.
-    /// </summary>
-    private readonly ILogger _logger;
-
-    /// <summary>
-    /// Entry point into the mod, instance that created this class.
-    /// </summary>
-    private readonly IMod _owner;
-
     /// <summary>
     /// Provides access to this mod's configuration.
     /// </summary>
@@ -48,20 +25,19 @@ public class Mod : ModBase, IExports // <= Do not Remove.
 
     public Mod(ModContext context)
     {
-        _modLoader = context.ModLoader;
-        _hooks = context.Hooks;
-        _logger = context.Logger;
-        _owner = context.Owner;
+        var modLoader = context.ModLoader;
+        var hooks = context.Hooks;
+        var logger = context.Logger;
         _configuration = context.Configuration;
         _modConfig = context.ModConfig;
 
         // For more information about this template, please see
         // https://reloaded-project.github.io/Reloaded-II/ModTemplate/
-        _log = new Logger(_logger, _configuration.LogLevel);
+        _log = new Logger(logger, _configuration.LogLevel);
         _log.Info("Starting FileEmulationFramework");
         var framework = new EmulationFramework();
-        _modLoader.AddOrReplaceController<IEmulationFramework>(context.Owner, framework);
-        FileAccessServer.Init(_log, NativeFunctions.GetInstance(_hooks!), _hooks, framework);
+        modLoader.AddOrReplaceController<IEmulationFramework>(context.Owner, framework);
+        FileAccessServer.Init(_log, NativeFunctions.GetInstance(hooks!), hooks);
     }
 
     #region Standard Overrides

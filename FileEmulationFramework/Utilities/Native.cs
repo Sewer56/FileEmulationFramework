@@ -1,16 +1,14 @@
 ﻿using System.Runtime.InteropServices;
-using System.Text;
-using System;
 using Reloaded.Hooks.Definitions.Structs;
-using Reloaded.Hooks.Definitions.X86;
 using Reloaded.Memory.Pointers;
 using static FileEmulationFramework.Lib.Utilities.Native;
 
+// ReSharper disable RedundantNameQualifier
 // ReSharper disable InconsistentNaming
 
 namespace FileEmulationFramework.Utilities;
 
-public unsafe class Native
+public class Native
 {
     [Reloaded.Hooks.Definitions.X64.Function(Reloaded.Hooks.Definitions.X64.CallingConventions.Microsoft)]
     [Reloaded.Hooks.Definitions.X86.Function(Reloaded.Hooks.Definitions.X86.CallingConventions.Stdcall)]

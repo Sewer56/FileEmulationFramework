@@ -1,5 +1,4 @@
 ﻿using System.Runtime.InteropServices;
-using AWB.Stream.Emulator.Acb;
 using AWB.Stream.Emulator.Interfaces;
 using AWB.Stream.Emulator.Interfaces.Structures.IO;
 using FileEmulationFramework.Interfaces;

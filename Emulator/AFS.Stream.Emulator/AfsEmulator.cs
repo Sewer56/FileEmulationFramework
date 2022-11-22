@@ -15,7 +15,7 @@ public class AfsEmulator : IEmulator
     /// <summary>
     /// If enabled, dumps newly emulated files.
     /// </summary>
-    public bool DumpFiles { get; set; } = false;
+    public bool DumpFiles { get; set; }
     
     // Note: Handle->Stream exists because hashing IntPtr is easier; thus can resolve reads faster.
     private readonly AfsBuilderFactory _builderFactory = new();

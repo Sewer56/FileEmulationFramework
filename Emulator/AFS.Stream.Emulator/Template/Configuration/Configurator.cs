@@ -1,4 +1,5 @@
 ﻿using Reloaded.Mod.Interfaces;
+// ReSharper disable CoVariantArrayConversion
 
 namespace AFS.Stream.Emulator.Template.Configuration;
 

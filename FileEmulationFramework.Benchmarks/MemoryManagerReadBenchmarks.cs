@@ -10,8 +10,8 @@ public class MemoryManagerReadBenchmarks
     private byte[] _dataToWrite = new byte[1024 * 1024 * 32];
 
     private MemoryStream _memoryStream = null!;
-    private MemoryManagerStream _memoryManagerStream_64k = null!;
-    private MemoryManagerStream _memoryManagerStream_4M = null!;
+    private MemoryManagerStream _memoryManagerStream64K = null!;
+    private MemoryManagerStream _memoryManagerStream4M = null!;
 
     [GlobalSetup]
     public void Setup()
@@ -25,11 +25,11 @@ public class MemoryManagerReadBenchmarks
         _memoryStream.Write(_dataToWrite);
 
         // Init MemoryManagerStream
-        _memoryManagerStream_64k = new MemoryManagerStream(new MemoryManager(65536), true);
-        _memoryManagerStream_64k.Write(_dataToWrite);
+        _memoryManagerStream64K = new MemoryManagerStream(new MemoryManager(65536), true);
+        _memoryManagerStream64K.Write(_dataToWrite);
 
-        _memoryManagerStream_4M = new MemoryManagerStream(new MemoryManager(65536 * 64), true);
-        _memoryManagerStream_4M.Write(_dataToWrite);
+        _memoryManagerStream4M = new MemoryManagerStream(new MemoryManager(65536 * 64), true);
+        _memoryManagerStream4M.Write(_dataToWrite);
     }
 
     [Benchmark]
@@ -42,14 +42,14 @@ public class MemoryManagerReadBenchmarks
     [Benchmark]
     public void MemoryManagerStream_64K()
     {
-        _memoryManagerStream_64k.Position = 0;
-        _memoryManagerStream_64k.ReadExactly(_dataToWrite);
+        _memoryManagerStream64K.Position = 0;
+        _memoryManagerStream64K.ReadExactly(_dataToWrite);
     }
 
     [Benchmark]
     public void MemoryManagerStream_4M()
     {
-        _memoryManagerStream_4M.Position = 0;
-        _memoryManagerStream_4M.ReadExactly(_dataToWrite);
+        _memoryManagerStream4M.Position = 0;
+        _memoryManagerStream4M.ReadExactly(_dataToWrite);
     }
 }

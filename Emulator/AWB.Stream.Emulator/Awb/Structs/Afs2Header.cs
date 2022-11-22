@@ -1,8 +1,8 @@
-﻿using AwbLib.Utilities;
+﻿using AWB.Stream.Emulator.Awb.Utilities;
 using FileEmulationFramework.Lib.Utilities;
-using ThrowHelpers = AwbLib.Utilities.ThrowHelpers;
+using ThrowHelpers = AWB.Stream.Emulator.Awb.Utilities.ThrowHelpers;
 
-namespace AwbLib.Structs;
+namespace AWB.Stream.Emulator.Awb.Structs;
 
 /// <summary>
 /// Header of the AFS2 file.
@@ -33,7 +33,10 @@ public struct Afs2Header
     /// Length of the field storing file indices.
     /// </summary>
     public byte IdFieldLength;
+    
+#pragma warning disable CS0169
     private byte _pad;
+#pragma warning restore CS0169
     
     /// <summary>
     /// Number of entries in this archive.
@@ -69,7 +72,7 @@ public struct Afs2Header
     /// <summary>
     /// Retrieves the complete size of the file header, including padding.
     /// </summary>
-    public static unsafe int GetTotalSizeOfHeaderWithPadding(int idFieldLength, int entryCount, int positionFieldLength, int alignment)
+    public static int GetTotalSizeOfHeaderWithPadding(int idFieldLength, int entryCount, int positionFieldLength, int alignment)
     {
         var size = GetTotalSizeOfHeader(idFieldLength, entryCount, positionFieldLength);
         return Mathematics.RoundUp(size, alignment);

@@ -81,7 +81,7 @@ public class FileSliceStreamExtensionsTests
         };
 
         Assert.True(FileSliceStreamExtensions.TryMerge(streams[0], streams[1], out var result));
-        Assert.Equal(48, result.Length);
+        Assert.Equal(48, result!.Length);
     }
 
     [Fact]
@@ -106,7 +106,7 @@ public class FileSliceStreamExtensionsTests
             new FileSliceStreamW32(new FileSlice(16, 32, Assets.StreamTestFile)),
         };
 
-        Assert.False(FileSliceStreamExtensions.TryMerge(streams[1], streams[0], out var result));
+        Assert.False(FileSliceStreamExtensions.TryMerge(streams[1], streams[0], out _));
     }
 
     [Fact]
@@ -118,7 +118,7 @@ public class FileSliceStreamExtensionsTests
             new FileSliceStreamW32(new FileSlice(16, 32, Assets.StreamTestFile)),
         };
 
-        Assert.False(FileSliceStreamExtensions.TryMerge(streams[1], streams[0], out var result));
+        Assert.False(FileSliceStreamExtensions.TryMerge(streams[1], streams[0], out _));
     }
 
     [Fact]
@@ -130,6 +130,6 @@ public class FileSliceStreamExtensionsTests
             new FileSliceStreamW32(new FileSlice(16, 32, Assets.StreamTestFileReverse)),
         };
 
-        Assert.False(FileSliceStreamExtensions.TryMerge(streams[1], streams[0], out var result));
+        Assert.False(FileSliceStreamExtensions.TryMerge(streams[1], streams[0], out _));
     }
 }

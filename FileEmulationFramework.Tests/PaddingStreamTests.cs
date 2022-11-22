@@ -1,5 +1,4 @@
-﻿using System.IO;
-using FileEmulationFramework.Lib.IO;
+﻿using FileEmulationFramework.Lib.IO;
 using Xunit;
 
 namespace FileEmulationFramework.Tests;

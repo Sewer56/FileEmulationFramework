@@ -1,4 +1,5 @@
 ﻿using Reloaded.Mod.Interfaces;
+// ReSharper disable All
 
 namespace AWB.Stream.Emulator.Template.Configuration;
 

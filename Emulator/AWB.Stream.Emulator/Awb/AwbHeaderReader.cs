@@ -1,10 +1,8 @@
-﻿using System.IO.Hashing;
-using System.Runtime.InteropServices;
-using AwbLib.Structs;
+﻿using System.Runtime.InteropServices;
+using AWB.Stream.Emulator.Awb.Structs;
+using AWB.Stream.Emulator.System.IO.Hashing;
 using FileEmulationFramework.Lib.Utilities;
 using Microsoft.Win32.SafeHandles;
-using Reloaded.Memory.Streams;
-using StreamExtensions = FileEmulationFramework.Lib.Utilities.StreamExtensions;
 
 namespace AWB.Stream.Emulator.Awb;
 
@@ -17,7 +15,7 @@ public static unsafe class AwbHeaderReader
     /// Gets length of header of AWB file.
     /// </summary>
     /// <param name="stream">Stream to get length from. Stream is read but not advanced.</param>
-    public static int GetHeaderLength(System.IO.Stream stream)
+    public static int GetHeaderLength(global::System.IO.Stream stream)
     {
         var pos = stream.Position;
         try
@@ -35,7 +33,7 @@ public static unsafe class AwbHeaderReader
     /// Gets length of header of AWB file.
     /// </summary>
     /// <returns>False if the stream does not contain an AFS2 file or the stream could not be read to end.</returns>
-    public static bool TryReadHeader(System.IO.Stream stream, out byte[]? data)
+    public static bool TryReadHeader(global::System.IO.Stream stream, out byte[]? data)
     {
         if (!stream.TryRead(out Afs2Header header, out _))
         {
@@ -79,7 +77,7 @@ public static unsafe class AwbHeaderReader
     /// Reads the header of an AFS file and hashes it.
     /// </summary>
     /// <returns>False if hash unsuccessful.</returns>
-    public static bool TryHashHeader(System.IO.Stream stream, out ulong hash)
+    public static bool TryHashHeader(global::System.IO.Stream stream, out ulong hash)
     {
         hash = 0;
         if (!stream.TryRead(out Afs2Header header, out _))

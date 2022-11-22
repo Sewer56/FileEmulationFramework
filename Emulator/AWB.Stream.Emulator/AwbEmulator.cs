@@ -1,5 +1,5 @@
 ﻿using AWB.Stream.Emulator.Awb;
-using AwbLib.Utilities;
+using AWB.Stream.Emulator.Awb.Utilities;
 using FileEmulationFramework.Interfaces;
 using FileEmulationFramework.Interfaces.Reference;
 using FileEmulationFramework.Lib.IO;
@@ -15,7 +15,7 @@ public class AwbEmulator : IEmulator
     /// <summary>
     /// If enabled, dumps newly emulated files.
     /// </summary>
-    public bool DumpFiles { get; set; } = false;
+    public bool DumpFiles { get; set; }
     
     /// <summary>
     /// Event that is fired when a stream is created, before redirection kicks in.

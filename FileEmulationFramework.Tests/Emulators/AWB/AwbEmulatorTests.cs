@@ -1,9 +1,7 @@
 ﻿using System;
 using System.IO;
-using AFS.Stream.Emulator.Afs;
-using AFSLib;
 using AWB.Stream.Emulator.Awb;
-using AwbLib.Structs;
+using AWB.Stream.Emulator.Awb.Structs;
 using FileEmulationFramework.Lib.Utilities;
 using Reloaded.Memory.Streams;
 using Xunit;
@@ -57,7 +55,7 @@ public class AwbEmulatorTests
     {
         fileStream.Seek(0, SeekOrigin.Begin);
         AwbHeaderReader.TryReadHeader(fileStream, out var header);
-        fixed (byte* headerPtr = &header[0])
+        fixed (byte* headerPtr = &header![0])
         {
             var viewer = AwbViewer.FromMemory(headerPtr);
             Span<FileEntry> entries = stackalloc FileEntry[viewer.FileCount];

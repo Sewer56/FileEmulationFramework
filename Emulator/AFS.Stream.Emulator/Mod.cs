@@ -1,5 +1,4 @@
-﻿using System.Diagnostics;
-using System.Runtime.CompilerServices;
+﻿using System.Runtime.CompilerServices;
 using AFS.Stream.Emulator.Template;
 using FileEmulationFramework.Interfaces;
 using FileEmulationFramework.Lib.Utilities;
@@ -26,11 +25,6 @@ public class Mod : ModBase // <= Do not Remove.
     private readonly ILogger _logger;
 
     /// <summary>
-    /// Entry point into the mod, instance that created this class.
-    /// </summary>
-    private readonly IMod _owner;
-
-    /// <summary>
     /// Provides access to this mod's configuration.
     /// </summary>
     private Config _configuration;
@@ -47,7 +41,6 @@ public class Mod : ModBase // <= Do not Remove.
     {
         _modLoader = context.ModLoader;
         _logger = context.Logger;
-        _owner = context.Owner;
         _configuration = context.Configuration;
         _modConfig = context.ModConfig;
 

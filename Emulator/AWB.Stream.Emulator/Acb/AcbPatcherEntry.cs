@@ -1,5 +1,4 @@
 ﻿using AWB.Stream.Emulator.Awb;
-using FileEmulationFramework.Lib.IO;
 
 namespace AWB.Stream.Emulator.Acb;
 
@@ -12,7 +11,7 @@ public struct AcbPatcherEntry
     /// <summary>
     /// The stream containing the data.
     /// </summary>
-    public System.IO.Stream Stream;
+    public global::System.IO.Stream Stream;
     
     // Header should be at start of file so int is enough.
     
@@ -37,7 +36,7 @@ public struct AcbPatcherEntry
     /// <param name="stream">Stream that starts with AWB header. Stream is not advanced.</param>
     /// <param name="awbPath">Path of the AWB file tied to this patcher entry.</param>
     /// <returns>The entry to the ACB Patcher.</returns>
-    public static AcbPatcherEntry FromAwbStream(System.IO.Stream stream, string awbPath)
+    public static AcbPatcherEntry FromAwbStream(global::System.IO.Stream stream, string awbPath)
     {
         var offset = stream.Position;
         var length = AwbHeaderReader.GetHeaderLength(stream);
@@ -57,6 +56,6 @@ public struct AcbPatcherEntry
     public unsafe void WriteToAddress(byte* ptr)
     {
         Stream.Position = Offset;
-        Stream.Read(new Span<byte>(ptr, DataLength));
+        Stream.ReadAtLeast(new Span<byte>(ptr, DataLength), DataLength);
     }
 };

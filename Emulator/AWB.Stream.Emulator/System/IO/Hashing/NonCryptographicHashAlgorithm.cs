@@ -5,10 +5,9 @@ using System.Buffers;
 using System.ComponentModel;
 using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
-using System.Threading;
-using System.Threading.Tasks;
+// ReSharper disable NotResolvedInText
 
-namespace System.IO.Hashing
+namespace AWB.Stream.Emulator.System.IO.Hashing
 {
     /// <summary>
     ///   Represents a non-cryptographic hash algorithm.
@@ -100,7 +99,7 @@ namespace System.IO.Hashing
         ///   <paramref name="stream"/> is <see langword="null"/>.
         /// </exception>
         /// <seealso cref="AppendAsync(Stream, CancellationToken)"/>
-        public void Append(Stream stream)
+        public void Append(global::System.IO.Stream stream)
         {
             if (stream is null)
             {
@@ -140,7 +139,7 @@ namespace System.IO.Hashing
         /// <exception cref="ArgumentNullException">
         ///   <paramref name="stream"/> is <see langword="null"/>.
         /// </exception>
-        public Task AppendAsync(Stream stream, CancellationToken cancellationToken = default)
+        public Task AppendAsync(global::System.IO.Stream stream, CancellationToken cancellationToken = default)
         {
             if (stream is null)
             {
@@ -150,7 +149,7 @@ namespace System.IO.Hashing
             return AppendAsyncCore(stream, cancellationToken);
         }
 
-        private async Task AppendAsyncCore(Stream stream, CancellationToken cancellationToken)
+        private async Task AppendAsyncCore(global::System.IO.Stream stream, CancellationToken cancellationToken)
         {
             byte[] buffer = ArrayPool<byte>.Shared.Rent(4096);
 

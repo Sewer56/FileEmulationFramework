@@ -77,7 +77,7 @@ public static class FileSliceStreamExtensions
                     break;
 
                 if (!OffsetRangeExtensions.TryJoin(currentPair.Offset, streams[y].Offset, out var joined) ||
-                    !TryMerge(fileSliceStream!, nextFileSliceStream, out var merged)) 
+                    !TryMerge(fileSliceStream, nextFileSliceStream, out var merged)) 
                     continue;
                 
                 // Copy merged into variable and also advance x.

@@ -1,6 +1,7 @@
 ﻿using Reloaded.Memory.Streams;
+// ReSharper disable RedundantTypeArgumentsOfMethod
 
-namespace AwbLib.Utilities;
+namespace AWB.Stream.Emulator.Awb.Utilities;
 
 /// <summary>
 /// Utility class for writing numbers.
@@ -10,7 +11,7 @@ public static class ValueWriters
     /// <summary>
     /// Writes the number from a long, using the specified bit count [multiple of byte].
     /// </summary>
-    /// <param name="data">The address to write from.</param>
+    /// <param name="stream">The stream to write to.</param>
     /// <param name="value">The value to write.</param>
     /// <param name="size">Size of the data in bits. Accepts 8/16/32/64.</param>
     public static void WriteNumber(this MemoryStream stream, long value, int size)

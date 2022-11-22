@@ -4,7 +4,6 @@ using AFS.Stream.Emulator.Afs;
 using AFSLib;
 using FileEmulationFramework.Lib.Utilities;
 using Xunit;
-using Xunit.Abstractions;
 
 namespace FileEmulationFramework.Tests.Emulators.AFS;
 

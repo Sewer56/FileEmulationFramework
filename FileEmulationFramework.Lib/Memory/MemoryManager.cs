@@ -7,7 +7,7 @@ namespace FileEmulationFramework.Lib.Memory;
 /// Basically we are doing memory paging, but with memory mapped files.
 /// </summary>
 /// <remarks>Ideally would like to use AWE (Windowing Extensions), but those don't flush to page file, risking overloading user's RAM.</remarks>
-public sealed unsafe class MemoryManager : IDisposable
+public sealed class MemoryManager : IDisposable
 {
     private const int WindowsAllocationGranularity = 64 * 1024;
     private List<MemoryMappedFile> _files = new List<MemoryMappedFile>();

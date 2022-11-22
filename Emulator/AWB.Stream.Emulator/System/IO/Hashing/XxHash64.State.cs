@@ -5,11 +5,12 @@ using System.Buffers.Binary;
 using System.Diagnostics;
 using System.Numerics;
 using System.Runtime.CompilerServices;
+// ReSharper disable All
 
 // Implemented from the specification at
 // https://github.com/Cyan4973/xxHash/blob/f9155bd4c57e2270a4ffbb176485e5d713de1c9b/doc/xxhash_spec.md
 
-namespace System.IO.Hashing
+namespace AWB.Stream.Emulator.System.IO.Hashing
 {
     public sealed partial class XxHash64
     {

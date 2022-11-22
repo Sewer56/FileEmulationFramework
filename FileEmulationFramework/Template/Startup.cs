@@ -3,7 +3,6 @@
  * to make it easier to upgrade to newer versions of the template.
 */
 
-using System.Diagnostics;
 using FileEmulationFramework.Template.Configuration;
 using Reloaded.Hooks.ReloadedII.Interfaces;
 using Reloaded.Mod.Interfaces;

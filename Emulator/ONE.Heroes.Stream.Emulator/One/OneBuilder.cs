@@ -157,7 +157,7 @@ public class OneBuilder
         // Read File Names
         Span<OneFileName> fileNames = stackalloc OneFileName[fileNameCount];
         for (int x = 0; x < fileNameCount; x++)
-            reader.Read<OneFileName>(out fileNames[x]);
+            reader.Read(out fileNames[x]);
 
         // Right now we should be at address of first file.
         // Note: Heroes leaves 2 blank name slots that are unused at runtime, so file count is that and 2 less.

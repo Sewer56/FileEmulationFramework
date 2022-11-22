@@ -1,10 +1,8 @@
-﻿using System.Runtime.CompilerServices;
-using System.Runtime.InteropServices;
-using AwbLib.Structs;
+﻿using AWB.Stream.Emulator.Awb.Structs;
 using FileEmulationFramework.Lib.Utilities;
 using Microsoft.Win32.SafeHandles;
 
-namespace AwbLib.Utilities;
+namespace AWB.Stream.Emulator.Awb.Utilities;
 
 /// <summary>
 /// Checks if the file is an AWB file.

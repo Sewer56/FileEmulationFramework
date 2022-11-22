@@ -1,4 +1,4 @@
-﻿namespace AwbLib.Structs;
+﻿namespace AWB.Stream.Emulator.Awb.Structs;
 
 /// <summary>
 /// Represents an individual file held inside the library.

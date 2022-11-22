@@ -104,7 +104,7 @@ public class FileSlice
         fixed (byte* buf = buffer)
         {
             // TODO: We might need to add support for asynchronous handles at some point.
-            if (!NativeExtensions.TryReadFile(Handle, Offset, buf, (uint)Length, out var bytesRead))
+            if (!NativeExtensions.TryReadFile(Handle, Offset, buf, (uint)Length, out _))
                 ThrowHelpers.Win32("Failed to read all bytes from requested file.\n" +
                                             $"FileSlice: {this}");
         }

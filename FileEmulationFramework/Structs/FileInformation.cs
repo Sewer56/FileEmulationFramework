@@ -19,7 +19,7 @@ public class FileInformation : IFileInformation
     /// <summary/>
     /// <param name="filePath">Path to the file in question.</param>
     /// <param name="fileOffset">Current read offset from start of file.</param>
-    /// <param name="fileator">Emulator associated with this info.</param>
+    /// <param name="file">The emulated file returned from an emulator.</param>
     public FileInformation(string filePath, long fileOffset, IEmulatedFile file)
     {
         FilePath = filePath;

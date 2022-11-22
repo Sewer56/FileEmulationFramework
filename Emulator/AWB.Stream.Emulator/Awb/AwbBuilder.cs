@@ -1,6 +1,5 @@
-﻿using System.Runtime.InteropServices;
-using AwbLib.Structs;
-using AwbLib.Utilities;
+﻿using AWB.Stream.Emulator.Awb.Structs;
+using AWB.Stream.Emulator.Awb.Utilities;
 using FileEmulationFramework.Lib.IO;
 using FileEmulationFramework.Lib.IO.Interfaces;
 using FileEmulationFramework.Lib.IO.Struct;
@@ -11,6 +10,7 @@ using Reloaded.Memory.Streams;
 // Aliasing for readability, since our assembly name has priority over 'stream'
 using Strim = System.IO.Stream;
 using ThrowHelpers = FileEmulationFramework.Lib.Utilities.ThrowHelpers;
+// ReSharper disable RedundantTypeArgumentsOfMethod
 
 namespace AWB.Stream.Emulator.Awb;
 
@@ -45,14 +45,8 @@ public class AwbBuilder
     /// </summary>
     /// <param name="index">The index associated with the file.</param>
     /// <param name="filePath">Full path to the file.</param>
-    public void AddOrReplaceFile(int index, string filePath)
-    {
-        if (index > int.MaxValue)
-            ThrowHelpers.Argument($"Attempted to add file with index > {int.MaxValue}, this is not supported by the AWB emulator.");
+    public void AddOrReplaceFile(int index, string filePath) => _customFiles[index] = new(filePath);
 
-        _customFiles[index] = new(filePath);
-    }
-    
     public MultiStream Build(IntPtr handle, string filepath, Logger? logger = null)
     {
         // Based on AFS Redirector
@@ -101,7 +95,7 @@ public class AwbBuilder
         // Write header IDs
         for (int x = 0; x < numFiles; x++)
         {
-            if (_customFiles.TryGetValue(x, out var overwrittenFile) || entries.ContainsKey(x))
+            if (_customFiles.TryGetValue(x, out _) || entries.ContainsKey(x))
                 headerStream.WriteNumber(x, idFieldSize);
             else
                 headerStream.WriteNumber(-1, idFieldSize);

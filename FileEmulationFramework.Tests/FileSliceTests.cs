@@ -83,7 +83,7 @@ public class FileSliceTests
         var second = new FileSlice(16, 32, Assets.StreamTestFile);
 
         Assert.True(FileSlice.TryMerge(first, second, out var result));
-        Assert.Equal(48, result.Length);
+        Assert.Equal(48, result!.Length);
     }
 
     [Fact]
@@ -92,7 +92,7 @@ public class FileSliceTests
         var first = new FileSlice(0, 16, Assets.StreamTestFile);
         var second = new FileSlice(16, 32, Assets.StreamTestFile);
 
-        Assert.True(FileSlice.TryMerge(second, first, out var result));
+        Assert.True(FileSlice.TryMerge(second, first, out _));
     }
 
     [Fact]
@@ -101,7 +101,7 @@ public class FileSliceTests
         var first = new FileSlice(0, 15, Assets.StreamTestFile);
         var second = new FileSlice(16, 32, Assets.StreamTestFile);
 
-        Assert.False(FileSlice.TryMerge(first, second, out var result));
+        Assert.False(FileSlice.TryMerge(first, second, out _));
     }
 
     [Fact]
@@ -110,7 +110,7 @@ public class FileSliceTests
         var first = new FileSlice(0, 17, Assets.StreamTestFile);
         var second = new FileSlice(16, 32, Assets.StreamTestFile);
 
-        Assert.False(FileSlice.TryMerge(first, second, out var result));
+        Assert.False(FileSlice.TryMerge(first, second, out _));
     }
 
     [Fact]
@@ -119,6 +119,6 @@ public class FileSliceTests
         var first = new FileSlice(0, 16, Assets.StreamTestFile);
         var second = new FileSlice(16, 32, Assets.StreamTestFileReverse);
 
-        Assert.False(FileSlice.TryMerge(first, second, out var result));
+        Assert.False(FileSlice.TryMerge(first, second, out _));
     }
 }

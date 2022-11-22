@@ -17,7 +17,7 @@ public interface IEmulationFramework
     /// then all requests to read that file will be redirected to the provided Stream instance.  
     /// </summary>
     /// <param name="filePath">Path to the file to be registered.</param>
-    /// <param name="emulated">The stream from which the data for this file will be sourced.</param>
+    /// <param name="emulate">The source from which the data for this file will be sourced.</param>
     /// <remarks>If file already exists, it will be overwritten.</remarks>
     public void RegisterVirtualFile(string filePath, IEmulatedFile emulate);
     

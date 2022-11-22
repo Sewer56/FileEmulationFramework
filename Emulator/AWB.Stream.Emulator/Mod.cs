@@ -1,6 +1,4 @@
-﻿using System.Diagnostics;
-using System.Runtime.CompilerServices;
-using AWB.Stream.Emulator.Acb;
+﻿using System.Runtime.CompilerServices;
 using AWB.Stream.Emulator.Interfaces;
 using AWB.Stream.Emulator.Template;
 using FileEmulationFramework.Interfaces;
@@ -28,11 +26,6 @@ public class Mod : ModBase, IExports // <= Do not Remove.
     private readonly ILogger _logger;
 
     /// <summary>
-    /// Entry point into the mod, instance that created this class.
-    /// </summary>
-    private readonly IMod _owner;
-
-    /// <summary>
     /// Provides access to this mod's configuration.
     /// </summary>
     private Config _configuration;
@@ -44,13 +37,11 @@ public class Mod : ModBase, IExports // <= Do not Remove.
 
     private Logger _log;
     private AwbEmulator _awbEmulator;
-    private AcbPatcherEmulator _acbEmulator;
-    
+
     public Mod(ModContext context)
     {
         _modLoader = context.ModLoader;
         _logger = context.Logger;
-        _owner = context.Owner;
         _configuration = context.Configuration;
         _modConfig = context.ModConfig;
 
@@ -71,11 +62,11 @@ public class Mod : ModBase, IExports // <= Do not Remove.
         
         // Create ACB & BDX Overwriters
         _modLoader.GetController<IScannerFactory>().TryGetTarget(out var factory);
-        _acbEmulator = new AcbPatcherEmulator(_awbEmulator, _log, factory!, _configuration.CheckAcbExtension);
-        framework!.Register(_acbEmulator);
+        var acbEmulator = new AcbPatcherEmulator(_awbEmulator, _log, factory!, _configuration.CheckAcbExtension);
+        framework.Register(acbEmulator);
         
         // Expose API
-        _modLoader.AddOrReplaceController<IAwbEmulator>(context.Owner, new AwbEmulatorApi(framework, _awbEmulator, _acbEmulator, _log));
+        _modLoader.AddOrReplaceController<IAwbEmulator>(context.Owner, new AwbEmulatorApi(framework, _awbEmulator, acbEmulator, _log));
     }
     
     private void OnModLoaderInitialized()

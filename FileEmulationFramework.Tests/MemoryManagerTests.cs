@@ -17,7 +17,7 @@ public class MemoryManagerTests
     public void MemoryManager_GetMappedFile_ThrowsWithoutSufficientData()
     {
         using var manager = new MemoryManager(65536);
-        Assert.Throws<ArgumentOutOfRangeException>(() => manager.GetMappedFile(4096, out int offset, out int available));
+        Assert.Throws<ArgumentOutOfRangeException>(() => manager.GetMappedFile(4096, out _, out _));
     }
 
     [Fact]
@@ -34,7 +34,7 @@ public class MemoryManagerTests
     public void MemoryManager_GetMappedFileWithAlloc_AllocatesSingle()
     {
         using var manager = new MemoryManager(65536);
-        manager.GetMappedFileWithAlloc(4096, out int offset, out int available);
+        manager.GetMappedFileWithAlloc(4096, out _, out _);
         Assert.Equal(1, manager.PageCount);
     }
 

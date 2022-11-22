@@ -8,12 +8,12 @@ using System.Diagnostics;
 using System.Numerics;
 using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
-#if NET7_0_OR_GREATER
 using System.Runtime.Intrinsics;
 using System.Runtime.Intrinsics.X86;
-#endif
+// ReSharper disable PartialTypeWithSinglePart
+// ReSharper disable All
 
-namespace System.IO.Hashing
+namespace AWB.Stream.Emulator.System.IO.Hashing
 {
     /// <summary>Provides an implementation of the XXH3 hash algorithm.</summary>
     /// <remarks>

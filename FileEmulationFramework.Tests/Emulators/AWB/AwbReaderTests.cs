@@ -1,7 +1,7 @@
 ﻿using System;
 using System.IO;
 using AWB.Stream.Emulator.Awb;
-using AwbLib.Structs;
+using AWB.Stream.Emulator.Awb.Structs;
 using Xunit;
 
 namespace FileEmulationFramework.Tests.Emulators.AWB;

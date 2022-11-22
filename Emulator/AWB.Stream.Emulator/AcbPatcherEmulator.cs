@@ -1,4 +1,5 @@
-﻿using AWB.Stream.Emulator.Acb.Utilities;
+﻿using AWB.Stream.Emulator.Acb;
+using AWB.Stream.Emulator.Acb.Utilities;
 using AWB.Stream.Emulator.Awb;
 using FileEmulationFramework.Interfaces;
 using FileEmulationFramework.Interfaces.Reference;
@@ -7,7 +8,7 @@ using FileEmulationFramework.Lib.Utilities;
 using Microsoft.Win32.SafeHandles;
 using Reloaded.Memory.Sigscan.Definitions;
 
-namespace AWB.Stream.Emulator.Acb;
+namespace AWB.Stream.Emulator;
 
 /// <summary>
 /// Emulator that patches.
@@ -20,7 +21,7 @@ public class AcbPatcherEmulator : IEmulator
     private readonly Dictionary<ulong, AcbPatcherEntry> _headerHashToHeader = new();
     private readonly Dictionary<string, MemoryStream?> _pathToStream = new(StringComparer.OrdinalIgnoreCase);
     private readonly Dictionary<string, AwbToAcbEntry?> _awbToAcbMap = new(StringComparer.OrdinalIgnoreCase);
-    private bool _checkAcbExtension = false;
+    private bool _checkAcbExtension;
     
     public AcbPatcherEmulator(AwbEmulator awbEmulator, Logger log, IScannerFactory scannerFactory, bool checkAcbExtension)
     {
@@ -101,7 +102,7 @@ public class AcbPatcherEmulator : IEmulator
                         return false;
                     }
                     
-                    var fileSlice = new FileSlice(awbPath); // should open a handle, triggering AWB hook.
+                    _ = new FileSlice(awbPath); // should open a handle, triggering AWB hook.
                     if (!_headerHashToHeader.TryGetValue(hash, out patcherEntry))
                     {
                         _log.Info("[AcbPatcherEmulator] No AWB entry found {0}", filepath);
@@ -135,9 +136,9 @@ public class AcbPatcherEmulator : IEmulator
         if (!_awbToAcbMap.Remove(awbPath, out var mapEntry)) 
             return;
         
-        _pathToStream.Remove(mapEntry.Value.acbPath);
-        _headerHashToHeader.Remove(mapEntry.Value.hash);
+        _pathToStream.Remove(mapEntry!.Value.AcbPath);
+        _headerHashToHeader.Remove(mapEntry.Value.Hash);
     }
     
-    internal record struct AwbToAcbEntry(string acbPath, ulong hash);
+    internal record struct AwbToAcbEntry(string AcbPath, ulong Hash);
 }

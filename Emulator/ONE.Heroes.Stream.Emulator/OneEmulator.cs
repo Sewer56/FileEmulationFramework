@@ -25,7 +25,7 @@ public class OneEmulator : IEmulator
     public bool TryCreateFile(IntPtr handle, string filepath, string route, out IEmulatedFile emulatedFile)
     {
         // Check if we already made a custom ONE for this file.
-        emulatedFile = null;
+        emulatedFile = null!;
         if (_pathToStream.TryGetValue(filepath, out var multiStream))
         {
             // Avoid recursion into same file.

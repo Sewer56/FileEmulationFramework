@@ -1,5 +1,5 @@
 ﻿using AWB.Stream.Emulator.Awb;
-using AwbLib.Structs;
+using AWB.Stream.Emulator.Awb.Structs;
 using Reloaded.Memory.Sigscan.Definitions;
 using Reloaded.Memory.Sigscan.Definitions.Structs;
 

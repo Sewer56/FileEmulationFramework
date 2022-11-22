@@ -1,6 +1,5 @@
 ﻿namespace AWB.Stream.Emulator.Interfaces.Structures.IO;
 
-
 /// <summary>
 /// Represents information tied to an individual directory.
 /// </summary>
@@ -30,7 +29,7 @@ public class DirectoryFilesGroup
     /// <summary>
     /// The relative file paths tied to this directory.
     /// </summary>
-    public string[] Files;
+    public string[] Files = Array.Empty<string>();
 }
 
 /// <summary>

@@ -1,4 +1,4 @@
-﻿namespace AwbLib.Utilities;
+﻿namespace AWB.Stream.Emulator.Awb.Utilities;
 
 /// <summary>
 /// Utility classes for reading numbers.

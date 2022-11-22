@@ -9,7 +9,7 @@ namespace FileEmulationFramework.Lib.Memory;
 /// Intended for writing to the memory manager for storage of type B (memory mapped) redirectors.
 /// For reading, it is recommended to use the <see cref="MemoryManager"/> raw.
 /// </summary>
-public unsafe class MemoryManagerStream : Stream, IDisposable
+public unsafe class MemoryManagerStream : Stream
 {
     /// <inheritdoc />
     public override bool CanRead { get; } = true;

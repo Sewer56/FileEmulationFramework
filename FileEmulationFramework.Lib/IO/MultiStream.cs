@@ -11,19 +11,19 @@ public sealed class MultiStream : Stream
     private readonly Logger? _log;
 
     /// <inheritdoc />
-    public override bool CanRead { get; } = true;
+    public override bool CanRead => true;
 
     /// <inheritdoc />
-    public override bool CanSeek { get; } = true;
+    public override bool CanSeek => true;
 
     /// <inheritdoc />
-    public override bool CanWrite { get; } = false;
+    public override bool CanWrite => false;
 
     /// <inheritdoc />
     public override long Length { get; }
 
     /// <inheritdoc />
-    public override long Position { get; set; } = 0;
+    public override long Position { get; set; }
 
     private Stream[] _streams;
     private OffsetRange[] _offsets;

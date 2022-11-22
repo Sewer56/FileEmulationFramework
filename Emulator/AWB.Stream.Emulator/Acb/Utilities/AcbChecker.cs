@@ -1,5 +1,4 @@
 ﻿using System.Buffers.Binary;
-using AwbLib.Structs;
 using FileEmulationFramework.Lib.Utilities;
 using Microsoft.Win32.SafeHandles;
 

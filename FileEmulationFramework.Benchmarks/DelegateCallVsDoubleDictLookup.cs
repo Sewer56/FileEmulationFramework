@@ -9,7 +9,7 @@ namespace FileEmulationFramework.Benchmarks;
 /// </summary>
 public class DelegateCallVsDoubleDictLookup
 {
-    private static Swag StaticSwag = new();
+    private static Swag _staticSwag = new();
     
     // Simulates scenario with two lookups, separate for RegisterCustomFile and Emulated Files.
     private Dictionary<nint, ISwag> _dictToInterface = new();
@@ -22,7 +22,7 @@ public class DelegateCallVsDoubleDictLookup
     {
         _dictToInterface[0]       = new Swag();
         _dictToInterface2[0]      = new Swag(); // We can assume calling emu interface and custom registered file to have same overhead.
-        _dictToFunctionPointer[0] = StaticSwag.Invoke; // Delegates are slower, but one lookup might be faster
+        _dictToFunctionPointer[0] = _staticSwag.Invoke; // Delegates are slower, but one lookup might be faster
     }
 
     // In these benchmarks we simulate a 1/10 hit rate to give an estimate of emulated to non-emulated files.

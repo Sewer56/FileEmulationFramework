@@ -2,6 +2,8 @@
 using System.ComponentModel;
 using System.Text.Json;
 using System.Text.Json.Serialization;
+// ReSharper disable StaticMemberInGenericType
+// ReSharper disable EmptyConstructor
 
 namespace AFS.Stream.Emulator.Template.Configuration;
 
@@ -100,7 +102,7 @@ public class Configurable<TParentType> : IUpdatableConfigurable where TParentTyp
     private void MakeConfigWatcher()
     {
         ConfigWatcher = new FileSystemWatcher(Path.GetDirectoryName(FilePath)!, Path.GetFileName(FilePath)!);
-        ConfigWatcher.Changed += (sender, e) => OnConfigurationUpdated();
+        ConfigWatcher.Changed += (_, _) => OnConfigurationUpdated();
         ConfigWatcher.EnableRaisingEvents = true;
     }
 

@@ -1,5 +1,5 @@
-﻿using AwbLib.Structs;
-using AwbLib.Utilities;
+﻿using AWB.Stream.Emulator.Awb.Structs;
+using AWB.Stream.Emulator.Awb.Utilities;
 using FileEmulationFramework.Lib.Utilities;
 
 namespace AWB.Stream.Emulator.Awb;

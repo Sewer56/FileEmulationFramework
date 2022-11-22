@@ -11,6 +11,7 @@ using FileEmulationFramework.Structs;
 using Reloaded.Hooks.Definitions.Enums;
 using IReloadedHooks = Reloaded.Hooks.ReloadedII.Interfaces.IReloadedHooks;
 using Native = FileEmulationFramework.Lib.Utilities.Native;
+// ReSharper disable RedundantArgumentDefaultValue
 
 namespace FileEmulationFramework;
 
@@ -24,12 +25,12 @@ public static unsafe class FileAccessServer
     /// <summary>
     /// The emulators currently held by the framework.
     /// </summary>
-    private static List<IEmulator> _emulators { get; set; } = new();
+    private static List<IEmulator> Emulators { get; } = new();
     
-    private static readonly Dictionary<IntPtr, FileInformation> _handleToInfoMap = new();
-    private static readonly Dictionary<string, FileInformation> _pathToVirtualFileMap = new(StringComparer.OrdinalIgnoreCase);
+    private static readonly Dictionary<IntPtr, FileInformation> HandleToInfoMap = new();
+    private static readonly Dictionary<string, FileInformation> PathToVirtualFileMap = new(StringComparer.OrdinalIgnoreCase);
     
-    private static readonly object _threadLock = new();
+    private static readonly object ThreadLock = new();
     private static IHook<NtCreateFileFn> _createFileHook = null!;
     private static IHook<NtReadFileFn> _readFileHook = null!;
     private static IHook<NtSetInformationFileFn> _setFilePointerHook = null!;
@@ -37,19 +38,17 @@ public static unsafe class FileAccessServer
     private static IAsmHook _closeHandleHook = null!;
     private static NtQueryInformationFileFn _ntQueryInformationFile;
 
-    private static EmulationFramework _emulationFramework;
     private static Route _currentRoute;
 
     // Extended to 64-bit, to use with NtReadFile
-    private const long FILE_USE_FILE_POINTER_POSITION = unchecked((long)0xfffffffffffffffe);
+    private const long FileUseFilePointerPosition = unchecked((long)0xfffffffffffffffe);
 
     /// <summary>
     /// Initialises this instance.
     /// </summary>
-    public static void Init(Logger logger, NativeFunctions functions, IReloadedHooks? hooks, EmulationFramework emulationFramework)
+    public static void Init(Logger logger, NativeFunctions functions, IReloadedHooks? hooks)
     {
         _logger = logger;
-        _emulationFramework = emulationFramework;
         _createFileHook = functions.NtCreateFile.Hook(typeof(FileAccessServer), nameof(NtCreateFileImpl)).Activate();
         _readFileHook = functions.NtReadFile.Hook(typeof(FileAccessServer), nameof(NtReadFileImpl)).Activate();
         _setFilePointerHook = functions.SetFilePointer.Hook(typeof(FileAccessServer), nameof(SetInformationFileHook)).Activate();
@@ -130,7 +129,7 @@ public static unsafe class FileAccessServer
     [UnmanagedCallersOnly(CallConvs = new[] { typeof(CallConvStdcall) })]
     private static void CloseHandleCallback(IntPtr hfile)
     {
-        if (!_handleToInfoMap.Remove(hfile, out var value)) 
+        if (!HandleToInfoMap.Remove(hfile, out var value)) 
             return;
         
         value.File.CloseHandle(hfile, value);
@@ -140,10 +139,10 @@ public static unsafe class FileAccessServer
     [UnmanagedCallersOnly(CallConvs = new[] { typeof(CallConvStdcall) })]
     private static int QueryInformationFileImpl(IntPtr hfile, IO_STATUS_BLOCK* ioStatusBlock, byte* fileInformation, uint length, FileInformationClass fileInformationClass)
     {
-        lock (_threadLock)
+        lock (ThreadLock)
         {
             var result = _getFileSizeHook.OriginalFunction.Value.Invoke(hfile, ioStatusBlock, fileInformation, length, fileInformationClass);
-            if (fileInformationClass != FileInformationClass.FileStandardInformation || !_handleToInfoMap.TryGetValue(hfile, out var info)) 
+            if (fileInformationClass != FileInformationClass.FileStandardInformation || !HandleToInfoMap.TryGetValue(hfile, out var info)) 
                 return result;
 
             var information = (FILE_STANDARD_INFORMATION*)fileInformation;
@@ -160,7 +159,7 @@ public static unsafe class FileAccessServer
     [UnmanagedCallersOnly(CallConvs = new[] { typeof(CallConvStdcall) })]
     private static int SetInformationFileHook(IntPtr hfile, IO_STATUS_BLOCK* ioStatusBlock, byte* fileInformation, uint length, FileInformationClass fileInformationClass)
     {
-        lock (_threadLock)
+        lock (ThreadLock)
         {
             return SetInformationFileImpl(hfile, ioStatusBlock, fileInformation, length, fileInformationClass);
         }
@@ -168,27 +167,27 @@ public static unsafe class FileAccessServer
 
     private static int SetInformationFileImpl(IntPtr hfile, IO_STATUS_BLOCK* ioStatusBlock, byte* fileInformation, uint length, FileInformationClass fileInformationClass)
     {
-        if (fileInformationClass != FileInformationClass.FilePositionInformation || !_handleToInfoMap.ContainsKey(hfile))
+        if (fileInformationClass != FileInformationClass.FilePositionInformation || !HandleToInfoMap.ContainsKey(hfile))
             return _setFilePointerHook.OriginalFunction.Value.Invoke(hfile, ioStatusBlock, fileInformation, length, fileInformationClass);
 
         var pointer = *(long*)fileInformation;
-        _handleToInfoMap[hfile].FileOffset = pointer;
+        HandleToInfoMap[hfile].FileOffset = pointer;
         return _setFilePointerHook.OriginalFunction.Value.Invoke(hfile, ioStatusBlock, fileInformation, length, fileInformationClass);
     }
 
     [UnmanagedCallersOnly(CallConvs = new[] { typeof(CallConvStdcall) })]
-    private static unsafe int NtReadFileImpl(IntPtr handle, IntPtr hEvent, IntPtr* apcRoutine, IntPtr* apcContext, IO_STATUS_BLOCK* ioStatus, byte* buffer, uint length, long* byteOffset, IntPtr key)
+    private static int NtReadFileImpl(IntPtr handle, IntPtr hEvent, IntPtr* apcRoutine, IntPtr* apcContext, IO_STATUS_BLOCK* ioStatus, byte* buffer, uint length, long* byteOffset, IntPtr key)
     {
-        lock (_threadLock)
+        lock (ThreadLock)
         {
             // Check if this is one of our files.
-            if (!_handleToInfoMap.TryGetValue(handle, out var info))
+            if (!HandleToInfoMap.TryGetValue(handle, out var info))
                 return _readFileHook.OriginalFunction.Value.Invoke(handle, hEvent, apcRoutine, apcContext, ioStatus, buffer, length, byteOffset, key);
 
             // If it is, prepare to hook it.
-            long requestedOffset = byteOffset != (void*)0 ? *byteOffset : FILE_USE_FILE_POINTER_POSITION; // -1 means use current location
-            if (requestedOffset == FILE_USE_FILE_POINTER_POSITION)
-                requestedOffset = _handleToInfoMap[handle].FileOffset;
+            long requestedOffset = byteOffset != (void*)0 ? *byteOffset : FileUseFilePointerPosition; // -1 means use current location
+            if (requestedOffset == FileUseFilePointerPosition)
+                requestedOffset = HandleToInfoMap[handle].FileOffset;
 
             if (_logger.IsEnabled(LogSeverity.Debug))
                 _logger.Debug($"[FileAccessServer] Read Request, Buffer: {(long)buffer:X}, Length: {length}, Offset: {requestedOffset}");
@@ -213,7 +212,7 @@ public static unsafe class FileAccessServer
     [UnmanagedCallersOnly(CallConvs = new[] { typeof(CallConvStdcall) })]
     private static int NtCreateFileImpl(IntPtr* handle, FileAccess access, OBJECT_ATTRIBUTES* objectAttributes, IO_STATUS_BLOCK* ioStatus, long* allocSize, uint fileAttributes, FileShare share, uint createDisposition, uint createOptions, IntPtr eaBuffer, uint eaLength)
     {
-        lock (_threadLock)
+        lock (ThreadLock)
         {
             var currentRoute = _currentRoute;
             try
@@ -247,21 +246,21 @@ public static unsafe class FileAccessServer
                 _logger.Debug("[FileAccessServer] Accessing: {0}, {1}, Route: {2}", hndl, newFilePath, _currentRoute.FullPath);
 
                 // Try Accept New File (virtual override)
-                if (_pathToVirtualFileMap.TryGetValue(newFilePath, out var fileInfo))
+                if (PathToVirtualFileMap.TryGetValue(newFilePath, out var fileInfo))
                 {
                     // Reuse of emulated file (backed by stream) is safe because file access is single threaded.
-                    _handleToInfoMap[hndl] = new(fileInfo.FilePath, 0, fileInfo.File);
+                    HandleToInfoMap[hndl] = new(fileInfo.FilePath, 0, fileInfo.File);
                     return ntStatus;
                 }
 
                 // Try accept new file (emulator)
-                for (var x = 0; x < _emulators.Count; x++)
+                for (var x = 0; x < Emulators.Count; x++)
                 {
-                    var emulator = _emulators[x];
+                    var emulator = Emulators[x];
                     if (!emulator.TryCreateFile(hndl, newFilePath, currentRoute.FullPath, out var emulatedFile))
                         continue;
 
-                    _handleToInfoMap[hndl] = new(newFilePath, 0, emulatedFile);
+                    HandleToInfoMap[hndl] = new(newFilePath, 0, emulatedFile);
                     return ntStatus;
                 }
                 
@@ -288,20 +287,20 @@ public static unsafe class FileAccessServer
     }
     
     // PUBLIC API
-    internal static void AddEmulator(IEmulator emulator) => _emulators.Add(emulator);
+    internal static void AddEmulator(IEmulator emulator) => Emulators.Add(emulator);
     internal static void RegisterVirtualFile(string filePath, IEmulatedFile file)
     {
         var info = new FileInformation(filePath, 0, file);
         
         // Create dummy file
         Native.CloseHandle(Native.CreateFileW(filePath, FileAccess.ReadWrite, FileShare.ReadWrite, IntPtr.Zero, FileMode.Create, FileAttributes.Normal, IntPtr.Zero));
-        _pathToVirtualFileMap[filePath] = info;
+        PathToVirtualFileMap[filePath] = info;
     }
 
     public static void UnregisterVirtualFile(string filePath)
     {
-        _pathToVirtualFileMap.Remove(filePath);
+        PathToVirtualFileMap.Remove(filePath);
         try { File.Delete(filePath); }
-        catch (Exception) { }
+        catch (Exception) { /* Ignored */ }
     }
 }

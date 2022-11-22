@@ -18,7 +18,7 @@ public static class StreamExtensions
     public static T Read<T>(this Stream stream) where T : unmanaged
     {
         Span<T> stackSpace = stackalloc T[1];
-        stream.Read(MemoryMarshal.Cast<T, byte>(stackSpace));
+        _ = stream.Read(MemoryMarshal.Cast<T, byte>(stackSpace));
         return stackSpace[0];
     }
     

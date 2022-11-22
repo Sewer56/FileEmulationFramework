@@ -2,6 +2,7 @@
 using System.ComponentModel;
 using System.Text.Json;
 using System.Text.Json.Serialization;
+// ReSharper disable All
 
 namespace AWB.Stream.Emulator.Template.Configuration;
 

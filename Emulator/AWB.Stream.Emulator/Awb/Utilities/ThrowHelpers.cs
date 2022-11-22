@@ -1,6 +1,6 @@
 ﻿using System.Runtime.CompilerServices;
 
-namespace AwbLib.Utilities;
+namespace AWB.Stream.Emulator.Awb.Utilities;
 
 /// <summary>
 /// Class used to help throwing exceptions.

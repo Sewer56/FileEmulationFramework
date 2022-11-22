@@ -1,9 +1,7 @@
-﻿using System;
-using System.IO;
+﻿using System.IO;
 using AWB.Stream.Emulator.Acb;
 using AWB.Stream.Emulator.Awb;
 using FileEmulationFramework.Lib.Utilities;
-using FileEmulationFramework.Tests.Extensions;
 using Reloaded.Memory.Sigscan;
 using Xunit;
 
