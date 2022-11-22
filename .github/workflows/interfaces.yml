@@ -1,0 +1,88 @@
+# Script to build and publish Mod Interfaces
+
+# Produces: 
+#   - Interfaces packages, uploaded straight to NuGet.
+
+# When pushing a tag
+#   - Upload to GitHub Releases
+#   - Upload to NuGet.org Repository (if GitHub Secret NUGET_KEY is specified) 
+
+name: Build and Publish NuGet Package
+
+on:
+  push:
+    branches: [ main ]
+    tags:
+      - '*'
+  pull_request:
+    branches: [ main ]
+  workflow_dispatch:
+
+env:
+  PACKAGES_PATH: ./Publish/Packages/
+  
+  IS_RELEASE: ${{ startsWith(github.ref, 'refs/tags/') }}
+  RELEASE_TAG: ${{ github.ref_name }}
+
+jobs:
+  build:
+    runs-on: windows-latest
+    defaults:
+      run:
+        shell: pwsh
+    
+    steps:
+      - uses: actions/checkout@v2
+        with:
+          fetch-depth: 0
+          submodules: 'recursive'
+          
+      - name: Setup .NET Core SDK (7.0)
+        uses: actions/setup-dotnet@v3
+        with:
+          dotnet-version: 7.0.x
+
+      - name: Build
+        run: | 
+          dotnet build -c Release  "./FileEmulationFramework.Interfaces/FileEmulationFramework.Interfaces.csproj"
+          dotnet build -c Release  "./Emulator/Interfaces/AWB.Stream.Emulator.Interfaces/AWB.Stream.Emulator.Interfaces.csproj"
+        
+      - name: Move Packages
+        run: |
+          New-Item -Path "$env:PACKAGES_PATH" -ItemType Directory
+          $items = Get-ChildItem -Recurse -Path "*.nupkg" | Move-Item -Destination "$env:PACKAGES_PATH"
+
+      - name: Upload Packages Artifact
+        uses: actions/upload-artifact@v2.2.4
+        with:
+          # Artifact name
+          name: Packages
+          # A file, directory or wildcard pattern that describes what to upload
+          path: |
+            ${{ env.PACKAGES_PATH }}/*
+
+      - name: Upload to GitHub Releases (on Tag)
+        uses: softprops/action-gh-release@v0.1.15
+        if: env.IS_RELEASE == 'true'
+        with:
+          # Newline-delimited list of path globs for asset files to upload
+          files: |
+            ${{ env.PACKAGES_PATH }}/*
+
+      - name: Push to NuGet (on Tag)
+        env:
+          NUGET_KEY: ${{ secrets.NUGET_KEY }}
+        if: env.IS_RELEASE == 'true'
+        run: |
+          if ([string]::IsNullOrEmpty("$env:NUGET_KEY"))
+          {
+              Write-Host "NuGet Repository Key (GitHub Secrets -> NUGET_KEY) Not Specified. Skipping."
+              return
+          }
+          
+          $items = Get-ChildItem -Recurse -Path "$env:PACKAGES_PATH/*.nupkg"
+          Foreach ($item in $items)
+          {
+              Write-Host "Pushing $item"
+              dotnet nuget push "$item" -k "$env:NUGET_KEY" --skip-duplicate
+          }
