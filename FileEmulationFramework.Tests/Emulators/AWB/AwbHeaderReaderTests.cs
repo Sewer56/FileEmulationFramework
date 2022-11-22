@@ -12,7 +12,7 @@ public class AwbHeaderReaderTests
     [Fact]
     public void ReadsCorrectHeaderSize()
     {
-        var stream = new FileStream(Assets.AwbEmulatorSampleFile, FileMode.Open);
+        using var stream = new FileStream(Assets.AwbEmulatorSampleFile, FileMode.Open);
         Assert.True(AwbHeaderReader.TryReadHeader(stream, out var data));
         Assert.Equal(50, data.Length);
     }

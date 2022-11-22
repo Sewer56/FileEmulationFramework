@@ -15,7 +15,7 @@ public class AwbReaderTests
     public unsafe void ReadsCorrectHeaderData()
     {
         // Arrange Header
-        var stream = new FileStream(Assets.AwbEmulatorSampleFile, FileMode.Open);
+        using var stream = new FileStream(Assets.AwbEmulatorSampleFile, FileMode.Open);
         AwbHeaderReader.TryReadHeader(stream, out var data);
         
         // Act
