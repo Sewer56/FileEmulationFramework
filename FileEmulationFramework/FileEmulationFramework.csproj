@@ -11,6 +11,7 @@
     <ImplicitUsings>enable</ImplicitUsings>
     <LangVersion>10.0</LangVersion>
     <SatelliteResourceLanguages>en</SatelliteResourceLanguages>
+    <GenerateDepsFile>false</GenerateDepsFile>
 
     <!-- IL Trimming Support for Framework Dependent Apps. Unofficial.
          If you set this to true, trimming will be enabled when you publish the mod.

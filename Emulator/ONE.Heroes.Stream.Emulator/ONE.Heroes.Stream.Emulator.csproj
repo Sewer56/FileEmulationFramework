@@ -10,6 +10,7 @@
     <OutputPath>$(RELOADEDIIMODS)/reloaded.universal.fileemulationframework.heroes.one</OutputPath>
     <Deterministic>true</Deterministic>
     <ImplicitUsings>enable</ImplicitUsings>
+    <GenerateDepsFile>false</GenerateDepsFile>
 
     <!-- IL Trimming Support for Framework Dependent Apps. Unofficial.
          If you set this to true, trimming will be enabled when you publish the mod.
