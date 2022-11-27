@@ -35,7 +35,7 @@ This one varies with a lot of factors, such as number of emulators used, the emu
 
 In most realistic use cases, the emulators usually have negligible performance impact that is completely invisible to the end user. 
 
-Usually first access to a file may be delayed for a small amount of time (`<50ms`) but this should usually be invisible to the end user. Penalty in speed of access to data of emulated files is negligible in practice. 
+Usually first access to a file may be delayed for a small amount of time (`1-3ms on existing emulators at time of writing`) but this should usually be invisible to the end user. Penalty in speed of access to data of emulated files is negligible in practice. 
 
 The biggest penalty tends to be from reading multiple files instead of just one; as the benefits of purely sequential reads may no longer apply.
 
