@@ -44,6 +44,7 @@ nav:
     - Implementation Rules: implementation-rules.md
     - Utilities: implementation-utilities.md
   - Existing Emulators: 
+    - ARC [JSRF]: emulators/arc.md
     - AFS [CRI Middleware]: emulators/afs.md
     - AWB [CRI Middleware]: emulators/awb.md
     - ONE [Sonic Heroes]: emulators/one-heroes.md
