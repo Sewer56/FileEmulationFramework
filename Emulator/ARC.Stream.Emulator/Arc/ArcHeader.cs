@@ -23,25 +23,7 @@ public struct ArcHeader
 			}
 		}
 	}
-
-	public unsafe static ArcHeader GetDefault()
-	{
-		ArcHeader result = default(ArcHeader);
-		for (int i = 0; i < 4; i++)
-		{
-			result._tag[i] = 0;
-		}
-		Memory.CurrentProcess.WriteRaw((nuint)result._tag, Encoding.ASCII.GetBytes("ARCL"));
-		return result;
-	}
-
-	public static ArcHeader FromNumberOfFiles(ushort numberOfFiles)
-	{
-		ArcHeader @default = GetDefault();
-		@default.NumberOfFiles = numberOfFiles;
-		return @default;
-	}
-
+	
 	public ushort GetNumberOfFiles()
 	{
 		return NumberOfFiles;

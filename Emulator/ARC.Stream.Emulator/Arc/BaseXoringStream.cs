@@ -77,31 +77,7 @@ public abstract class BaseXoringStream : System.IO.Stream
 		return num2;
 	}
 
-	public override void Write(byte[] buffer, int offset, int count)
-	{
-		if (buffer == null)
-		{
-			throw new ArgumentNullException("buffer");
-		}
-		if (offset < 0)
-		{
-			throw new ArgumentOutOfRangeException("offset", "Offset in buffer cannot be negative.");
-		}
-		if (count < 0)
-		{
-			throw new ArgumentOutOfRangeException("count", "Cannot read negative number of bytes.");
-		}
-		if (buffer.Length - offset < count)
-		{
-			throw new ArgumentException("Not enough space in array to read requested number of bytes.");
-		}
-		byte[] array = (byte[])buffer.Clone();
-		for (int i = offset; i < count; i++)
-		{
-			array[i] ^= GetNextKeyByte();
-		}
-		BaseStream.Write(array, offset, count);
-	}
+	public override void Write(byte[] buffer, int offset, int count) => Write(buffer.AsSpan(offset, count));
 
 	protected abstract byte GetNextKeyByte();
 
@@ -113,4 +89,13 @@ public abstract class BaseXoringStream : System.IO.Stream
 		}
 		base.Dispose(disposing);
 	}
+    public override void Write(ReadOnlySpan<byte> buffer)
+	{
+        byte[] array = (byte[])buffer.ToArray();
+        for (int i = 0; i < array.Length; i++)
+        {
+            array[i] ^= GetNextKeyByte();
+        }
+        BaseStream.Write(array, 0, array.Length);
+    }
 }

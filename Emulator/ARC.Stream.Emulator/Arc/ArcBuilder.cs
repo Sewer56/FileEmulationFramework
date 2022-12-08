@@ -42,7 +42,7 @@ public class ArcBuilder
         MemoryStream headerStream = new MemoryStream(headerLength);
 
         // Write header magic and file count
-        headerStream.Write(Encoding.ASCII.GetBytes("ARCL")); // 'ARCL'
+        headerStream.Write( 0x4C435241 ); // 'ARCL'
         headerStream.Write(numFiles);
 
         // Make MultiStream
@@ -59,7 +59,7 @@ public class ArcBuilder
         for (int x = 0; x < numFiles; x++)
         {
             int length = 0;
-            string filename = entries[x].GetFileName().Trim();
+            string filename = entries[x].GetFileName();
             if (_customFiles.TryGetValue(filename, out var overwrittenFile))
             {
                 logger?.Info($"{nameof(ArcBuilder)} | Injecting {{0}}, in slot {{1}}", overwrittenFile.FilePath, x);

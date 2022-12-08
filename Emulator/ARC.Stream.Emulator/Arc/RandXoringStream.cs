@@ -1,3 +1,5 @@
+// CODE TAKEN WITH PERMISSION FROM THE JSR ARC TOOL: https://steamcommunity.com/app/205950/discussions/0/535150948594821347/
+// CODE WRITTEN BY https://twitter.com/GMMan_BZFlag
 using System;
 using System.IO;
 
