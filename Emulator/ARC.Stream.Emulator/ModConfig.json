@@ -1,0 +1,49 @@
+{
+  "ModId": "reloaded.universal.fileemulationframework.arc",
+  "ModName": "ARC Emulator for File Emulation Framework",
+  "ModAuthor": "ltsophia + Sewer56",
+  "ModVersion": "1.0.0",
+  "ModDescription": "Simulates Sega ARC files. Allows mods to add or replace existing files using files on disk.",
+  "ModDll": "ARC.Stream.Emulator.dll",
+  "ModIcon": "Preview.png",
+  "ModR2RManagedDll32": "x86/ARC.Stream.Emulator.dll",
+  "ModR2RManagedDll64": "x64/ARC.Stream.Emulator.dll",
+  "ModNativeDll32": "",
+  "ModNativeDll64": "",
+  "IsLibrary": true,
+  "ReleaseMetadataFileName": "ARC.Stream.Emulator.ReleaseMetadata.json",
+  "PluginData": {
+    "GitHubDependencies": {
+      "IdToConfigMap": {
+        "reloaded.sharedlib.hooks": {
+          "Config": {
+            "UserName": "Sewer56",
+            "RepositoryName": "Reloaded.SharedLib.Hooks.ReloadedII",
+            "UseReleaseTag": true,
+            "AssetFileName": "reloaded.sharedlib.hooks.zip"
+          },
+          "ReleaseMetadataName": "Sewer56.Update.ReleaseMetadata.json"
+        }
+      }
+    },
+    "NuGet": {
+      "AllowUpdateFromAnyRepository": false,
+      "DefaultRepositoryUrls": [
+        "http://packages.sewer56.moe:5000/v3/index.json"
+      ]
+    },
+    "GitHubRelease": {
+      "UserName": "Sewer56",
+      "RepositoryName": "FileEmulationFramework",
+      "UseReleaseTag": false,
+      "AssetFileName": "Mod.zip"
+    }
+  },
+  "IsUniversalMod": true,
+  "ModDependencies": [
+    "reloaded.universal.fileemulationframework"
+  ],
+  "OptionalDependencies": [],
+  "SupportedAppId": [],
+  "ProjectUrl": "https://github.com/Sewer56/FileEmulationFramework"
+}
