@@ -29,7 +29,11 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Interfaces", "Interfaces", 
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "AWB.Stream.Emulator.Interfaces", "Emulator\Interfaces\AWB.Stream.Emulator.Interfaces\AWB.Stream.Emulator.Interfaces.csproj", "{180E9FB7-BCBD-452B-AF23-23F7C4D9C931}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ARC.Stream.Emulator", "Emulator\ARC.Stream.Emulator\ARC.Stream.Emulator.csproj", "{DE067AF0-EA87-4A2C-9C04-25438BA23C29}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "ARC.Stream.Emulator", "Emulator\ARC.Stream.Emulator\ARC.Stream.Emulator.csproj", "{DE067AF0-EA87-4A2C-9C04-25438BA23C29}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "PAK.Stream.Emulator", "Emulator\PAK.Stream.Emulator\PAK.Stream.Emulator.csproj", "{CAE1FB74-7A16-47A2-8FBC-78A167C4DD9C}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "PAK.Stream.Emulator.Interfaces", "Emulator\Interfaces\PAK.Stream.Emulator.Interfaces\PAK.Stream.Emulator.Interfaces.csproj", "{17A7D1A1-DCEB-4C1B-A606-452AA5D968C9}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -81,6 +85,14 @@ Global
 		{DE067AF0-EA87-4A2C-9C04-25438BA23C29}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{DE067AF0-EA87-4A2C-9C04-25438BA23C29}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{DE067AF0-EA87-4A2C-9C04-25438BA23C29}.Release|Any CPU.Build.0 = Release|Any CPU
+		{CAE1FB74-7A16-47A2-8FBC-78A167C4DD9C}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{CAE1FB74-7A16-47A2-8FBC-78A167C4DD9C}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{CAE1FB74-7A16-47A2-8FBC-78A167C4DD9C}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{CAE1FB74-7A16-47A2-8FBC-78A167C4DD9C}.Release|Any CPU.Build.0 = Release|Any CPU
+		{17A7D1A1-DCEB-4C1B-A606-452AA5D968C9}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{17A7D1A1-DCEB-4C1B-A606-452AA5D968C9}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{17A7D1A1-DCEB-4C1B-A606-452AA5D968C9}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{17A7D1A1-DCEB-4C1B-A606-452AA5D968C9}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -94,6 +106,8 @@ Global
 		{604407C2-9BB1-4923-A744-DF5E1551A412} = {E530561A-D74E-48FD-B16B-8ECA7EE35ED6}
 		{180E9FB7-BCBD-452B-AF23-23F7C4D9C931} = {604407C2-9BB1-4923-A744-DF5E1551A412}
 		{DE067AF0-EA87-4A2C-9C04-25438BA23C29} = {E530561A-D74E-48FD-B16B-8ECA7EE35ED6}
+		{CAE1FB74-7A16-47A2-8FBC-78A167C4DD9C} = {E530561A-D74E-48FD-B16B-8ECA7EE35ED6}
+		{17A7D1A1-DCEB-4C1B-A606-452AA5D968C9} = {604407C2-9BB1-4923-A744-DF5E1551A412}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {33D4FC90-A513-4AB4-BF0A-704F0E193DCC}

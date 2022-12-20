@@ -51,6 +51,7 @@
     <ProjectReference Include="..\Emulator\AWB.Stream.Emulator\AWB.Stream.Emulator.csproj" />
     <ProjectReference Include="..\Emulator\AFS.Stream.Emulator\AFS.Stream.Emulator.csproj" />
     <ProjectReference Include="..\Emulator\ONE.Heroes.Stream.Emulator\ONE.Heroes.Stream.Emulator.csproj" />
+    <ProjectReference Include="..\Emulator\PAK.Stream.Emulator\PAK.Stream.Emulator.csproj" />
     <ProjectReference Include="..\FileEmulationFramework.Lib\FileEmulationFramework.Lib.csproj" />
   </ItemGroup>
 
@@ -61,11 +62,22 @@
   </ItemGroup>
 
   <ItemGroup>
-    <Folder Include="Assets\" />
-  </ItemGroup>
-
-  <ItemGroup>
     <None Update="Emulators\ONE\arg_swag.one">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <None Update="Emulators\PAK\originalV1.pak">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <None Update="Emulators\PAK\originalV2.pak">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <None Update="Emulators\PAK\originalV2be.pak">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <None Update="Emulators\PAK\originalV3.pak">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <None Update="Emulators\PAK\originalV3be.pak">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
   </ItemGroup>
