@@ -1,7 +1,9 @@
 ﻿using System.Runtime.CompilerServices;
+using PAK.Stream.Emulator.Interfaces;
 using PAK.Stream.Emulator.Template;
 using FileEmulationFramework.Interfaces;
 using FileEmulationFramework.Lib.Utilities;
+using Reloaded.Memory.Sigscan.Definitions;
 using Reloaded.Mod.Interfaces;
 using Reloaded.Mod.Interfaces.Internal;
 
@@ -12,7 +14,7 @@ namespace PAK.Stream.Emulator;
 /// <summary>
 /// Your mod logic goes here.
 /// </summary>
-public class Mod : ModBase // <= Do not Remove.
+public class Mod : ModBase, IExports // <= Do not Remove.
 {
     /// <summary>
     /// Provides access to the mod loader API.
@@ -35,7 +37,7 @@ public class Mod : ModBase // <= Do not Remove.
     private readonly IModConfig _modConfig;
 
     private Logger _log;
-    private PakEmulator _emulator;
+    private PakEmulator _pakEmulator;
 
     public Mod(ModContext context)
     {
@@ -49,23 +51,28 @@ public class Mod : ModBase // <= Do not Remove.
 
         // If you want to implement e.g. unload support in your mod,
         // and some other neat features, override the methods in ModBase.
+
         _modLoader.ModLoading += OnModLoading;
         _modLoader.OnModLoaderInitialized += OnModLoaderInitialized;
         _log = new Logger(_logger, _configuration.LogLevel);
         _log.Info("Starting PAK.Stream.Emulator");
-        _emulator = new PakEmulator(_log, _configuration.DumpPak);
+        _pakEmulator = new PakEmulator(_log, _configuration.DumpPak);
 
         _modLoader.GetController<IEmulationFramework>().TryGetTarget(out var framework);
-        framework!.Register(_emulator);
+        framework!.Register(_pakEmulator);
+        
+        
+        // Expose API
+        _modLoader.AddOrReplaceController<IPakEmulator>(context.Owner, new PakEmulatorApi(framework, _pakEmulator,  _log));
     }
-
+    
     private void OnModLoaderInitialized()
     {
         _modLoader.ModLoading -= OnModLoading;
         _modLoader.OnModLoaderInitialized -= OnModLoaderInitialized;
     }
 
-    private void OnModLoading(IModV1 mod, IModConfigV1 modConfig) => _emulator.OnModLoading(_modLoader.GetDirectoryForModId(modConfig.ModId));
+    private void OnModLoading(IModV1 mod, IModConfigV1 modConfig) => _pakEmulator.OnModLoading(_modLoader.GetDirectoryForModId(modConfig.ModId));
 
     #region Standard Overrides
     public override void ConfigurationUpdated(Config configuration)
@@ -78,8 +85,13 @@ public class Mod : ModBase // <= Do not Remove.
         _configuration.DumpPak = configuration.DumpPak;
     }
     #endregion
-    
-#pragma warning disable CS8618
+
+    #region For Exports, Serialization etc.
+#pragma warning disable CS8618 // Non-nullable field must contain a non-null value when exiting constructor. Consider declaring as nullable.
     public Mod() { }
 #pragma warning restore CS8618
+    #endregion
+
+    /// <inheritdoc/>
+    public Type[] GetTypes() => new[] { typeof(IPakEmulator) };
 }
