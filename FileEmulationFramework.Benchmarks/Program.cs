@@ -7,4 +7,5 @@ using FileEmulationFramework.Benchmarks;
 //BenchmarkRunner.Run<MemoryManagerReadBenchmarks>();
 //BenchmarkRunner.Run<MemoryManagerWriteBenchmarks>();
 //BenchmarkRunner.Run<OffsetSelectionBenchmarks>();
-BenchmarkRunner.Run<DelegateCallVsDoubleDictLookup>();
+//BenchmarkRunner.Run<DelegateCallVsDoubleDictLookup>();
+BenchmarkRunner.Run<SearchDirectoryBenchmark>();
