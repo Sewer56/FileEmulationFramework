@@ -14,14 +14,8 @@ public class SearchDirectoryBenchmark
     [Benchmark]
     public List<FileInformation> Current()
     {
+        Console.WriteLine($"Threads: {ThreadPool.ThreadCount}");
         WindowsDirectorySearcher.GetDirectoryContentsRecursive(SearchPath, out var result, out _);
-        return result;
-    }
-
-    [Benchmark]
-    public List<FileInformation> CurrentMt()
-    {
-        WindowsDirectorySearcher.GetDirectoryContentsRecursive(SearchPath, out var result, out _, true);
         return result;
     }
 
@@ -31,14 +25,7 @@ public class SearchDirectoryBenchmark
         WindowsDirectorySearcher.GetDirectoryContentsRecursiveGrouped(SearchPath, out var result);
         return result;
     }
-    
-    [Benchmark]
-    public List<DirectoryFilesGroup> CurrentGroupMt()
-    {
-        WindowsDirectorySearcher.GetDirectoryContentsRecursiveGrouped(SearchPath, out var result, true);
-        return result;
-    }
-    
+
     [Benchmark]
     public List<Legacy.FileInformation> Legacy()
     {

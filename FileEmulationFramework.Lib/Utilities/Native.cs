@@ -291,7 +291,7 @@ public static class Native
         /// <summary>
         /// Lengthm of this structure.
         /// </summary>
-        public int Length;
+        public int Length = sizeof(OBJECT_ATTRIBUTES);
 
         /// <summary>
         /// Optional handle to the root object directory for the path name specified by the ObjectName member.
@@ -299,31 +299,33 @@ public static class Native
         /// If RootDirectory is non-NULL, ObjectName specifies an object name relative to the RootDirectory directory.
         /// The RootDirectory handle can refer to a file system directory or an object directory in the object manager namespace.
         /// </summary>
-        public IntPtr RootDirectory;
+        public IntPtr RootDirectory = IntPtr.Zero;
 
         /// <summary>
         /// Pointer to a Unicode string that contains the name of the object for which a handle is to be opened.
         /// This must either be a fully qualified object name, or a relative path name to the directory specified by the RootDirectory member.
         /// </summary>
-        public UNICODE_STRING* ObjectName;
+        public UNICODE_STRING* ObjectName = default;
 
         /// <summary>
         /// Bitmask of flags that specify object handle attributes. This member can contain one or more of the flags in the following table (See MSDN)
         /// </summary>
-        public uint Attributes;
+        public uint Attributes = default;
 
         /// <summary>
         /// Specifies a security descriptor (SECURITY_DESCRIPTOR) for the object when the object is created.
         /// If this member is NULL, the object will receive default security settings.
         /// </summary>
-        public IntPtr SecurityDescriptor;
+        public IntPtr SecurityDescriptor = default;
 
         /// <summary>
         /// Optional quality of service to be applied to the object when it is created.
         /// Used to indicate the security impersonation level and context tracking mode (dynamic or static).
         /// Currently, the InitializeObjectAttributes macro sets this member to NULL.
         /// </summary>
-        public IntPtr SecurityQualityOfService;
+        public IntPtr SecurityQualityOfService = default;
+
+        public OBJECT_ATTRIBUTES() { }
     }
 
     /// <summary>
