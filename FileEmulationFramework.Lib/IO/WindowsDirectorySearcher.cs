@@ -1,7 +1,6 @@
 // ReSharper disable InconsistentNaming
 
 using System.Collections.Concurrent;
-using System.Diagnostics.CodeAnalysis;
 using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 using System.Runtime.Versioning;
@@ -14,7 +13,6 @@ namespace FileEmulationFramework.Lib.IO;
 /// <summary>
 /// Class that provides WinAPI based utility methods for fast file enumeration in directories.
 /// </summary>
-[ExcludeFromCodeCoverage(Justification = "Taken from Reloaded.IO. Known good implementation.")]
 [SupportedOSPlatform("windows5.1.2600")]
 public class WindowsDirectorySearcher
 {
@@ -57,7 +55,7 @@ public class WindowsDirectorySearcher
     public static bool TryGetDirectoryContents(string path, List<FileInformation> files, List<DirectoryInformation> directories)
     {
         path = Path.GetFullPath(path);
-        return TryGetDirectoryContents_Internal(path, files, directories);
+        return TryGetDirectoryContents_Internal(path, files.Add, directories.Add);
     }
 
     /// <summary>
@@ -119,16 +117,14 @@ public class WindowsDirectorySearcher
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static void GetDirectoryContentsRecursive(string path, List<FileInformation> files, List<DirectoryInformation> directories, bool multithreaded)
     {
-        var newFiles = new List<FileInformation>();
         var initialDirectories = new List<DirectoryInformation>();
 
         path = Path.GetFullPath(path);
-        var initialDirSuccess = TryGetDirectoryContents_Internal(path, newFiles, initialDirectories);
+        var initialDirSuccess = TryGetDirectoryContents_Internal(path, files.Add, initialDirectories.Add);
         if (!initialDirSuccess)
             return;
 
-        // Add initial files
-        files.AddRange(newFiles);
+        // Add initial directories
         directories.AddRange(initialDirectories);
         if (initialDirectories.Count <= 0)
             return;
@@ -136,11 +132,8 @@ public class WindowsDirectorySearcher
         if (multithreaded)
         {
             // If multiple directories left, let's then go mutlithread.
-            var completedEvent = new ManualResetEventSlim(false);
-            using var searcher = new MultithreadedDirectorySearcher(initialDirectories, completedEvent, files, directories, null);
-            searcher.Start();
-            while (!searcher.Completed())
-                completedEvent.Wait();
+            using var searcher = new MultithreadedDirectorySearcher(initialDirectories, files, directories, null);
+            searcher.Run();
         }
         else
         {
@@ -148,13 +141,11 @@ public class WindowsDirectorySearcher
             var remainingDirectories = new Stack<DirectoryInformation>(initialDirectories);
             while (remainingDirectories.TryPop(out var dir))
             {
-                newFiles.Clear();
                 initialDirectories.Clear();
-                TryGetDirectoryContents_Internal(dir.FullPath, newFiles, initialDirectories);
+                TryGetDirectoryContents_Internal(dir.FullPath, files.Add, initialDirectories.Add);
 
                 // Add to accumulator
                 directories.AddRange(initialDirectories);
-                files.AddRange(newFiles);
 
                 // Add to remaining dirs
                 foreach (var newDir in initialDirectories)
@@ -216,7 +207,7 @@ public class WindowsDirectorySearcher
         var initialDirectories = new List<DirectoryInformation>();
 
         path = Path.GetFullPath(path);
-        var initialDirSuccess = TryGetDirectoryContents_Internal(path, newFiles, initialDirectories);
+        var initialDirSuccess = TryGetDirectoryContents_Internal(path, newFiles.Add, initialDirectories.Add);
         if (!initialDirSuccess)
             return;
 
@@ -229,11 +220,8 @@ public class WindowsDirectorySearcher
         if (multithreaded)
         {
             // If multiple directories left, let's then go mutlithread.
-            var completedEvent = new ManualResetEventSlim(false);
-            using var searcher = new MultithreadedDirectorySearcher(initialDirectories, completedEvent, null, null, groups);
-            searcher.Start();
-            while (!searcher.Completed())
-                completedEvent.Wait();
+            using var searcher = new MultithreadedDirectorySearcher(initialDirectories, null, null, groups);
+            searcher.Run();
         }
         else
         {
@@ -242,7 +230,7 @@ public class WindowsDirectorySearcher
             {
                 newFiles.Clear();
                 initialDirectories.Clear();
-                TryGetDirectoryContents_Internal(dir.FullPath, newFiles, initialDirectories);
+                TryGetDirectoryContents_Internal(dir.FullPath, newFiles.Add, initialDirectories.Add);
 
                 // Add to accumulator
                 groups.Add(new DirectoryFilesGroup(dir, newFiles));
@@ -254,33 +242,35 @@ public class WindowsDirectorySearcher
         }
     }
 
+    #region Algorithm Constants
+    // Stack allocated, so we need to restrict ourselves. I hope no file has longer name than 8000 character.
+    const int StackBufferSize = 1024 * 16; 
+    const uint STATUS_SUCCESS = 0x00000000;
+
+    const uint FILE_ATTRIBUTE_NORMAL = 128;
+
+    const int FILE_DIRECTORY_INFORMATION_CLASS = 1;
+
+    const uint FILE_OPEN = 1;
+    const int FILE_SYNCHRONOUS_IO_NONALERT = 0x00000020;
+
+    const int FILE_LIST_DIRECTORY = 0x00000001;
+    const int SYNCHRONIZE = 0x00100000;
+    #endregion
+
     /// <summary>
     /// Retrieves the total contents of a directory for a single directory.
     /// </summary>
     /// <param name="dirPath">The path for which to get the directory for. Must be full path.</param>
-    /// <param name="files">The files present in this directory.</param>
-    /// <param name="directories">The directories present in this directory.</param>
+    /// <param name="onAddFile">The files present in this directory.</param>
+    /// <param name="onAddDirectory">The directories present in this directory.</param>
     /// <returns>True on success, else false.</returns>
     [SkipLocalsInit]
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
-    private static unsafe bool TryGetDirectoryContents_Internal(string dirPath, List<FileInformation> files, List<DirectoryInformation> directories)
+    private static unsafe bool TryGetDirectoryContents_Internal(string dirPath, Action<FileInformation> onAddFile, Action<DirectoryInformation> onAddDirectory)
     {
-        // 16K seemed to have good enough size to fill most queries in while still preserving stack.
-        const int BufferSize = 1024 * 16;
-        const uint STATUS_SUCCESS = 0x00000000;
-
-        const uint FILE_ATTRIBUTE_NORMAL = 128;
-
-        const int FILE_DIRECTORY_INFORMATION = 1;
-
-        const uint FILE_OPEN = 1;
-        const int FILE_SYNCHRONOUS_IO_NONALERT = 0x00000020;
-
-        const int FILE_LIST_DIRECTORY = 0x00000001;
-        const int SYNCHRONIZE = 0x00100000;
-
         // Note: Thanks to SkipLocalsInit, this memory is not zero'd so the allocation is virtually free.
-        byte* bufferPtr = stackalloc byte[BufferSize];
+        byte* bufferPtr = stackalloc byte[StackBufferSize];
 
         // Add prefix if needed.
         var originalDirPath = dirPath;
@@ -289,15 +279,7 @@ public class WindowsDirectorySearcher
 
         // Open the folder for reading.
         var hFolder = IntPtr.Zero;
-        var objectAttributes = new OBJECT_ATTRIBUTES
-        {
-            Length = sizeof(OBJECT_ATTRIBUTES),
-            Attributes = 0,
-            RootDirectory = IntPtr.Zero,
-            SecurityDescriptor = IntPtr.Zero,
-            SecurityQualityOfService = IntPtr.Zero
-        };
-
+        var objectAttributes = new OBJECT_ATTRIBUTES();
         var statusBlock = new IO_STATUS_BLOCK();
         long allocSize = 0;
         IntPtr result;
@@ -306,8 +288,7 @@ public class WindowsDirectorySearcher
         {
             var objectName = new UNICODE_STRING(dirString, dirPath.Length);
             objectAttributes.ObjectName = &objectName;
-
-            result = NtCreateFile(ref hFolder, FILE_LIST_DIRECTORY | SYNCHRONIZE, ref objectAttributes, ref statusBlock, ref allocSize, FILE_ATTRIBUTE_NORMAL, FileShare.Read, FILE_DIRECTORY_INFORMATION, FILE_OPEN | FILE_SYNCHRONOUS_IO_NONALERT, IntPtr.Zero, 0);
+            result = NtCreateFile(ref hFolder, FILE_LIST_DIRECTORY | SYNCHRONIZE, ref objectAttributes, ref statusBlock, ref allocSize, FILE_ATTRIBUTE_NORMAL, FileShare.Read, FILE_DIRECTORY_INFORMATION_CLASS, FILE_OPEN | FILE_SYNCHRONOUS_IO_NONALERT, IntPtr.Zero, 0);
         }
 
         if ((ulong)result != STATUS_SUCCESS)
@@ -322,7 +303,7 @@ public class WindowsDirectorySearcher
                 statusBlock = new IO_STATUS_BLOCK();
                 var ntstatus = NtQueryDirectoryFile(hFolder,   // Our directory handle.
                     IntPtr.Zero, IntPtr.Zero, IntPtr.Zero, ref statusBlock,  // Pointers we don't care about 
-                    (IntPtr)bufferPtr, BufferSize, FILE_DIRECTORY_INFORMATION, // Buffer info.
+                    (IntPtr)bufferPtr, StackBufferSize, FILE_DIRECTORY_INFORMATION_CLASS, // Buffer info.
                     0, IntPtr.Zero, 0);
 
                 var currentBufferPtr = (IntPtr)bufferPtr;
@@ -350,7 +331,7 @@ public class WindowsDirectorySearcher
                         var isDirectory = (info->FileAttributes & FileAttributes.Directory) > 0;
                         if (isDirectory)
                         {
-                            directories.Add(new DirectoryInformation
+                            onAddDirectory(new DirectoryInformation
                             {
                                 FullPath = $@"{originalDirPath}\{fileName}",
                                 LastWriteTime = info->LastWriteTime.ToDateTime()
@@ -358,7 +339,7 @@ public class WindowsDirectorySearcher
                         }
                         else if (!isDirectory)
                         {
-                            files.Add(new FileInformation
+                            onAddFile(new FileInformation
                             {
                                 DirectoryPath = originalDirPath,
                                 FileName = fileName,
@@ -383,50 +364,49 @@ public class WindowsDirectorySearcher
 
     private readonly struct MultithreadedDirectorySearcher : IDisposable
     {
-        private readonly bool[] _threadCompleted;
-        private readonly ManualResetEventSlim _threadReset;
+        private readonly bool[] _isIdle;
+        private readonly ManualResetEventSlim _workDone;
+        private readonly ManualResetEventSlim _threadStart;
         private readonly ConcurrentQueue<DirectoryInformation> _remainingDirectories;
-        private readonly ManualResetEventSlim _checkCompleted;
         private readonly List<FileInformation>? _files;
         private readonly List<DirectoryInformation>? _directories;
         private readonly List<DirectoryFilesGroup>? _groups;
         private readonly SemaphoreSlim _singleThreadSemaphore = new(1);
 
         public MultithreadedDirectorySearcher(IEnumerable<DirectoryInformation> initialDirectories,
-            ManualResetEventSlim checkCompleted, List<FileInformation>? files, List<DirectoryInformation>? directories,
+            List<FileInformation>? files, List<DirectoryInformation>? directories,
             List<DirectoryFilesGroup>? groups, int numThreads = -1)
         {
             if (numThreads == -1)
-                numThreads = Environment.ProcessorCount * 2;
+                numThreads = Math.Min(8, Environment.ProcessorCount * 2);
 
-            _checkCompleted = checkCompleted;
             _files = files;
             _directories = directories;
             _groups = groups;
-            _threadReset = new ManualResetEventSlim(false);
+            _workDone = new ManualResetEventSlim(false);
+            _threadStart = new ManualResetEventSlim(false);
             _remainingDirectories = new ConcurrentQueue<DirectoryInformation>(initialDirectories);
-            _threadCompleted = new bool[numThreads];
+            _isIdle = new bool[numThreads];
             var threads = GC.AllocateUninitializedArray<Thread>(numThreads);
 
             for (int x = 0; x < numThreads; x++)
             {
-                var thread = new Thread(ThreadLogic, ushort.MaxValue); // Limit stack to just what we need.
+                var thread = new Thread(ThreadLogic, ushort.MaxValue * 2); // Limit stack to just what we need.
                 thread.IsBackground = true;
                 thread.Start(x);
                 threads[x] = thread;
             }
         }
 
-        public void Start() => _threadReset.Set();
-
-        /// <summary>
-        /// The task is considered to be completed. 
-        /// If there is only 1 (last) thread remaining.
-        /// That thread being the one to signal the completed check.
-        /// </summary>
-        public bool Completed()
+        public void Run()
         {
-            foreach (var completed in _threadCompleted)
+            _threadStart.Set();
+            _workDone.Wait();
+        }
+
+        private bool AllThreadsIdle()
+        {
+            foreach (var completed in _isIdle)
             {
                 if (!completed)
                     return false;
@@ -438,55 +418,74 @@ public class WindowsDirectorySearcher
         private void ThreadLogic(object? threadIdObj)
         {
             var threadId = (int)threadIdObj!;
-            _threadReset.Wait();
+            _threadStart.Wait();
 
+            // Init
             var files = new List<FileInformation>();
             var directories = new List<DirectoryInformation>();
+            var remainingDirectories = _remainingDirectories;
+            
             List<DirectoryFilesGroup> groups = null!;
             if (_groups != null)
                 groups = new List<DirectoryFilesGroup>();
 
             // Get cracking.
-            while (_remainingDirectories.TryDequeue(out var result))
-            {
-                var currentDirectoryCount = directories.Count;
-                TryGetDirectoryContents_Internal(result.FullPath, files, directories);
+            ProcessItems:
+            _isIdle[threadId] = false;
                 
-                // Push directories acquired in this thread to global list of searchables.
-                for (int x = currentDirectoryCount; x < directories.Count; x++)
-                    _remainingDirectories.Enqueue(directories[x]);
+            // Process remaining directories
+            while (remainingDirectories.TryDequeue(out var result))
+            {
+                TryGetDirectoryContents_Internal(result.FullPath, files.Add, information =>
+                {
+                    directories.Add(information);
+                    remainingDirectories.Enqueue(information);
+                });
 
                 if (_groups == null) 
                     continue;
                 
-                // Make group and clear source data.
+                // Make group and clear local data.
                 groups.Add(new DirectoryFilesGroup(result, files.ToList()));
                 files.Clear();
                 directories.Clear();
             }
-
-            // Add thread data to global list.
+            
+            // Only single thread can add to global list at same time.
             _singleThreadSemaphore.Wait();
             if (_groups == null)
             {
                 _files!.AddRange(files);
                 _directories!.AddRange(directories);
+                files.Clear(); // clear state for possible resume after goto
+                directories.Clear();
             }
             else
             {
                 _groups.AddRange(groups);
+                groups.Clear(); // clear state for possible resume after goto
             }
+            
             _singleThreadSemaphore.Release();
-
-            // Ask master thread to check.
-            _threadCompleted[threadId] = true;
-            _checkCompleted.Set();
+            _isIdle[threadId] = true;
+            
+            // Wait for possible next item to process.
+            while (!AllThreadsIdle())
+            {
+                if (remainingDirectories.Count > 0)
+                    goto ProcessItems;
+                
+                Thread.Yield();
+            }
+            
+            // All threads are done, we good.
+            _workDone.Set();
         }
 
         public void Dispose()
         {
-            _threadReset.Dispose();
-            _checkCompleted.Dispose();
+            _threadStart.Dispose();
+            _workDone.Dispose();
             _singleThreadSemaphore.Dispose();
         }
     }
