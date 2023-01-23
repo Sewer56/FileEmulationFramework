@@ -14,7 +14,7 @@
     <Description>Library for Sewer's File Emulation framework for Reloaded</Description>
     <PackageProjectUrl>https://github.com/Sewer56/FileEmulationFramework</PackageProjectUrl>
     <PackageLicenseFile>LICENSE.md</PackageLicenseFile>
-    <Version>1.0.1</Version>
+    <Version>1.1.1</Version>
   </PropertyGroup>
 
   <ItemGroup>
