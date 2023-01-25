@@ -1,4 +1,6 @@
-﻿using PAK.Stream.Emulator.Interfaces.Structures.IO;
+﻿using FileEmulationFramework.Interfaces;
+using FileEmulationFramework.Lib.IO;
+using PAK.Stream.Emulator.Interfaces.Structures.IO;
 
 namespace PAK.Stream.Emulator.Interfaces;
 
@@ -15,6 +17,9 @@ public interface IPakEmulator
     /// <param name="route">The route of the emulated file.</param>
     /// <param name="destinationPath">Path to where the emulated file should be put.</param>
     public bool TryCreateFromFileSlice(string sourcePath, long offset, string route, string destinationPath);
+
+
+    public bool TryCreateFromBytes(byte[] bytes, string filepath, string route, out MultiStream? stream);
 
     /// <summary>
     /// Invalidates a file, i.e. unregisters it, will be recreated on next access.

@@ -20,18 +20,36 @@ public static class PakChecker
     {
         var fileStream = new FileStream(new SafeFileHandle(handle, false), FileAccess.Read);
         var pos = fileStream.Position;
-
         try
         {
-            return !(PakBuilder.DetectVersion(fileStream) == FormatVersion.Unknown);
+            return IsPakFileHelper(fileStream);
         }
         finally
         {
-            fileStream.Dispose();
             Native.SetFilePointerEx(handle, pos, IntPtr.Zero, 0);
         }
     }
-    
+
+    public static bool IsPakFile(byte[] bytes)
+    {
+        var fileStream = new MemoryStream(bytes);
+
+        return IsPakFileHelper(fileStream);
+    }
+
+    private static bool IsPakFileHelper(System.IO.Stream stream)
+    {
+        try
+        {
+            return !(PakBuilder.DetectVersion(stream) == FormatVersion.Unknown);
+        }
+        finally
+        {
+            stream.Dispose();
+        }
+    }
+
+
     [MethodImpl(MethodImplOptions.AggressiveInlining)]
     public static T Read<T>(this System.IO.Stream stream) where T : unmanaged
     {

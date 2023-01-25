@@ -13,4 +13,9 @@
     <PackageLicenseUrl>https://github.com/Sewer56/FileEmulationFramework/blob/main/LICENSE.md</PackageLicenseUrl>
   </PropertyGroup>
 
+  <ItemGroup>
+    <ProjectReference Include="..\..\..\FileEmulationFramework.Interfaces\FileEmulationFramework.Interfaces.csproj" />
+    <ProjectReference Include="..\..\..\FileEmulationFramework.Lib\FileEmulationFramework.Lib.csproj" />
+  </ItemGroup>
+
 </Project>

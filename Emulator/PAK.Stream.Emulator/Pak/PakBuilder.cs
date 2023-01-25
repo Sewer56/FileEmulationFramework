@@ -1,5 +1,6 @@
 ﻿using System;
 using System.IO;
+using System.IO.Pipes;
 using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 using System.Text;
@@ -30,16 +31,35 @@ public class PakBuilder
         var fileName = Path.GetFileName(filePath);
         _customFiles[fileName] = new(filePath);
     }
-
-    /// <summary>
-    /// Builds an ARC file.
-    /// </summary>
     public unsafe MultiStream Build(IntPtr handle, string filepath, Logger? logger = null)
+    {
+        var stream = new FileStream(new SafeFileHandle(handle, false), FileAccess.Read);
+        var pos = stream.Position;
+        try
+        {
+            return BuildHelper(stream, filepath, logger);
+        }
+        finally
+        {
+            stream.Dispose();
+            Native.SetFilePointerEx(handle, pos, IntPtr.Zero, 0);
+        }
+    }
+
+    public unsafe MultiStream Build(byte[] bytes, string filepath, Logger? logger = null)
+    {
+        var stream = new MemoryStream(bytes);
+        return BuildHelper(stream, filepath, logger);
+    }
+    /// <summary>
+    /// Builds a PAK file.
+    /// </summary>
+    private unsafe MultiStream BuildHelper(Strim strim, string filepath, Logger? logger = null)
     {
         logger?.Info($"[{nameof(PakBuilder)}] Building PAK File | {{0}}", filepath);
        
         // Get original file's entries.
-        IEntry[] entries = GetEntriesFromFile(handle, out var format);
+        IEntry[] entries = GetEntriesFromFile(strim, out var format);
 
         int sizeofentry;
         if (format == FormatVersion.Version1)
@@ -260,11 +280,8 @@ public class PakBuilder
     /// <summary>
     /// Obtains the ARC header from a specific file path.
     /// </summary>
-    private IEntry[] GetEntriesFromFile(IntPtr handle, out FormatVersion format)
+    private IEntry[] GetEntriesFromFile(Strim stream, out FormatVersion format)
     {
-        var stream = new FileStream(new SafeFileHandle(handle, false), FileAccess.Read);
-        var pos = stream.Position;
-
         format = DetectVersion(stream);
         if (format == FormatVersion.Unknown)
         {
@@ -319,7 +336,6 @@ public class PakBuilder
         finally
         {
             stream.Dispose();
-            Native.SetFilePointerEx(handle, pos, IntPtr.Zero, 0);
         }
     }
 

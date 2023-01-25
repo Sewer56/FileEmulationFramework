@@ -202,7 +202,6 @@ public class PakEmulatorTests
         var filename = Path.GetFileName(index);
         fileStream.Seek(0, SeekOrigin.Begin);
         var format = PakBuilder.DetectVersion(fileStream);
-        StreamReader reader;
 
         if (format == FormatVersion.Unknown)
         {
