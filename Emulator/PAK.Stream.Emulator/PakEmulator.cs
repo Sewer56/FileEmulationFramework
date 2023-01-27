@@ -4,8 +4,6 @@ using FileEmulationFramework.Interfaces.Reference;
 using FileEmulationFramework.Lib.IO;
 using FileEmulationFramework.Lib.Utilities;
 using PAK.Stream.Emulator.Utilities;
-using FileEmulationFramework.Lib;
-using System.Reflection.Metadata;
 
 namespace PAK.Stream.Emulator;
 
@@ -34,6 +32,7 @@ public class PakEmulator : IEmulator
         _log = log;
         DumpFiles = dumpFiles;
     }
+
     public bool TryCreateFile(IntPtr handle, string filepath, string route, out IEmulatedFile emulated)
     {
         // Check if we already made a custom AWB for this file.
@@ -58,41 +57,6 @@ public class PakEmulator : IEmulator
         return true;
     }
 
-    public bool TryCreateBytes(byte[] bytes, string filepath, string route, out MultiStream? stream)
-    {
-        // Check if we already made a custom PAK for this file.
-        if (_pathToStream.TryGetValue(filepath, out stream))
-        {
-            // Avoid recursion into same file.
-            if (stream == null)
-                return false;
-
-            return true;
-        }
-
-        // Check if there's a known route for this file
-        // Put this before actual file check because I/O.
-        if (!_builderFactory.TryCreateFromPath(route, out var builder))
-            return false;
-
-        // Check file type.
-        if (!PakChecker.IsPakFile(bytes))
-            return false;
-
-        // Make the PAK file.
-        _pathToStream[filepath] = null; // Avoid recursion into same file.
-
-        stream = builder!.Build(bytes, filepath, _log);
-
-        _pathToStream[filepath] = stream;
-        _log.Debug("[PakEmulator] Built file from Path {0}", filepath);
-
-        if (DumpFiles)
-            DumpFile(filepath, stream);
-
-
-        return true;
-    }
     /// <summary>
     /// Tries to create an emulated file from a given file handle.
     /// </summary>
@@ -117,7 +81,7 @@ public class PakEmulator : IEmulator
         if (!PakChecker.IsPakFile(handle))
             return false;
 
-        // Make the PAK file.
+        // Make the AFS file.
         _pathToStream[outputPath] = null; // Avoid recursion into same file.
 
         stream = builder!.Build(handle, srcDataPath, _log);
@@ -149,8 +113,8 @@ public class PakEmulator : IEmulator
     /// <summary>
     /// Invalidates an AWB file with a specified name.
     /// </summary>
-    /// <param name="pakPath">Full path to the file.</param>
-    public void UnregisterFile(string pakPath) => _pathToStream.Remove(pakPath);
+    /// <param name="awbPath">Full path to the file.</param>
+    public void UnregisterFile(string awbPath) => _pathToStream.Remove(awbPath);
 
     private void DumpFile(string filepath, MultiStream stream)
     {

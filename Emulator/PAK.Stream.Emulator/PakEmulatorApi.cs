@@ -3,9 +3,6 @@ using PAK.Stream.Emulator.Interfaces;
 using PAK.Stream.Emulator.Interfaces.Structures.IO;
 using FileEmulationFramework.Interfaces;
 using FileEmulationFramework.Lib.Utilities;
-using System.IO;
-using FileEmulationFramework.Lib.IO;
-using FileEmulationFramework.Lib;
 
 namespace PAK.Stream.Emulator;
 
@@ -50,16 +47,6 @@ public class PakEmulatorApi : IPakEmulator
         return true;
     }
 
-    public bool TryCreateFromBytes(byte[] bytes, string filepath, string route, out MultiStream? stream)
-    {
-        if (!_pakEmulator.TryCreateBytes(bytes, filepath, route, out stream))
-        {
-            _logger.Error("[PakEmulatorApi] TryCreateFromBytes: Failed to Create MultiStream at Path {0}", filepath);
-            return false;
-        }
-        return true;
-    }
-
     public void InvalidateFile(string pakPath)
     {
         _pakEmulator.UnregisterFile(pakPath);
@@ -77,10 +64,10 @@ public class PakEmulatorApi : IPakEmulator
             result[x] = new RouteGroupTuple()
             {
                 Route = original.Route.FullPath,
-                Files = new Interfaces.Structures.IO.DirectoryFilesGroup()
+                Files = new DirectoryFilesGroup()
                 {
                     Files = original.Files.Files,
-                    Directory = new Interfaces.Structures.IO.DirectoryInformation()
+                    Directory = new DirectoryInformation()
                     {
                         FullPath = original.Files.Directory.FullPath,
                         LastWriteTime = original.Files.Directory.LastWriteTime
