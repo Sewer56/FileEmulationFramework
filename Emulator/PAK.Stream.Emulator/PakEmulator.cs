@@ -48,8 +48,8 @@ public class PakEmulator : IEmulator
         }
 
         // Check extension.
-        //if (!filepath.EndsWith(Constants.PakExtension, StringComparison.OrdinalIgnoreCase))
-        //    return false;
+        if (!PakChecker.IsPakFile(handle))
+            return false;
 
         if (!TryCreateEmulatedFile(handle, filepath, filepath, filepath, true, ref emulated!, out _))
             return false;

@@ -112,8 +112,8 @@ public class PakBuilder
                 else if (format == FormatVersion.Version2 || format == FormatVersion.Version2BE)
                 {
                     MemoryStream entrystream = new MemoryStream(sizeof(V2FileEntry));
-                    var writelength = format == FormatVersion.Version3BE ? Endian.Reverse(length) : length;
-                    entrystream.Write(Encoding.ASCII.GetBytes(Path.GetFileName(overwrittenFile.FilePath).PadRight(24, '\0')));
+                    var writelength = format == FormatVersion.Version2BE ? Endian.Reverse(length) : length;
+                    entrystream.Write(Encoding.ASCII.GetBytes(Path.GetFileName(overwrittenFile.FilePath).PadRight(32, '\0')));
                     entrystream.Write<int>(writelength);
                     pairs.Add(new(entrystream, OffsetRange.FromStartAndLength(currentOffset, sizeof(V2FileEntry))));
                 }
