@@ -53,7 +53,7 @@ public class PakBuilder
         int i;
         for(i = 0; i < entries.Length; i++)
         {
-            if ( _customFiles.TryGetValue(entries[i].FileName, out var customfile))
+            if ( _customFiles.TryGetValue(entries[i].FileName.Trim(), out var customfile))
             {
                 intFiles[i] = customfile;
                 _customFiles.Remove(entries[i].FileName);
@@ -99,29 +99,30 @@ public class PakBuilder
                 // For custom files, add to pairs directly.
                 length = overwrittenFile.Length;
 
-                
+                string filename = i < entries.Length ? entries[i].FileName : Path.GetFileName(overwrittenFile.FilePath);
+
                 if (format == FormatVersion.Version1)
                 {
                     MemoryStream entrystream = new MemoryStream(sizeof(V1FileEntry));
-                    entrystream.Write(Encoding.ASCII.GetBytes(Path.GetFileName(overwrittenFile.FilePath).PadRight(252, '\0')));
+                    entrystream.Write(Encoding.ASCII.GetBytes(filename.PadRight(252, '\0')));
                     entrystream.Write<int>(length);
                     pairs.Add(new(entrystream, OffsetRange.FromStartAndLength(currentOffset, sizeof(V1FileEntry))));
-                    
+
                     length = (int)Align(length, 64);
                 }
                 else if (format == FormatVersion.Version2 || format == FormatVersion.Version2BE)
                 {
                     MemoryStream entrystream = new MemoryStream(sizeof(V2FileEntry));
                     var writelength = format == FormatVersion.Version2BE ? Endian.Reverse(length) : length;
-                    entrystream.Write(Encoding.ASCII.GetBytes(Path.GetFileName(overwrittenFile.FilePath).PadRight(32, '\0')));
+                    entrystream.Write(Encoding.ASCII.GetBytes(filename.PadRight(32, '\0')));
                     entrystream.Write<int>(writelength);
                     pairs.Add(new(entrystream, OffsetRange.FromStartAndLength(currentOffset, sizeof(V2FileEntry))));
                 }
                 else
                 {
                     MemoryStream entrystream = new MemoryStream(sizeof(V3FileEntry));
-                    var writelength = format == FormatVersion.Version3BE ? Endian.Reverse(length) : length; 
-                    entrystream.Write(Encoding.ASCII.GetBytes(Path.GetFileName(overwrittenFile.FilePath).PadRight(24, '\0')));
+                    var writelength = format == FormatVersion.Version3BE ? Endian.Reverse(length) : length;
+                    entrystream.Write(Encoding.ASCII.GetBytes(filename.PadRight(24, '\0')));
                     entrystream.Write<int>(writelength);
                     pairs.Add(new(entrystream, OffsetRange.FromStartAndLength(currentOffset, sizeof(V3FileEntry))));
                 }
