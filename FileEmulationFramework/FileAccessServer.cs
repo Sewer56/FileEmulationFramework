@@ -1,4 +1,5 @@
-﻿using FileEmulationFramework.Lib.Utilities;
+﻿using System.Diagnostics;
+using FileEmulationFramework.Lib.Utilities;
 using FileEmulationFramework.Utilities;
 using Reloaded.Hooks.Definitions;
 using System.Runtime.CompilerServices;
@@ -9,6 +10,7 @@ using FileEmulationFramework.Interfaces;
 using FileEmulationFramework.Lib;
 using FileEmulationFramework.Structs;
 using Reloaded.Hooks.Definitions.Enums;
+using Reloaded.Memory.Interop;
 using IReloadedHooks = Reloaded.Hooks.ReloadedII.Interfaces.IReloadedHooks;
 using Native = FileEmulationFramework.Lib.Utilities.Native;
 // ReSharper disable RedundantArgumentDefaultValue
@@ -39,6 +41,7 @@ public static unsafe class FileAccessServer
     private static NtQueryInformationFileFn _ntQueryInformationFile;
 
     private static Route _currentRoute;
+    private static nint* _closeHandleThreadId = (nint*)NativeMemory.Alloc((nuint)sizeof(nint));
 
     // Extended to 64-bit, to use with NtReadFile
     private const long FileUseFilePointerPosition = unchecked((long)0xfffffffffffffffe);
@@ -61,32 +64,50 @@ public static unsafe class FileAccessServer
         var getFileTypeAddr = functions.GetFileType.Address;
         var closeHandleCallbackAddr = (long)utilities.GetFunctionPointer(typeof(FileAccessServer), nameof(CloseHandleCallback));
         
+        // I verified Wine implements this part of the TEB, Sewer
+        const string defaultThreadId = "-1";
+        *_closeHandleThreadId = -1;
+        
+        long threadIdPtr = (long)_closeHandleThreadId;
         if (IntPtr.Size == 4)
         {
             _closeHandleHook = hooks.CreateAsmHook(new[]
             {
                 "use32",
+                "push esi",
+                
+                // EAX, ECX, EDX are volatile and free to use per STDCALL convention, rest is backed up
+                // EAX: Temporary/Scratch Variable
+                // ECX: Saved Thread ID
+                // EDX: Thread ID Address
+                // ESI: Current Thread ID
                 
                 // we put called address in EDI
-                "push edi", // backup EDI (it's non-volatile)
-                "push dword [esp+8]", // push handle
+                "mov esi, [fs:18h]",  // get TEB/TIB
+                "mov esi, [esi+24h]", // <= thread id in esi
                 
-                // call the function
-                $"mov edi, {getFileTypeAddr}", 
-                $"call edi",
-                
-                // Check result
-                $"cmp eax, 1",
-                $"jne exit",
-                    
-                    // It's a file, let's fire our callback.
-                    "push dword [esp+8]", // push handle
-                    $"mov edi, {closeHandleCallbackAddr}",
-                    $"call edi",
+                // Check if allow recurse
+                $"mov ecx, [{threadIdPtr}]",
+                "cmp ecx, esi",
+                "je exit",
 
+                // Loop
+                "checkInterlocked:",
+                    $"lea edx, [{threadIdPtr}]", 
+                    $"mov eax, {defaultThreadId}", 
+                    "lock cmpxchg [edx], esi", // cmpxchg compares EAX, with ESI [thread id]. See: Interlocked.CompareExchange
+                    $"cmp eax, {defaultThreadId}",
+                    "jne checkInterlocked",
+
+                // Fire our callback.
+                "push dword [esp+8]", // re-push handle
+                $"mov ecx, {closeHandleCallbackAddr}",
+                $"call ecx",
+                $"mov dword [{threadIdPtr}], {defaultThreadId}", // release lock
+                    
                 // It is a file, call our callback.
                 $"exit:",
-                $"pop edi",
+                "pop esi",
             }, functions.CloseHandle.Address, AsmHookBehaviour.ExecuteFirst);
         }
         else
