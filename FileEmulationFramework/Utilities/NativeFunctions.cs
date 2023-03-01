@@ -16,16 +16,14 @@ public struct NativeFunctions
     public IFunction<Native.NtSetInformationFileFn> SetFilePointer;
     public IFunction<Native.NtQueryInformationFileFn> GetFileSize;
     public IFunction<Native.CloseHandleFn> CloseHandle;
-    public IFunction<Native.GetFileTypeFn> GetFileType;
 
-    public NativeFunctions(IntPtr ntCreateFile, IntPtr ntReadFile, IntPtr ntSetInformationFile, IntPtr ntQueryInformationFile, IntPtr closeHandle, IntPtr getFileType, IReloadedHooks hooks)
+    public NativeFunctions(IntPtr ntCreateFile, IntPtr ntReadFile, IntPtr ntSetInformationFile, IntPtr ntQueryInformationFile, IntPtr closeHandle, IReloadedHooks hooks)
     {
         NtCreateFile = hooks.CreateFunction<Native.NtCreateFileFn>((long)ntCreateFile);
         NtReadFile = hooks.CreateFunction<Native.NtReadFileFn>((long)ntReadFile);
         SetFilePointer = hooks.CreateFunction<Native.NtSetInformationFileFn>((long)ntSetInformationFile);
         GetFileSize = hooks.CreateFunction<Native.NtQueryInformationFileFn>((long)ntQueryInformationFile);
         CloseHandle = hooks.CreateFunction<Native.CloseHandleFn>((long)closeHandle);
-        GetFileType = hooks.CreateFunction<Native.GetFileTypeFn>((long)getFileType);
     }
 
     /// <summary>
@@ -44,9 +42,8 @@ public struct NativeFunctions
 
         var k32Handle = NativeFn.LoadLibrary("kernel32");
         var closeHandle = NativeFn.GetProcAddress(k32Handle, "CloseHandle");
-        var getFileType = NativeFn.GetProcAddress(k32Handle, "GetFileType");
         
-        _instance = new(ntCreateFilePointer, ntReadFilePointer, setFilePointer, getFileSize, closeHandle, getFileType, hooks);
+        _instance = new(ntCreateFilePointer, ntReadFilePointer, setFilePointer, getFileSize, closeHandle, hooks);
         _instanceMade = true;
 
         return _instance;

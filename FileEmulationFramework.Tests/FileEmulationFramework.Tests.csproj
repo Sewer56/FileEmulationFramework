@@ -52,6 +52,7 @@
     <ProjectReference Include="..\Emulator\AFS.Stream.Emulator\AFS.Stream.Emulator.csproj" />
     <ProjectReference Include="..\Emulator\ONE.Heroes.Stream.Emulator\ONE.Heroes.Stream.Emulator.csproj" />
     <ProjectReference Include="..\FileEmulationFramework.Lib\FileEmulationFramework.Lib.csproj" />
+    <ProjectReference Include="..\FileEmulationFramework\FileEmulationFramework.csproj" />
   </ItemGroup>
 
   <ItemGroup>
