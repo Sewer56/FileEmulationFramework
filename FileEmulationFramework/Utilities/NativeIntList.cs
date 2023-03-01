@@ -94,6 +94,9 @@ public unsafe struct NativeIntList
         CurrentThread = DefaultThreadHandle;
     }
 
+    /*
+    // ASM Only
+     
     /// <summary>
     /// Adds an item to the list.
     /// </summary>
@@ -131,4 +134,5 @@ public unsafe struct NativeIntList
         ListPtr = newItems;
         Capacity *= 2;
     }
+    */
 }
