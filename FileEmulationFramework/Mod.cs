@@ -37,7 +37,7 @@ public class Mod : ModBase, IExports // <= Do not Remove.
         _log.Info("Starting FileEmulationFramework");
         var framework = new EmulationFramework();
         modLoader.AddOrReplaceController<IEmulationFramework>(context.Owner, framework);
-        FileAccessServer.Init(_log, NativeFunctions.GetInstance(hooks!), hooks);
+        FileAccessServer.Init(_log, NativeFunctions.GetInstance(hooks!), hooks, modLoader.GetDirectoryForModId(_modConfig.ModId));
     }
 
     #region Standard Overrides

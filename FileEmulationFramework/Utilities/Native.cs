@@ -22,16 +22,6 @@ public class Native
     
     [Reloaded.Hooks.Definitions.X64.Function(Reloaded.Hooks.Definitions.X64.CallingConventions.Microsoft)]
     [Reloaded.Hooks.Definitions.X86.Function(Reloaded.Hooks.Definitions.X86.CallingConventions.Stdcall)]
-    public struct GetFileTypeFn
-    {
-        public FuncPtr<
-            IntPtr, // handle 
-            int // status
-        > Value;
-    }
-    
-    [Reloaded.Hooks.Definitions.X64.Function(Reloaded.Hooks.Definitions.X64.CallingConventions.Microsoft)]
-    [Reloaded.Hooks.Definitions.X86.Function(Reloaded.Hooks.Definitions.X86.CallingConventions.Stdcall)]
     public struct NtCreateFileFn
     {
         public FuncPtr<
