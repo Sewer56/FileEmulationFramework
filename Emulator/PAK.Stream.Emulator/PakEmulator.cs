@@ -48,7 +48,7 @@ public class PakEmulator : IEmulator
         }
 
         // Check extension.
-        if (!PakChecker.IsPakFile(handle))
+        if (!Directory.Exists(filepath))
             return false;
 
         if (!TryCreateEmulatedFile(handle, filepath, filepath, filepath, true, ref emulated!, out _))

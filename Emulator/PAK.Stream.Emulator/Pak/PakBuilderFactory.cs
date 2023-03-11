@@ -53,7 +53,7 @@ public class PakBuilderFactory
             // Add files to builder.
             var dir = group.Files.Directory.FullPath;
             foreach (var file in group.Files.Files)
-                builder.AddOrReplaceFile(Path.Combine(dir, file));
+                builder.AddOrReplaceFile(Path.Combine(dir, file), Path.GetFileName(path));
         }
 
         return builder != null;

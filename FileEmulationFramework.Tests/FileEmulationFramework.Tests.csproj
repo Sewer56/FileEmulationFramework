@@ -74,12 +74,19 @@
     <None Update="Emulators\PAK\originalV2be.pak">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
+    <None Update="Emulators\PAK\originalV2NESTED.pak">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
     <None Update="Emulators\PAK\originalV3.pak">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
     <None Update="Emulators\PAK\originalV3be.pak">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
+  </ItemGroup>
+
+  <ItemGroup>
+    <Folder Include="Assets\Sound\Sound.pak - Copy\" />
   </ItemGroup>
 
 </Project>

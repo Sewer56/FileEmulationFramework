@@ -1,7 +1,4 @@
-﻿using System;
-using System.IO;
-using System.Runtime.CompilerServices;
-using System.Runtime.InteropServices;
+﻿using System.Runtime.CompilerServices;
 using System.Text;
 using FileEmulationFramework.Lib.IO;
 using FileEmulationFramework.Lib.IO.Interfaces;
@@ -10,8 +7,6 @@ using FileEmulationFramework.Lib.Utilities;
 using Microsoft.Win32.SafeHandles;
 using Reloaded.Memory;
 using Reloaded.Memory.Streams;
-using Reloaded.Memory.Streams.Readers;
-using Reloaded.Memory.Streams.Writers;
 
 // Aliasing for readability, since our assembly name has priority over 'stream'
 using Strim = System.IO.Stream;
@@ -22,24 +17,25 @@ public class PakBuilder
 {
     private readonly Dictionary<string, FileSlice> _customFiles = new Dictionary<string, FileSlice>();
     /// <summary>
-    /// Adds a file to the Virtual ARC builder.
+    /// Adds a file to the Virtual PAK builder.
     /// </summary>
     /// <param name="filePath">Full path to the file.</param>
-    public void AddOrReplaceFile(string filePath)
+    public void AddOrReplaceFile(string filePath, string fileName)
     {
-        var fileName = Path.GetFileName(filePath);
-        _customFiles[fileName] = new(filePath);
+        var file = Path.GetRelativePath(fileName.Substring(fileName.IndexOf(fileName)), filePath);
+        _customFiles[file] = new(filePath);
     }
 
     /// <summary>
-    /// Builds an ARC file.
+    /// Builds an PAK file.
     /// </summary>
-    public unsafe MultiStream Build(IntPtr handle, string filepath, Logger? logger = null)
+    public unsafe MultiStream Build(IntPtr handle, string filepath, Logger? logger = null, string? folder = "", long baseoffset = 0)
     {
         logger?.Info($"[{nameof(PakBuilder)}] Building PAK File | {{0}}", filepath);
        
         // Get original file's entries.
-        IEntry[] entries = GetEntriesFromFile(handle, out var format);
+        IEntry[] entries = GetEntriesFromFile(handle, baseoffset, out var format);
+        var offset = 0;
 
         int sizeofentry;
         if (format == FormatVersion.Version1)
@@ -53,17 +49,21 @@ public class PakBuilder
         int i;
         for(i = 0; i < entries.Length; i++)
         {
-            if ( _customFiles.TryGetValue(entries[i].FileName.Trim(), out var customfile))
+            var key = Path.Combine(folder, entries[i].FileName.Trim());
+            if ( _customFiles.TryGetValue(key, out var customfile))
             {
                 intFiles[i] = customfile;
-                _customFiles.Remove(entries[i].FileName);
+                _customFiles.Remove(key);
             }
         }
         var customArray = _customFiles.ToArray();
         for (int j = 0; j < customArray.Length; j++)
         {
-            intFiles[i] = customArray[j].Value;
-            i++;
+            if(Path.GetDirectoryName(customArray[j].Key) == folder)
+            {
+                intFiles[i] = customArray[j].Value;
+                i++;
+            }
         }
 
         var customFilesLength = intFiles.Count > 0 ? intFiles.Max(x => x.Key) + 1 : 0;
@@ -135,10 +135,39 @@ public class PakBuilder
                 length = entries[x].Length;
                 length = format == FormatVersion.Version2BE || format == FormatVersion.Version3BE ? Endian.Reverse(length) : length;
                 length = format == FormatVersion.Version1 ? (int) Align(length, 64) : length;
-                var originalEntry = new FileSlice(fileOffset, length + sizeofentry, filepath);
-                var stream = new FileSliceStreamW32(originalEntry, logger);
-                mergeAbleStreams.Add(new(stream, OffsetRange.FromStartAndLength(currentOffset, length + sizeofentry )));
-                
+                var entryHeader = new FileSlice(baseoffset + fileOffset, sizeofentry, filepath);
+                Strim headerStream = new FileSliceStreamW32(entryHeader, logger);
+                var entryContents = new FileSlice(baseoffset + fileOffset + sizeofentry, length, filepath);
+                Strim entryStream = new FileSliceStreamW32(entryContents, logger);
+                var container = Path.GetFileName(entries[x].FileName);
+                if (DetectVersion(entryStream) != FormatVersion.Unknown)
+                {
+                    /*foreach (var item in _customFiles)
+                    {
+                        if (Path.GetDirectoryName(item.Key) == container)
+                        {
+                            this.Build(item.Value.Handle, filepath, logger, container);
+                            break;
+                        }
+
+                    }*/
+                    entryStream = this.Build(entryContents.Handle, filepath, logger, container, baseoffset + fileOffset + sizeofentry);
+                    length = (int)entryStream.Length;
+                    if (format != FormatVersion.Version1)
+                    {
+                        var headerStream2 = new MemoryStream();
+                        headerStream.CopyTo(headerStream2);
+                        headerStream2.Seek(sizeofentry - 4, SeekOrigin.Begin);
+                        headerStream2.Write<int>(format == FormatVersion.Version3BE || format == FormatVersion.Version2BE ? Endian.Reverse(length) : length);
+                        headerStream = headerStream2;                    
+                    }
+                    else
+                        length = (int)Align(length, 64) ;
+                }
+                mergeAbleStreams.Add(new(headerStream, OffsetRange.FromStartAndLength(currentOffset, sizeofentry )));
+                mergeAbleStreams.Add(new(entryStream, OffsetRange.FromStartAndLength(currentOffset + sizeofentry, length)));
+
+
             }
             else 
             {
@@ -163,87 +192,101 @@ public class PakBuilder
     private static bool IsValidFormatVersion1(Strim stream)
     {
         var pos = stream.Position;
-        // check if the file is too small to be a proper pak file
-        if (stream.Length <= 256)
+        try
         {
-            return false;
+            // check if the file is too small to be a proper pak file
+            if (stream.Length <= 256)
+            {
+                return false;
+            }
+
+            // read some test data
+            if (!stream.TryRead<V1FileEntry>(out V1FileEntry fileEntry, out _))
+                return false;
+
+            stream.Seek(pos, SeekOrigin.Begin);
+
+            // check if first byte is zero, if so then no name can be stored thus making the file corrupt
+            if (fileEntry.FileName == "")
+                return false;
+
+
+            // sanity check, if the length of the first file is >= 100 mb, fail the test
+            if (fileEntry.Length >= stream.Length || fileEntry.Length < 0)
+            {
+                return false;
+            }
+
+            return true;
         }
-
-        // read some test data
-        if (!stream.TryRead<V1FileEntry>(out V1FileEntry fileEntry, out _))
-            return false;
-
-        stream.Position = pos;
-
-        // check if first byte is zero, if so then no name can be stored thus making the file corrupt
-        if (fileEntry.FileName == "")
-            return false;
-
-
-        // sanity check, if the length of the first file is >= 100 mb, fail the test
-        if (fileEntry.Length >= stream.Length || fileEntry.Length < 0)
+        finally
         {
-            return false;
+            stream.Seek(pos, SeekOrigin.Begin);
         }
-
-        return true;
     }
 
     private static bool IsValidFormatVersion2And3(Strim stream, int entrySize, out bool isBigEndian)
     {
         isBigEndian = false;
         var pos = stream.Position;
-
-        // check stream length
-        if (stream.Length <= 4 + entrySize)
-            return false;
-
-        byte[] testData = new byte[4 + entrySize];
-        stream.Read(testData, 0, 4 + entrySize);
-        stream.Position = pos;
-
-        int numOfFiles = BitConverter.ToInt32(testData, 0);
-
-        // num of files sanity check
-        if (numOfFiles > 1024 || numOfFiles < 1 || (numOfFiles * entrySize) > stream.Length)
+        try
         {
-            numOfFiles = Endian.Reverse(numOfFiles);
-
-            if (numOfFiles > 1024 || numOfFiles < 1 || (numOfFiles * entrySize) > stream.Length)
+            // check stream length
+            if (stream.Length <= 4 + entrySize)
                 return false;
 
-            isBigEndian = true;
-        }
+            byte[] testData = new byte[4 + entrySize];
+            stream.Read(testData, 0, 4 + entrySize);
 
-        // check if the name field is correct
-        bool nameTerminated = false;
-        for (int i = 0; i < entrySize - 4; i++)
-        {
-            if (testData[4 + i] == 0x00)
+            stream.Seek(pos, SeekOrigin.Begin);
+
+            int numOfFiles = BitConverter.ToInt32(testData, 0);
+
+            // num of files sanity check
+            if (numOfFiles > 1024 || numOfFiles < 0 || (numOfFiles * entrySize) > stream.Length)
             {
-                if (i == 0)
+                numOfFiles = Endian.Reverse(numOfFiles);
+
+                if (numOfFiles > 1024 || numOfFiles < 1 || (numOfFiles * entrySize) > stream.Length)
                     return false;
 
-                nameTerminated = true;
+                isBigEndian = true;
             }
 
-            if (testData[4 + i] != 0x00 && nameTerminated)
-                return false;
-        }
+            // check if the name field is correct
+            bool nameTerminated = false;
+            for (int i = 0; i < entrySize - 4; i++)
+            {
+                if (testData[4 + i] == 0x00)
+                {
+                    if (i == 0)
+                        return false;
 
-        // first entry length sanity check
-        int length = BitConverter.ToInt32(testData, entrySize);
-        if (length >= stream.Length || length < 0)
-        {
-            length = Endian.Reverse(length);
+                    nameTerminated = true;
+                }
 
+                if (testData[4 + i] != 0x00 && nameTerminated)
+                    return false;
+            }
+
+            // first entry length sanity check
+            int length = BitConverter.ToInt32(testData, entrySize);
             if (length >= stream.Length || length < 0)
-                return false;
+            {
+                length = Endian.Reverse(length);
 
-            isBigEndian = true;
+                if (length >= stream.Length || length < 0)
+                    return false;
+
+                isBigEndian = true;
+            }
+
+            return true;
         }
-
-        return true;
+        finally
+        {
+            stream.Seek(pos, SeekOrigin.Begin);
+        }
     }
     public static FormatVersion DetectVersion(Strim stream)
     {
@@ -259,12 +302,12 @@ public class PakBuilder
         return FormatVersion.Unknown;
     }
     /// <summary>
-    /// Obtains the ARC header from a specific file path.
+    /// Obtains the PAK header from a specific file path.
     /// </summary>
-    private IEntry[] GetEntriesFromFile(IntPtr handle, out FormatVersion format)
+    private IEntry[] GetEntriesFromFile(IntPtr handle, long pos, out FormatVersion format)
     {
         var stream = new FileStream(new SafeFileHandle(handle, false), FileAccess.Read);
-        var pos = stream.Position;
+        stream.Seek(pos, SeekOrigin.Begin);
 
         format = DetectVersion(stream);
         if (format == FormatVersion.Unknown)

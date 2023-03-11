@@ -10,6 +10,8 @@ using System.Linq;
 using System.Reflection.Metadata;
 using System.Security.Cryptography;
 using Reloaded.Memory;
+using System.ComponentModel;
+using FileEmulationFramework.Lib.IO;
 
 namespace FileEmulationFramework.Tests.Emulators.PAK;
 
@@ -24,7 +26,7 @@ public class PakEmulatorTests
         // Create Builder & Inject Single File
         var builder = new PakBuilder();
         var handle = Native.CreateFileW(Assets.PakV1EmulatorSampleFile, FileAccess.Read, FileShare.Read, IntPtr.Zero, FileMode.Open, FileAttributes.Normal, IntPtr.Zero);
-        builder.AddOrReplaceFile(Assets.AssetArgPAKSiren);
+        builder.AddOrReplaceFile(Assets.AssetArgPAKSiren, Path.GetDirectoryName(Assets.AssetArgPAKSiren));
         var stream = builder.Build(handle, Assets.PakV1EmulatorSampleFile);
 
         // Write to file for checking.
@@ -42,7 +44,7 @@ public class PakEmulatorTests
         // Create Builder & Inject Single File
         var builder = new PakBuilder();
         var handle = Native.CreateFileW(Assets.PakV2EmulatorSampleFile, FileAccess.Read, FileShare.Read, IntPtr.Zero, FileMode.Open, FileAttributes.Normal, IntPtr.Zero);
-        builder.AddOrReplaceFile(Assets.AssetArgPAKSiren);
+        builder.AddOrReplaceFile(Assets.AssetArgPAKSiren, Path.GetDirectoryName(Assets.AssetArgPAKSiren));
         var stream = builder.Build(handle, Assets.PakV2EmulatorSampleFile);
 
         // Write to file for checking.
@@ -55,12 +57,47 @@ public class PakEmulatorTests
     }
 
     [Fact]
+    public void Replace_SingleFileV2NESTED()
+    {
+        // Create Builder & Inject Single File
+        var builder = new PakBuilder();
+        var handle = Native.CreateFileW(Assets.PakV2NESTEDEmulatorSampleFile, FileAccess.Read, FileShare.Read, IntPtr.Zero, FileMode.Open, FileAttributes.Normal, IntPtr.Zero);
+        builder.AddOrReplaceFile(Assets.AssetNestedArgSiren, Assets.AssetsSoundFolder);
+        var stream = builder.Build(handle, Assets.PakV2NESTEDEmulatorSampleFile);
+
+        // Write to file for checking.
+        using var fileStream = new FileStream("outputV2NESTED.pak", FileMode.Create);
+        stream.CopyTo(fileStream);
+
+        var fromStream = ReadFileFromPak(fileStream, Assets.AssetNestedArgSiren, Assets.AssetsSoundFolder);
+        // Parse file and check.
+        Assert.Equal(File.ReadAllBytes(Assets.AssetNestedArgSiren), fromStream);
+    }
+
+    [Fact]
+    public void Extend_SingleFileV2NESTED()
+    {
+        // Create Builder & Inject Single File
+        var builder = new PakBuilder();
+        var handle = Native.CreateFileW(Assets.PakV2NESTEDEmulatorSampleFile, FileAccess.Read, FileShare.Read, IntPtr.Zero, FileMode.Open, FileAttributes.Normal, IntPtr.Zero);
+        builder.AddOrReplaceFile(Assets.AssetNestedArgHeehoo, Assets.AssetsSoundFolder);
+        var stream = builder.Build(handle, Assets.PakV2NESTEDEmulatorSampleFile);
+
+        // Write to file for checking.
+        using var fileStream = new FileStream("outputEV2NESTED.pak", FileMode.Create);
+        stream.CopyTo(fileStream);
+
+        var fromStream = ReadFileFromPak(fileStream, Assets.AssetNestedArgHeehoo, Assets.AssetsSoundFolder);
+        // Parse file and check.
+        Assert.Equal(File.ReadAllBytes(Assets.AssetNestedArgHeehoo), fromStream);
+    }
+    [Fact]
     public void Replace_SingleFileV2BE()
     {
         // Create Builder & Inject Single File
         var builder = new PakBuilder();
         var handle = Native.CreateFileW(Assets.PakV2BEEmulatorSampleFile, FileAccess.Read, FileShare.Read, IntPtr.Zero, FileMode.Open, FileAttributes.Normal, IntPtr.Zero);
-        builder.AddOrReplaceFile(Assets.AssetArgPAKSiren);
+        builder.AddOrReplaceFile(Assets.AssetArgPAKSiren, Assets.AssetsSoundFolder);
         var stream = builder.Build(handle, Assets.PakV2BEEmulatorSampleFile);
 
         // Write to file for checking.
@@ -77,7 +114,7 @@ public class PakEmulatorTests
         // Create Builder & Inject Single File
         var builder = new PakBuilder();
         var handle = Native.CreateFileW(Assets.PakV3EmulatorSampleFile, FileAccess.Read, FileShare.Read, IntPtr.Zero, FileMode.Open, FileAttributes.Normal, IntPtr.Zero);
-        builder.AddOrReplaceFile(Assets.AssetArgPAKSiren);
+        builder.AddOrReplaceFile(Assets.AssetArgPAKSiren, Assets.AssetsSoundFolder);
         var stream = builder.Build(handle, Assets.PakV3EmulatorSampleFile);
 
         // Write to file for checking.
@@ -94,7 +131,7 @@ public class PakEmulatorTests
         // Create Builder & Inject Single File
         var builder = new PakBuilder();
         var handle = Native.CreateFileW(Assets.PakV3BEEmulatorSampleFile, FileAccess.Read, FileShare.Read, IntPtr.Zero, FileMode.Open, FileAttributes.Normal, IntPtr.Zero);
-        builder.AddOrReplaceFile(Assets.AssetArgPAKSiren);
+        builder.AddOrReplaceFile(Assets.AssetArgPAKSiren, Assets.AssetsSoundFolder);
         var stream = builder.Build(handle, Assets.PakV3BEEmulatorSampleFile);
 
         // Write to file for checking.
@@ -112,7 +149,7 @@ public class PakEmulatorTests
         // Create Builder & Inject Single File
         var builder = new PakBuilder();
         var handle = Native.CreateFileW(Assets.PakV1EmulatorSampleFile, FileAccess.Read, FileShare.Read, IntPtr.Zero, FileMode.Open, FileAttributes.Normal, IntPtr.Zero);
-        builder.AddOrReplaceFile(Assets.AssetArgMario);
+        builder.AddOrReplaceFile(Assets.AssetArgMario, Assets.AssetsSoundFolder);
         var stream = builder.Build(handle, Assets.PakV1EmulatorSampleFile);
 
         // Write to file for checking.
@@ -130,7 +167,7 @@ public class PakEmulatorTests
         // Create Builder & Inject Single File
         var builder = new PakBuilder();
         var handle = Native.CreateFileW(Assets.PakV2EmulatorSampleFile, FileAccess.Read, FileShare.Read, IntPtr.Zero, FileMode.Open, FileAttributes.Normal, IntPtr.Zero);
-        builder.AddOrReplaceFile(Assets.AssetArgMario);
+        builder.AddOrReplaceFile(Assets.AssetArgMario, Assets.AssetsSoundFolder);
         var stream = builder.Build(handle, Assets.PakV2EmulatorSampleFile);
 
         // Write to file for checking.
@@ -148,7 +185,7 @@ public class PakEmulatorTests
         // Create Builder & Inject Single File
         var builder = new PakBuilder();
         var handle = Native.CreateFileW(Assets.PakV2BEEmulatorSampleFile, FileAccess.Read, FileShare.Read, IntPtr.Zero, FileMode.Open, FileAttributes.Normal, IntPtr.Zero);
-        builder.AddOrReplaceFile(Assets.AssetArgMario);
+        builder.AddOrReplaceFile(Assets.AssetArgMario, Assets.AssetsSoundFolder);
         var stream = builder.Build(handle, Assets.PakV2BEEmulatorSampleFile);
 
         // Write to file for checking.
@@ -166,7 +203,7 @@ public class PakEmulatorTests
         // Create Builder & Inject Single File
         var builder = new PakBuilder();
         var handle = Native.CreateFileW(Assets.PakV3EmulatorSampleFile, FileAccess.Read, FileShare.Read, IntPtr.Zero, FileMode.Open, FileAttributes.Normal, IntPtr.Zero);
-        builder.AddOrReplaceFile(Assets.AssetArgMario);
+        builder.AddOrReplaceFile(Assets.AssetArgMario, Assets.AssetsSoundFolder);
         var stream = builder.Build(handle, Assets.PakV3EmulatorSampleFile);
 
         // Write to file for checking.
@@ -184,7 +221,7 @@ public class PakEmulatorTests
         // Create Builder & Inject Single File
         var builder = new PakBuilder();
         var handle = Native.CreateFileW(Assets.PakV3BEEmulatorSampleFile, FileAccess.Read, FileShare.Read, IntPtr.Zero, FileMode.Open, FileAttributes.Normal, IntPtr.Zero);
-        builder.AddOrReplaceFile(Assets.AssetArgMario);
+        builder.AddOrReplaceFile(Assets.AssetArgMario, Assets.AssetsSoundFolder);
         var stream = builder.Build(handle, Assets.PakV3BEEmulatorSampleFile);
 
         // Write to file for checking.
@@ -196,10 +233,18 @@ public class PakEmulatorTests
         Assert.Equal(File.ReadAllBytes(Assets.AssetArgMario), fromStream);
     }
 
-    private unsafe byte[] ReadFileFromPak(Stream fileStream, string index)
+    private unsafe byte[] ReadFileFromPak(Stream fileStream, string index, string? fileRoot = null)
     {
         var pos = fileStream.Position;
-        var filename = Path.GetFileName(index);
+        string filename;
+        string container = "";
+        if (fileRoot == null)
+            filename = Path.GetFileName(index);
+        else
+        {
+            filename = Path.GetRelativePath(fileRoot, index);
+            container = Path.GetDirectoryName(filename);
+        }
         fileStream.Seek(0, SeekOrigin.Begin);
         var format = PakBuilder.DetectVersion(fileStream);
         StreamReader reader;
@@ -235,6 +280,13 @@ public class PakEmulatorTests
                         var result = GC.AllocateUninitializedArray<byte>(length);
                         fileStream.Read(result, 0, length);
                         return result;
+                    }
+                    if(entry.FileName == container)
+                    {
+                        var result = GC.AllocateUninitializedArray<byte>(length);
+                        fileStream.Read(result, 0, length);
+                        var file = new MemoryStream(result);
+                        return ReadFileFromPak(file, filename, container);
                     }
 
                     fileStream.Seek(length, SeekOrigin.Current);
