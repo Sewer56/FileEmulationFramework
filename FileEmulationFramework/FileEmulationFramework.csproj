@@ -1,7 +1,7 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
-    <TargetFramework>net5.0-windows</TargetFramework>
+    <TargetFramework>net7.0-windows</TargetFramework>
     <AppendTargetFrameworkToOutputPath>false</AppendTargetFrameworkToOutputPath>
     <CopyLocalLockFileAssemblies>true</CopyLocalLockFileAssemblies>
     <LangVersion>preview</LangVersion>
@@ -33,6 +33,9 @@
     <None Remove="Publish.ps1" />
     <None Remove="BuildLinked.ps1" />
     <None Remove="Reloaded.Trimming.targets" />
+    <None Update="Asm\**">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
   </ItemGroup>
 
   <ItemGroup>
@@ -45,6 +48,7 @@
   </ItemGroup>
 
   <ItemGroup>
+    <PackageReference Include="Reloaded.Hooks.Definitions" Version="1.15.0" />
     <PackageReference Include="Reloaded.Memory" Version="8.0.1" />
     <PackageReference Include="Reloaded.Mod.Interfaces" Version="2.3.0" ExcludeAssets="runtime" />
     <PackageReference Include="Reloaded.SharedLib.Hooks" Version="1.9.0" />

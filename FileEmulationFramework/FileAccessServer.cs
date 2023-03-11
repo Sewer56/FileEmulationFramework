@@ -1,4 +1,5 @@
-﻿using FileEmulationFramework.Lib.Utilities;
+﻿using System.Diagnostics;
+using FileEmulationFramework.Lib.Utilities;
 using FileEmulationFramework.Utilities;
 using Reloaded.Hooks.Definitions;
 using System.Runtime.CompilerServices;
@@ -9,8 +10,10 @@ using FileEmulationFramework.Interfaces;
 using FileEmulationFramework.Lib;
 using FileEmulationFramework.Structs;
 using Reloaded.Hooks.Definitions.Enums;
+using Reloaded.Memory.Interop;
 using IReloadedHooks = Reloaded.Hooks.ReloadedII.Interfaces.IReloadedHooks;
 using Native = FileEmulationFramework.Lib.Utilities.Native;
+using System.Text;
 // ReSharper disable RedundantArgumentDefaultValue
 
 namespace FileEmulationFramework;
@@ -39,6 +42,7 @@ public static unsafe class FileAccessServer
     private static NtQueryInformationFileFn _ntQueryInformationFile;
 
     private static Route _currentRoute;
+    private static Pinnable<NativeIntList> _closedHandleList = new(new NativeIntList());
 
     // Extended to 64-bit, to use with NtReadFile
     private const long FileUseFilePointerPosition = unchecked((long)0xfffffffffffffffe);
@@ -46,7 +50,7 @@ public static unsafe class FileAccessServer
     /// <summary>
     /// Initialises this instance.
     /// </summary>
-    public static void Init(Logger logger, NativeFunctions functions, IReloadedHooks? hooks)
+    public static void Init(Logger logger, NativeFunctions functions, IReloadedHooks? hooks, string modDirectory)
     {
         _logger = logger;
         _readFileHook = functions.NtReadFile.Hook(typeof(FileAccessServer), nameof(NtReadFileImpl)).Activate();
@@ -56,86 +60,44 @@ public static unsafe class FileAccessServer
         
         // We need to cook some assembly for NtClose, because Native->Managed
         // transition can invoke thread setup code which will call CloseHandle again
-        // and that will lead to infinite recursion
-        var utilities = hooks!.Utilities;
-        var getFileTypeAddr = functions.GetFileType.Address;
-        var closeHandleCallbackAddr = (long)utilities.GetFunctionPointer(typeof(FileAccessServer), nameof(CloseHandleCallback));
-        
+        // and that will lead to infinite recursion; also unable to do Coop <=> Preemptive GC transition
+
+        var listPtr = (long)_closedHandleList.Pointer;
         if (IntPtr.Size == 4)
         {
-            _closeHandleHook = hooks.CreateAsmHook(new[]
-            {
-                "use32",
-                
-                // we put called address in EDI
-                "push edi", // backup EDI (it's non-volatile)
-                "push dword [esp+8]", // push handle
-                
-                // call the function
-                $"mov edi, {getFileTypeAddr}", 
-                $"call edi",
-                
-                // Check result
-                $"cmp eax, 1",
-                $"jne exit",
-                    
-                    // It's a file, let's fire our callback.
-                    "push dword [esp+8]", // push handle
-                    $"mov edi, {closeHandleCallbackAddr}",
-                    $"call edi",
-
-                // It is a file, call our callback.
-                $"exit:",
-                $"pop edi",
-            }, functions.CloseHandle.Address, AsmHookBehaviour.ExecuteFirst);
+            var asm = string.Format(File.ReadAllText(Path.Combine(modDirectory, "Asm/NativeIntList_X86.asm")), listPtr);
+            _closeHandleHook = hooks.CreateAsmHook(asm, functions.CloseHandle.Address, AsmHookBehaviour.ExecuteFirst);
         }
         else
         {
-            _closeHandleHook = hooks.CreateAsmHook(new[]
-            {
-                "use64",
-
-                // handle in (RCX)
-                $"push rdi", // Backup RDI as it's non-volatile.
-                $"mov rdi, rcx", // Backup handle for later.
-
-                // We must allocate 'shadow space' for the functions we will call in the future under MSFT x64 ABI
-                $"sub rsp, 32",
-
-                // Call function to determine if file.
-                $"mov rax, {getFileTypeAddr}",
-                $"call rax",
-
-                // Check result, 
-                $"cmp eax, 1",
-                $"jne exit",
-
-                    // It's a file, let's fire our callback.
-                    $"mov rcx, rdi", // pass first parameter.
-                    $"mov rax, {closeHandleCallbackAddr}",
-                    $"call rax",
-                
-                $"exit:",
-                $"add rsp, 32",
-                $"mov rcx, rdi", // must restore parameter, to pass to orig function.
-                $"pop rdi", // must restore, non-volatile
-            }, functions.CloseHandle.Address, AsmHookBehaviour.ExecuteFirst);
+            var asm = string.Format(File.ReadAllText(Path.Combine(modDirectory, "Asm/NativeIntList_X64.asm")), listPtr);
+            _closeHandleHook = hooks.CreateAsmHook(asm, functions.CloseHandle.Address, AsmHookBehaviour.ExecuteFirst);
         }
         
         _closeHandleHook.Activate();
         _createFileHook = functions.NtCreateFile.Hook(typeof(FileAccessServer), nameof(NtCreateFileImpl)).Activate();
     }
 
-    [UnmanagedCallersOnly(CallConvs = new[] { typeof(CallConvStdcall) })]
-    private static void CloseHandleCallback(IntPtr hfile)
+    private static void DequeueHandles()
     {
-        if (!HandleToInfoMap.Remove(hfile, out var value)) 
-            return;
+        ref var nativeList = ref _closedHandleList.Value;
+        var threadId = nativeList.GetCurrentThreadId();
+        while (Interlocked.CompareExchange(ref nativeList.CurrentThread, threadId, NativeIntList.DefaultThreadHandle) != NativeIntList.DefaultThreadHandle) { }
         
-        value.File.CloseHandle(hfile, value);
-        _logger.Debug("[FileAccessServer] Closed emulated handle: {0}, File: {1}", hfile, value.FilePath);
+        for (int x = 0; x < nativeList.NumItems; x++)
+        {
+            var item = nativeList.ListPtr[x];
+            if (!HandleToInfoMap.Remove(item, out var value))
+                continue;
+
+            value.File.CloseHandle(item, value);
+            _logger.Debug("[FileAccessServer] Closed emulated handle: {0}, File: {1}", item, value.FilePath);
+        }
+
+        nativeList.NumItems = 0;
+        nativeList.CurrentThread = NativeIntList.DefaultThreadHandle;
     }
-    
+
     [UnmanagedCallersOnly(CallConvs = new[] { typeof(CallConvStdcall) })]
     private static int QueryInformationFileImpl(IntPtr hfile, IO_STATUS_BLOCK* ioStatusBlock, byte* fileInformation, uint length, FileInformationClass fileInformationClass)
     {
@@ -214,6 +176,7 @@ public static unsafe class FileAccessServer
     {
         lock (ThreadLock)
         {
+            DequeueHandles();
             var currentRoute = _currentRoute;
             try
             {
