@@ -2,7 +2,6 @@
 using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 using FileEmulationFramework.Lib.Utilities;
-using System.Net.NetworkInformation;
 using PAK.Stream.Emulator.Pak;
 
 namespace PAK.Stream.Emulator.Utilities;

@@ -4,7 +4,6 @@ using FileEmulationFramework.Interfaces.Reference;
 using FileEmulationFramework.Lib.IO;
 using FileEmulationFramework.Lib.Utilities;
 using PAK.Stream.Emulator.Utilities;
-using System.Diagnostics;
 
 namespace PAK.Stream.Emulator;
 

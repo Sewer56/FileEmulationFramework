@@ -1,4 +1,4 @@
-﻿using System.Diagnostics;
+﻿
 using System.Runtime.CompilerServices;
 using System.Text;
 using FileEmulationFramework.Lib.IO;
@@ -115,7 +115,7 @@ public class PakBuilder
                 // For custom files, add to pairs directly.
                 length = overwrittenFile.Length;
 
-                string filename = i < entries.Length ? entries[i].FileName : Path.GetFileName(overwrittenFile.FilePath);
+                string filename = x < entries.Length ? entries[x].FileName : Path.GetFileName(overwrittenFile.FilePath);
 
                 if (format == FormatVersion.Version1)
                 {
@@ -154,7 +154,7 @@ public class PakBuilder
                         buffer[f] = 0x00;
                     }
                     overstream.Write(buffer, 0, buffer.Length);
-                    pairs.Add(new(overstream, OffsetRange.FromStartAndLength(currentOffset + sizeofentry, buffer.Length)));
+                    pairs.Add(new(overstream, OffsetRange.FromStartAndLength(currentOffset + sizeofentry + overwrittenFile.Length, buffer.Length)));
                 }
             }
             else if (x < entries.Length)
@@ -167,7 +167,7 @@ public class PakBuilder
                 var entryContents = new FileSlice(baseoffset + fileOffset + sizeofentry, length, filepath);
                 Strim entryStream = new FileSliceStreamW32(entryContents, logger);
                 var container = entries[x].FileName.Trim();
-                if (DetectVersion(entryStream) != FormatVersion.Unknown && innerPaksToEdit.Contains(container))
+                if (innerPaksToEdit.Contains(container) && DetectVersion(entryStream) != FormatVersion.Unknown)
                 {
                     /*foreach (var item in _customFiles)
                     {

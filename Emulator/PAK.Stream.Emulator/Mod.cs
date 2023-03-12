@@ -3,7 +3,6 @@ using PAK.Stream.Emulator.Interfaces;
 using PAK.Stream.Emulator.Template;
 using FileEmulationFramework.Interfaces;
 using FileEmulationFramework.Lib.Utilities;
-using Reloaded.Memory.Sigscan.Definitions;
 using Reloaded.Mod.Interfaces;
 using Reloaded.Mod.Interfaces.Internal;
 
