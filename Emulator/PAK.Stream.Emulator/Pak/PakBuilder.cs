@@ -1,4 +1,5 @@
 ﻿
+using System.Diagnostics;
 using System.Runtime.CompilerServices;
 using System.Text;
 using FileEmulationFramework.Lib.IO;
@@ -54,7 +55,7 @@ public class PakBuilder
         int realfilenum = entries.Length;
         for(i = 0; i < entries.Length; i++)
         {
-            var key = Path.Combine(folder, entries[i].FileName.Trim()).Replace('\\', '/');
+            var key = Path.Combine(folder, entries[i].FileName.Trim()).Replace('\\', '/').Replace("../", "");
             if ( _customFiles.TryGetValue(key, out var customfile))
             {
                 intFiles[i] = customfile;
@@ -69,7 +70,7 @@ public class PakBuilder
         var customArray = _customFiles.ToArray();
         for (int j = 0; j < customArray.Length; j++)
         {
-            string innerPak = Path.GetDirectoryName(customArray[j].Key).Replace('\\', '/');
+            string innerPak = Path.GetDirectoryName(customArray[j].Key).Replace('\\', '/').Replace("../", "");
             if (innerPak == folder)
             {
                 intFiles[i] = customArray[j].Value;
@@ -164,7 +165,7 @@ public class PakBuilder
                 length = format == FormatVersion.Version1 ? (int) Align(length, 64) : length;
                 var entryContents = new FileSlice(baseoffset + fileOffset + sizeofentry, length, filepath);
                 Strim entryStream = new FileSliceStreamW32(entryContents, logger);
-                var container = entries[x].FileName.Trim();
+                var container = entries[x].FileName.Trim().Replace("../", "");
                 if (innerPaksToEdit.Contains(container) && DetectVersion(entryStream) != FormatVersion.Unknown)
                 {
                     var entryHeader = new FileSlice(baseoffset + fileOffset, sizeofentry - 4, filepath);
