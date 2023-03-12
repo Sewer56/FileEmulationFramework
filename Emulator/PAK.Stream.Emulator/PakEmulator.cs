@@ -4,6 +4,7 @@ using FileEmulationFramework.Interfaces.Reference;
 using FileEmulationFramework.Lib.IO;
 using FileEmulationFramework.Lib.Utilities;
 using PAK.Stream.Emulator.Utilities;
+using System.Diagnostics;
 
 namespace PAK.Stream.Emulator;
 
@@ -71,7 +72,7 @@ public class PakEmulator : IEmulator
     public bool TryCreateEmulatedFile(IntPtr handle, string srcDataPath, string outputPath, string route, bool invokeOnStreamCreated, ref IEmulatedFile? emulated, out MultiStream? stream)
     {
         stream = null;
-
+        
         // Check if there's a known route for this file
         // Put this before actual file check because I/O.
         if (!_builderFactory.TryCreateFromPath(route, out var builder))
@@ -90,7 +91,7 @@ public class PakEmulator : IEmulator
 
         _pathToStream[outputPath] = stream;
         emulated = new EmulatedFile<MultiStream>(stream);
-        _log.Info("[AwbEmulator] Created Emulated file with Path {0}", outputPath);
+        _log.Info("[PakEmulator] Created Emulated file with Path {0}", outputPath);
 
         if (DumpFiles)
             DumpFile(outputPath, stream);
@@ -120,10 +121,10 @@ public class PakEmulator : IEmulator
     {
         var filePath = Path.GetFullPath($"{Constants.DumpFolder}/{Path.GetFileName(filepath)}");
         Directory.CreateDirectory(Constants.DumpFolder);
-        _log.Info($"[AwbEmulator] Dumping {filepath}");
+        _log.Info($"[PakEmulator] Dumping {filepath}");
         using var fileStream = new FileStream(filePath, FileMode.Create);
         stream.CopyTo(fileStream);
-        _log.Info($"[AwbEmulator] Written To {filePath}");
+        _log.Info($"[PakEmulator] Written To {filePath}");
     }
 
     internal List<RouteGroupTuple> GetInput() => _builderFactory.RouteGroupTuples;

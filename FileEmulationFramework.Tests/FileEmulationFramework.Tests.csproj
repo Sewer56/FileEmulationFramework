@@ -66,6 +66,9 @@
     <None Update="Emulators\ONE\arg_swag.one">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
+    <None Update="Emulators\PAK\init_free.bin">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
     <None Update="Emulators\PAK\originalV1.pak">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
@@ -87,7 +90,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <Folder Include="Assets\Sound\Sound.pak - Copy\" />
+    <Folder Include="Assets\Textures\" />
   </ItemGroup>
 
 </Project>

@@ -3,6 +3,7 @@ using PAK.Stream.Emulator.Interfaces;
 using PAK.Stream.Emulator.Interfaces.Structures.IO;
 using FileEmulationFramework.Interfaces;
 using FileEmulationFramework.Lib.Utilities;
+using System.Diagnostics;
 
 namespace PAK.Stream.Emulator;
 
@@ -25,6 +26,7 @@ public class PakEmulatorApi : IPakEmulator
     /// <inheritdoc/>
     public bool TryCreateFromFileSlice(string sourcePath, long offset, string route, string destinationPath)
     {
+        //Debugger.Launch();
         _logger.Info("[PakEmulatorApi] TryCreateFromFileSlice: {0}, Ofs {1}, Route {2}", sourcePath, offset, route);
         var handle = Native.CreateFileW(sourcePath, FileAccess.Read, FileShare.ReadWrite, IntPtr.Zero, FileMode.Open, FileAttributes.Normal, IntPtr.Zero);
         if (handle == new IntPtr(-1))

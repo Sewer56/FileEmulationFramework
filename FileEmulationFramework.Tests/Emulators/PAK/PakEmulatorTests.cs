@@ -142,7 +142,23 @@ public class PakEmulatorTests
         // Parse file and check.
         Assert.Equal(File.ReadAllBytes(Assets.AssetArgPAKSiren), fromStream);
     }
+    [Fact]
+    public void Replace_SingleFileinit_free()
+    {
+        // Create Builder & Inject Single File
+        var builder = new PakBuilder();
+        var handle = Native.CreateFileW(Assets.Pakinit_free, FileAccess.Read, FileShare.Read, IntPtr.Zero, FileMode.Open, FileAttributes.Normal, IntPtr.Zero);
+        builder.AddOrReplaceFile(Assets.AssetMiniTV, Assets.AssetsFolder + "/Textures/init_free.bin");
+        var stream = builder.Build(handle, Assets.Pakinit_free);
 
+        // Write to file for checking.
+        using var fileStream = new FileStream("outputinit_free.pak", FileMode.Create);
+        stream.CopyTo(fileStream);
+
+        var fromStream = ReadFileFromPak(fileStream, Assets.AssetMiniTV, Assets.AssetsFolder + "/Textures/init_free.bin");
+        // Parse file and check.
+        Assert.Equal(File.ReadAllBytes(Assets.AssetMiniTV), fromStream);
+    }
     [Fact]
     public void Extend_FileV1()
     {
@@ -242,8 +258,8 @@ public class PakEmulatorTests
             filename = Path.GetFileName(index);
         else
         {
-            filename = Path.GetRelativePath(fileRoot, index);
-            container = Path.GetDirectoryName(filename);
+            filename = Path.GetRelativePath(fileRoot, index).Replace("\\", "/");
+            container = Path.GetDirectoryName(filename).Replace("\\", "/");
         }
         fileStream.Seek(0, SeekOrigin.Begin);
         var format = PakBuilder.DetectVersion(fileStream);
@@ -281,7 +297,7 @@ public class PakEmulatorTests
                         fileStream.Read(result, 0, length);
                         return result;
                     }
-                    if(entry.FileName == container)
+                    else if(entry.FileName == container)
                     {
                         var result = GC.AllocateUninitializedArray<byte>(length);
                         fileStream.Read(result, 0, length);
@@ -305,6 +321,13 @@ public class PakEmulatorTests
                         var result = GC.AllocateUninitializedArray<byte>(fileentry.Length);
                         fileStream.Read(result, 0, fileentry.Length );
                         return result;
+                    }
+                    else if (fileentry.FileName == container)
+                    {
+                        var result = GC.AllocateUninitializedArray<byte>(fileentry.Length);
+                        fileStream.Read(result, 0, fileentry.Length);
+                        var file = new MemoryStream(result);
+                        return ReadFileFromPak(file, filename, container);
                     }
 
                     fileStream.Seek(PakBuilder.Align(fileentry.Length, 64), SeekOrigin.Current);
