@@ -96,7 +96,7 @@ public class PakBuilder
             if (format == FormatVersion.Version2BE || format == FormatVersion.Version3BE)
                 writeNum = Endian.Reverse(writeNum);
             headerStream.Write<int>(writeNum);
-            // Make MultiStream
+
 
             currentOffset = headerLength;
             // Add Header
@@ -162,31 +162,31 @@ public class PakBuilder
                 length = entries[x].Length;
                 length = format == FormatVersion.Version2BE || format == FormatVersion.Version3BE ? Endian.Reverse(length) : length;
                 length = format == FormatVersion.Version1 ? (int) Align(length, 64) : length;
-                var entryHeader = new FileSlice(baseoffset + fileOffset, sizeofentry, filepath);
-                Strim headerStream = new FileSliceStreamW32(entryHeader, logger);
                 var entryContents = new FileSlice(baseoffset + fileOffset + sizeofentry, length, filepath);
                 Strim entryStream = new FileSliceStreamW32(entryContents, logger);
                 var container = entries[x].FileName.Trim();
                 if (innerPaksToEdit.Contains(container) && DetectVersion(entryStream) != FormatVersion.Unknown)
                 {
-                    /*foreach (var item in _customFiles)
-                    {
-                        if (Path.GetDirectoryName(item.Key) == container)
-                        {
-                            this.Build(item.Value.Handle, filepath, logger, container);
-                            break;
-                        }
+                    var entryHeader = new FileSlice(baseoffset + fileOffset, sizeofentry - 4, filepath);
+                    Strim headerStream = new FileSliceStreamW32(entryHeader, logger);
 
-                    }*/
-                    //entryStream.Dispose();
                     entryStream = this.Build(handle, filepath, logger, container, baseoffset + fileOffset + sizeofentry);
                     length = (int)entryStream.Length;
+
+                    var headerStream2 = new MemoryStream(4);
+                    //headerStream.Dispose();
+                    headerStream2.Write<int>(format == FormatVersion.Version3BE || format == FormatVersion.Version2BE ? Endian.Reverse(length) : length);
+                    pairs.Add(new(headerStream, OffsetRange.FromStartAndLength(currentOffset, sizeofentry - 4)));
+                    pairs.Add(new(headerStream2, OffsetRange.FromStartAndLength(currentOffset + sizeofentry - 4, 4)));
                     if (format == FormatVersion.Version1)
                         length = (int)Align(length, 64);
+
                     var entryStream2 = new MemoryStream(length);
                     entryStream.CopyTo(entryStream2);
+                    entryStream.Dispose();
                     entryStream = entryStream2;
-                    if(length > (int)entryStream.Length)
+
+                    if (length > (int)entryStream.Length)
                     {
                         entryStream.Seek((int)entryStream.Length, SeekOrigin.Begin);
                         byte[] buffer = new byte[length- (int)entryStream.Length];
@@ -195,17 +195,18 @@ public class PakBuilder
                             buffer[f] = 0x00;
                         }
                         entryStream.Write(buffer, 0, buffer.Length);
-
                     }
-                    var headerStream2 = new MemoryStream(sizeofentry);
-                    headerStream.CopyTo(headerStream2);
-                    //headerStream.Dispose();
-                    headerStream2.Seek(sizeofentry - 4, SeekOrigin.Begin);
-                    headerStream2.Write<int>(format == FormatVersion.Version3BE || format == FormatVersion.Version2BE ? Endian.Reverse(length) : length);
-                    headerStream = headerStream2;  
+                    pairs.Add(new(entryStream, OffsetRange.FromStartAndLength(currentOffset + sizeofentry, length)));
                 }
-                pairs.Add(new(headerStream, OffsetRange.FromStartAndLength(currentOffset, sizeofentry )));
-                pairs.Add(new(entryStream, OffsetRange.FromStartAndLength(currentOffset + sizeofentry, length)));
+                else
+                {
+                    var entryHeader = new FileSlice(baseoffset + fileOffset, sizeofentry, filepath);
+                    Strim headerStream = new FileSliceStreamW32(entryHeader, logger);
+
+                    pairs.Add(new(headerStream, OffsetRange.FromStartAndLength(currentOffset, sizeofentry)));
+                    pairs.Add(new(entryStream, OffsetRange.FromStartAndLength(currentOffset + sizeofentry, length)));
+
+                }
 
 
             }
