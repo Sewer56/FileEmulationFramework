@@ -48,6 +48,7 @@ nav:
     - AFS [CRI Middleware]: emulators/afs.md
     - AWB [CRI Middleware]: emulators/awb.md
     - ONE [Sonic Heroes]: emulators/one-heroes.md
+    - PAK [Atlus]: emulators/pak.md
 
   - Guides: 
     - Contributing Locally: guides/contributing-locally.md
