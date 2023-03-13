@@ -9,6 +9,7 @@ using Reloaded.Memory.Streams;
 
 // Aliasing for readability, since our assembly name has priority over 'stream'
 using Strim = System.IO.Stream;
+// ReSharper disable RedundantTypeArgumentsOfMethod
 
 namespace AFS.Stream.Emulator.Afs;
 

@@ -44,9 +44,9 @@ public class PakBuilderFactory
         var route = new Route(path);
         foreach (var group in RouteGroupTuples)
         {
-            /*if (!route.Matches(group.Route.FullPath))
+            if (!route.Matches(group.Route.FullPath))
                 continue;
-            */
+            
             // Make builder if not made.
             builder ??= new PakBuilder();
 

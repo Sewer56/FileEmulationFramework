@@ -1,4 +1,5 @@
-﻿namespace PAK.Stream.Emulator.Pak
+﻿// ReSharper disable InconsistentNaming
+namespace PAK.Stream.Emulator.Pak
 {
     public enum FormatVersion
     {
@@ -12,6 +13,9 @@
         /// </summary>
         Version2,
 
+        /// <summary>
+        /// <see cref="Version2"/> with Big Endian
+        /// </summary>
         Version2BE,
 
         /// <summary>
@@ -19,6 +23,9 @@
         /// </summary>
         Version3,
 
+        /// <summary>
+        /// <see cref="Version3"/> with Big Endian
+        /// </summary>
         Version3BE,
 
         Unknown

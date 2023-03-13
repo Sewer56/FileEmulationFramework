@@ -3,7 +3,6 @@ using PAK.Stream.Emulator.Interfaces;
 using PAK.Stream.Emulator.Interfaces.Structures.IO;
 using FileEmulationFramework.Interfaces;
 using FileEmulationFramework.Lib.Utilities;
-using System.Diagnostics;
 
 namespace PAK.Stream.Emulator;
 

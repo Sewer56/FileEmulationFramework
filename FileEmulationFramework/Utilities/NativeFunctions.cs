@@ -19,11 +19,11 @@ public struct NativeFunctions
 
     public NativeFunctions(IntPtr ntCreateFile, IntPtr ntReadFile, IntPtr ntSetInformationFile, IntPtr ntQueryInformationFile, IntPtr closeHandle, IReloadedHooks hooks)
     {
-        NtCreateFile = hooks.CreateFunction<Native.NtCreateFileFn>((long)ntCreateFile);
-        NtReadFile = hooks.CreateFunction<Native.NtReadFileFn>((long)ntReadFile);
-        SetFilePointer = hooks.CreateFunction<Native.NtSetInformationFileFn>((long)ntSetInformationFile);
-        GetFileSize = hooks.CreateFunction<Native.NtQueryInformationFileFn>((long)ntQueryInformationFile);
-        CloseHandle = hooks.CreateFunction<Native.CloseHandleFn>((long)closeHandle);
+        NtCreateFile = hooks.CreateFunction<Native.NtCreateFileFn>(ntCreateFile);
+        NtReadFile = hooks.CreateFunction<Native.NtReadFileFn>(ntReadFile);
+        SetFilePointer = hooks.CreateFunction<Native.NtSetInformationFileFn>(ntSetInformationFile);
+        GetFileSize = hooks.CreateFunction<Native.NtQueryInformationFileFn>(ntQueryInformationFile);
+        CloseHandle = hooks.CreateFunction<Native.CloseHandleFn>(closeHandle);
     }
 
     /// <summary>

@@ -1,5 +1,4 @@
-﻿using System.Diagnostics;
-using FileEmulationFramework.Lib.Utilities;
+﻿using FileEmulationFramework.Lib.Utilities;
 using FileEmulationFramework.Utilities;
 using Reloaded.Hooks.Definitions;
 using System.Runtime.CompilerServices;
@@ -13,7 +12,7 @@ using Reloaded.Hooks.Definitions.Enums;
 using Reloaded.Memory.Interop;
 using IReloadedHooks = Reloaded.Hooks.ReloadedII.Interfaces.IReloadedHooks;
 using Native = FileEmulationFramework.Lib.Utilities.Native;
-using System.Text;
+
 // ReSharper disable RedundantArgumentDefaultValue
 
 namespace FileEmulationFramework;
@@ -66,12 +65,12 @@ public static unsafe class FileAccessServer
         if (IntPtr.Size == 4)
         {
             var asm = string.Format(File.ReadAllText(Path.Combine(modDirectory, "Asm/NativeIntList_X86.asm")), listPtr);
-            _closeHandleHook = hooks.CreateAsmHook(asm, functions.CloseHandle.Address, AsmHookBehaviour.ExecuteFirst);
+            _closeHandleHook = hooks!.CreateAsmHook(asm, functions.CloseHandle.Address, AsmHookBehaviour.ExecuteFirst);
         }
         else
         {
             var asm = string.Format(File.ReadAllText(Path.Combine(modDirectory, "Asm/NativeIntList_X64.asm")), listPtr);
-            _closeHandleHook = hooks.CreateAsmHook(asm, functions.CloseHandle.Address, AsmHookBehaviour.ExecuteFirst);
+            _closeHandleHook = hooks!.CreateAsmHook(asm, functions.CloseHandle.Address, AsmHookBehaviour.ExecuteFirst);
         }
         
         _closeHandleHook.Activate();

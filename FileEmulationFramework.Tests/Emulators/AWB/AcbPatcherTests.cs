@@ -16,7 +16,7 @@ public unsafe class AcbPatcherTests
     public void Baseline()
     {
         // Read the original data.
-        var originalStream = new FileStream(Assets.AwbEmulatorSampleFile, FileMode.Open, FileAccess.ReadWrite, FileShare.ReadWrite);
+        using var originalStream = new FileStream(Assets.AwbEmulatorSampleFile, FileMode.Open, FileAccess.ReadWrite, FileShare.ReadWrite);
         var originalData = new byte[originalStream.Length];
         originalStream.TryRead(originalData, out _);
         originalStream.Position = 0;
@@ -38,7 +38,7 @@ public unsafe class AcbPatcherTests
     public void BadHash_Fails()
     {
         // Read the original data.
-        var originalStream = new FileStream(Assets.AwbEmulatorSampleFile, FileMode.Open, FileAccess.ReadWrite, FileShare.ReadWrite);
+        using var originalStream = new FileStream(Assets.AwbEmulatorSampleFile, FileMode.Open, FileAccess.ReadWrite, FileShare.ReadWrite);
         var originalData = new byte[originalStream.Length];
         originalStream.TryRead(originalData, out _);
         originalStream.Position = 0;
@@ -62,7 +62,7 @@ public unsafe class AcbPatcherTests
     public void NoAfs2Header_Fails()
     {
         // Read the original data.
-        var originalStream = new FileStream(Assets.AwbEmulatorSampleFile, FileMode.Open, FileAccess.ReadWrite, FileShare.ReadWrite);
+        using var originalStream = new FileStream(Assets.AwbEmulatorSampleFile, FileMode.Open, FileAccess.ReadWrite, FileShare.ReadWrite);
         var originalData = new byte[originalStream.Length];
         originalStream.TryRead(originalData, out _);
         originalStream.Position = 0;

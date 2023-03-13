@@ -325,6 +325,7 @@ public static class Native
         /// </summary>
         public IntPtr SecurityQualityOfService = IntPtr.Zero;
 
+        /// <summary/>
         public OBJECT_ATTRIBUTES() { }
     }
 

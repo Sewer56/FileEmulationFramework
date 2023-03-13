@@ -7,6 +7,12 @@ Split-Path $MyInvocation.MyCommand.Path | Push-Location
               -PublishOutputDir "Publish/ToUpload/ARC" `
 			  -ReadmePath "docs/emulators/arc.md" `
 			  -ChangelogPath "Emulator/ARC.Stream.Emulator/CHANGELOG.MD" `
+			  
+./Publish.ps1 -ProjectPath "Emulator/PAK.Stream.Emulator/PAK.Stream.Emulatorr.csproj" `
+              -PackageName "PAK.Stream.Emulator" `
+              -PublishOutputDir "Publish/ToUpload/PAK" `
+			  -ReadmePath "docs/emulators/pak.md" `
+			  -ChangelogPath "Emulator/PAK.Stream.Emulator/CHANGELOG.MD" `
 
 ./Publish.ps1 -ProjectPath "Emulator/AFS.Stream.Emulator/AFS.Stream.Emulator.csproj" `
               -PackageName "AFS.Stream.Emulator" `

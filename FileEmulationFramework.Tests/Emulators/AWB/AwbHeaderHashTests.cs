@@ -16,7 +16,7 @@ public class AwbHeaderHashTests
     public void Baseline()
     {
         // Create Builder & Inject Single File
-        using var stream = new FileStream(Assets.AwbEmulatorSampleFile, FileMode.Open);
+        using var stream = new FileStream(Assets.AwbEmulatorSampleFile, FileMode.Open, FileAccess.ReadWrite);
         Assert.True(AwbHeaderReader.TryHashHeader(stream, out var firstHash));
         stream.Seek(0, SeekOrigin.Begin);
         Assert.True(AwbHeaderReader.TryHashHeader(stream, out var secondHash));

@@ -1,6 +1,5 @@
 using System.Runtime.InteropServices;
-using System.Text;
-using Reloaded.Memory.Sources;
+#pragma warning disable CS0649
 
 namespace PAK.Stream.Emulator.Pak;
 

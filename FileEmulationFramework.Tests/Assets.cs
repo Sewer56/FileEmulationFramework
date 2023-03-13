@@ -1,4 +1,5 @@
-﻿namespace FileEmulationFramework.Tests;
+﻿// ReSharper disable InconsistentNaming
+namespace FileEmulationFramework.Tests;
 
 internal static class Assets
 {

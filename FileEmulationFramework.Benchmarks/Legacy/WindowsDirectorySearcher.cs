@@ -252,7 +252,7 @@ public class WindowsDirectorySearcher
                 }
                 else
                 {
-                    FILE_DIRECTORY_INFORMATION* info = default;
+                    FILE_DIRECTORY_INFORMATION* info;
                     do
                     {
                         info = (FILE_DIRECTORY_INFORMATION*)currentBufferPtr;

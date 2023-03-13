@@ -1,7 +1,5 @@
 // CODE TAKEN WITH PERMISSION FROM THE JSR ARC TOOL: https://steamcommunity.com/app/205950/discussions/0/535150948594821347/
 // CODE WRITTEN BY https://twitter.com/GMMan_BZFlag
-using System;
-using System.IO;
 
 namespace ARC.Stream.Emulator.Arc;
 
@@ -91,7 +89,7 @@ public abstract class BaseXoringStream : System.IO.Stream
 	}
     public override void Write(ReadOnlySpan<byte> buffer)
 	{
-        byte[] array = (byte[])buffer.ToArray();
+        var array = buffer.ToArray();
         for (int i = 0; i < array.Length; i++)
         {
             array[i] ^= GetNextKeyByte();

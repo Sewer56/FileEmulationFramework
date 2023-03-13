@@ -1,10 +1,9 @@
 using System.Runtime.InteropServices;
-using System.Text;
-using Reloaded.Memory.Sources;
+#pragma warning disable CS0649
 
 namespace PAK.Stream.Emulator.Pak;
 
-public struct V3FileEntry: IEntry
+public struct V3FileEntry : IEntry
 {
 	private unsafe fixed byte _byteFileName[24];
 

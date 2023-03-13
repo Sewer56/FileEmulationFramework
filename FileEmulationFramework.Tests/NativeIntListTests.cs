@@ -1,7 +1,4 @@
-﻿using FileEmulationFramework.Utilities;
-using Xunit;
-
-namespace FileEmulationFramework.Tests;
+﻿namespace FileEmulationFramework.Tests;
 
 public class NativeIntListTests
 {
