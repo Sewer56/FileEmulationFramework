@@ -1,5 +1,6 @@
 ﻿using FileEmulationFramework.Lib;
 using FileEmulationFramework.Lib.IO;
+using System.Text.RegularExpressions;
 
 namespace PAK.Stream.Emulator.Pak;
 
@@ -44,9 +45,9 @@ public class PakBuilderFactory
         var route = new Route(path);
         foreach (var group in RouteGroupTuples)
         {
-            if (!route.Matches(group.Route.FullPath))
+            if (!route.Matches(group.Route.FullPath) && !RoutePartialMatches(route, group))
                 continue;
-            
+
             // Make builder if not made.
             builder ??= new PakBuilder();
 
@@ -57,6 +58,20 @@ public class PakBuilderFactory
         }
 
         return builder != null;
+    }
+
+    /// <summary>
+    /// Check if a route is in a group. Unlike Route.Matches this considers the path to the actual archive file
+    /// E.g. the route init_free.bin\field\script will match init_free.bin as this recognises the actual file is at init_free.bin
+    /// </summary>
+    /// <param name="route">The route to compare</param>
+    /// <param name="group">The group to compare</param>
+    /// <returns>True if the route contains the group, false otherwise</returns>
+    private bool RoutePartialMatches(Route route, RouteGroupTuple group)
+    {
+        var match = Regex.Match(group.Route.FullPath, @".+\.[^\\]+");
+        if (!match.Success) return false;
+        return route.FullPath.Contains(match.Value);
     }
 }
 
