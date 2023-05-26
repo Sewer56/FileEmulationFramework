@@ -71,7 +71,7 @@ public class PakBuilderFactory
     {
         var match = Regex.Match(group.Route.FullPath, @".+\.[^\\]+");
         if (!match.Success) return false;
-        return route.FullPath.Contains(match.Value);
+        return match.Value.Contains(route.FullPath);
     }
 }
 
