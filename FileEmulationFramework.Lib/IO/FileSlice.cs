@@ -1,4 +1,5 @@
 ﻿using FileEmulationFramework.Lib.Utilities;
+using System.Collections.Concurrent;
 
 namespace FileEmulationFramework.Lib.IO;
 
@@ -12,7 +13,7 @@ public class FileSlice
     /// Caches existing open handles to the file.
     /// Used for fast subsequent access of files; we keep the handles open.
     /// </summary>
-    private static readonly Dictionary<string, IntPtr> HandleCache = new(StringComparer.OrdinalIgnoreCase);
+    private static readonly ConcurrentDictionary<string, IntPtr> HandleCache = new(StringComparer.OrdinalIgnoreCase);
 
     /// <summary>
     /// Offset of the data to get from the file.
