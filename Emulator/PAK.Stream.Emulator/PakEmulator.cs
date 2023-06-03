@@ -4,6 +4,7 @@ using FileEmulationFramework.Interfaces.Reference;
 using FileEmulationFramework.Lib.IO;
 using FileEmulationFramework.Lib.Utilities;
 using PAK.Stream.Emulator.Utilities;
+using System.Collections.Concurrent;
 
 namespace PAK.Stream.Emulator;
 
@@ -24,7 +25,7 @@ public class PakEmulator : IEmulator
 
     // Note: Handle->Stream exists because hashing IntPtr is easier; thus can resolve reads faster.
     private readonly PakBuilderFactory _builderFactory = new();
-    private readonly Dictionary<string, MultiStream?> _pathToStream = new(StringComparer.OrdinalIgnoreCase);
+    private readonly ConcurrentDictionary<string, MultiStream?> _pathToStream = new(StringComparer.OrdinalIgnoreCase);
     private Logger _log;
 
     public PakEmulator(Logger log, bool dumpFiles)
@@ -82,13 +83,13 @@ public class PakEmulator : IEmulator
             return false;
 
         // Make the AFS file.
-        _pathToStream[outputPath] = null; // Avoid recursion into same file.
+        _pathToStream.TryRemove(outputPath, out _); // Avoid recursion into same file.
 
         stream = builder!.Build(handle, srcDataPath, _log);
         if (invokeOnStreamCreated)
             OnStreamCreated?.Invoke(handle, outputPath, stream);
 
-        _pathToStream[outputPath] = stream;
+        _pathToStream.TryAdd(outputPath, stream);
         emulated = new EmulatedFile<MultiStream>(stream);
         _log.Info("[PakEmulator] Created Emulated file with Path {0}", outputPath);
 
@@ -114,7 +115,7 @@ public class PakEmulator : IEmulator
     /// Invalidates an AWB file with a specified name.
     /// </summary>
     /// <param name="awbPath">Full path to the file.</param>
-    public void UnregisterFile(string awbPath) => _pathToStream.Remove(awbPath);
+    public void UnregisterFile(string awbPath) => _pathToStream!.Remove(awbPath, out _);
 
     private void DumpFile(string filepath, MultiStream stream)
     {
