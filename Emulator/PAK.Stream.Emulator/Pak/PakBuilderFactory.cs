@@ -69,9 +69,13 @@ public class PakBuilderFactory
     /// <returns>True if the route contains the group, false otherwise</returns>
     private bool RoutePartialMatches(Route route, RouteGroupTuple group)
     {
-        var match = Regex.Match(group.Route.FullPath, @".+\.[^\\]+");
-        if (!match.Success) return false;
-        return match.Value.Contains(route.FullPath);
+        string groupPath = group.Route.FullPath;
+        int dotIndex = groupPath.LastIndexOf('.');
+        if (dotIndex == -1) return false; // Doesn't have any archive files, don't bother with this
+        int fileEnd = groupPath.IndexOf('\\', dotIndex);
+        if (fileEnd == -1) fileEnd = groupPath.Length; // There are no children of the archive file
+        var res = groupPath.Substring(0,fileEnd).Contains(route.FullPath);
+        return res;
     }
 }
 
