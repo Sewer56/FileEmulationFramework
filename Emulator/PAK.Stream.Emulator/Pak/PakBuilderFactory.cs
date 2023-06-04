@@ -1,6 +1,5 @@
 ﻿using FileEmulationFramework.Lib;
 using FileEmulationFramework.Lib.IO;
-using System.Text.RegularExpressions;
 
 namespace PAK.Stream.Emulator.Pak;
 
@@ -71,11 +70,14 @@ public class PakBuilderFactory
     {
         string groupPath = group.Route.FullPath;
         int dotIndex = groupPath.LastIndexOf('.');
-        if (dotIndex == -1) return false; // Doesn't have any archive files, don't bother with this
+        if (dotIndex == -1) 
+            return false; // Doesn't have any archive files, don't bother with this
+        
         int fileEnd = groupPath.IndexOf('\\', dotIndex);
-        if (fileEnd == -1) fileEnd = groupPath.Length; // There are no children of the archive file
-        var res = groupPath.Substring(0,fileEnd).Contains(route.FullPath);
-        return res;
+        if (fileEnd == -1) 
+            fileEnd = groupPath.Length; // There are no children of the archive file
+        
+        return groupPath.AsSpan(0, fileEnd).Contains(route.FullPath.AsSpan(), StringComparison.OrdinalIgnoreCase);
     }
 }
 
