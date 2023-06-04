@@ -7,11 +7,12 @@
 
 This emulator should work with type of PAKs, regardless of what the actual file is named. 
 
-The most common names/extensions for PAKs are:
-- PAK
-- BIN
-- PAC
-- ARC
+The most common names/extensions for PAKs are:  
+
+- PAK  
+- BIN  
+- PAC  
+- ARC  
 
 ## Supported Applications
 
