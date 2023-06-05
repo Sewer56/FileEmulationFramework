@@ -64,7 +64,7 @@ public class Logger
     public void Error<T1>(string format, T1 item1)
     {
         if (IsEnabled(LogSeverity.Error))
-            Log.WriteLineAsync(string.Format(format, item1!.ToString(), Log.ColorRed));
+            Log.WriteLineAsync(string.Format(format, item1!.ToString()), Log.ColorRed);
     }
 
     /// <summary>
@@ -112,7 +112,7 @@ public class Logger
     public void Warning<T1>(string format, T1 item1)
     {
         if (IsEnabled(LogSeverity.Warning))
-            Log.WriteLineAsync(string.Format(format, item1!.ToString(), Log.ColorYellow));
+            Log.WriteLineAsync(string.Format(format, item1!.ToString()), Log.ColorYellow);
     }
 
     /// <summary>
@@ -160,7 +160,7 @@ public class Logger
     public void Info<T1>(string format, T1 item1)
     {
         if (IsEnabled(LogSeverity.Information))
-            Log.WriteLineAsync(string.Format(format, item1!.ToString(), Log.ColorLightBlue));
+            Log.WriteLineAsync(string.Format(format, item1!.ToString()), Log.ColorLightBlue);
     }
 
     /// <summary>
