@@ -41,6 +41,10 @@ env:
   PUBLISH_GITHUB_AWB_PATH: ./Publish/ToUpload/AWB/Generic
   PUBLISH_NUGET_AWB_PATH: ./Publish/ToUpload/AWB/NuGet
   
+  PUBLISH_GAMEBANANA_PAK_PATH: ./Publish/ToUpload/PAK/GameBanana
+  PUBLISH_GITHUB_PAK_PATH: ./Publish/ToUpload/PAK/Generic
+  PUBLISH_NUGET_PAK_PATH: ./Publish/ToUpload/PAK/NuGet
+  
   PUBLISH_GAMEBANANA_FRAMEWORK_PATH: ./Publish/ToUpload/Framework/GameBanana
   PUBLISH_GITHUB_FRAMEWORK_PATH: ./Publish/ToUpload/Framework/Generic
   PUBLISH_NUGET_FRAMEWORK_PATH: ./Publish/ToUpload/Framework/NuGet
@@ -109,6 +113,7 @@ jobs:
           ${{ env.PUBLISH_GITHUB_AFS_PATH }}/*
           ${{ env.PUBLISH_GITHUB_AWB_PATH }}/*
           ${{ env.PUBLISH_GITHUB_ARC_PATH }}/*
+          ${{ env.PUBLISH_GITHUB_PAK_PATH }}/*
           ${{ env.PUBLISH_GITHUB_FRAMEWORK_PATH }}/*
           
     - name: Upload GameBanana Release Artifact
@@ -122,6 +127,7 @@ jobs:
           ${{ env.PUBLISH_GAMEBANANA_AFS_PATH }}/*
           ${{ env.PUBLISH_GAMEBANANA_AWB_PATH }}/*
           ${{ env.PUBLISH_GAMEBANANA_ARC_PATH }}/*
+          ${{ env.PUBLISH_GAMEBANANA_PAK_PATH }}/*
           ${{ env.PUBLISH_GAMEBANANA_FRAMEWORK_PATH }}/*
         
     - name: Upload NuGet Release Artifact
@@ -135,6 +141,7 @@ jobs:
           ${{ env.PUBLISH_NUGET_AFS_PATH }}/*
           ${{ env.PUBLISH_NUGET_AWB_PATH }}/*
           ${{ env.PUBLISH_NUGET_ARC_PATH }}/*
+          ${{ env.PUBLISH_NUGET_PAK_PATH }}/*
           ${{ env.PUBLISH_NUGET_FRAMEWORK_PATH }}/*
         
     - name: Upload Changelog Artifact
@@ -158,6 +165,7 @@ jobs:
           ${{ env.PUBLISH_GITHUB_AFS_PATH }}/*
           ${{ env.PUBLISH_GITHUB_AWB_PATH }}/*
           ${{ env.PUBLISH_GITHUB_ARC_PATH }}/*
+          ${{ env.PUBLISH_GITHUB_PAK_PATH }}/*
           ${{ env.PUBLISH_GITHUB_FRAMEWORK_PATH }}/*
         
     - name: Push to NuGet (on Tag)
