@@ -5,6 +5,7 @@ using FileEmulationFramework.Lib.IO;
 using FileEmulationFramework.Lib.Utilities;
 using PAK.Stream.Emulator.Utilities;
 using System.Collections.Concurrent;
+using System.Diagnostics;
 
 namespace PAK.Stream.Emulator;
 
@@ -30,6 +31,7 @@ public class PakEmulator : IEmulator
 
     public PakEmulator(Logger log, bool dumpFiles)
     {
+        //Debugger.Launch();
         _log = log;
         DumpFiles = dumpFiles;
     }

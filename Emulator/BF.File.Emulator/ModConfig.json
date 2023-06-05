@@ -1,0 +1,23 @@
+{
+  "ModId": "reloaded.universal.fileemulationframework.bf",
+  "ModName": "BF Emulator for File Emulation Framework",
+  "ModAuthor": "AnimatedSwine37",
+  "ModVersion": "1.0.0",
+  "ModDescription": "Simulates Atlus BF filees. Allows mods to add or replace existing files using files on disk.",
+  "ModDll": "BF.File.Emulator.dll",
+  "ModIcon": "Preview.png",
+  "ModR2RManagedDll32": "x86/BF.File.Emulator.dll",
+  "ModR2RManagedDll64": "x64/BF.File.Emulator.dll",
+  "ModNativeDll32": "",
+  "ModNativeDll64": "",
+  "IsLibrary": true,
+  "ReleaseMetadataFileName": "BF.File.Emulator.ReleaseMetadata.json",
+  "PluginData": {},
+  "IsUniversalMod": true,
+  "ModDependencies": [
+    "reloaded.universal.fileemulationframework"
+  ],
+  "OptionalDependencies": [],
+  "SupportedAppId": [],
+  "ProjectUrl": ""
+}

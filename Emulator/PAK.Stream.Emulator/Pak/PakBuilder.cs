@@ -184,6 +184,7 @@ public class PakBuilder
                     if (format == FormatVersion.Version1)
                         length = (int)Align(length, 64);
 
+                    // TODO Fix failed to read all reqeuested bytes error coming from here (entry stream's length is wrong maybe?)
                     var entryStream2 = new MemoryStream(length);
                     entryStream.CopyTo(entryStream2);
                     entryStream.Dispose();
