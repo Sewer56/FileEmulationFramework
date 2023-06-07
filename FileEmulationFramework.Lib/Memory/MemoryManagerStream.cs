@@ -99,7 +99,11 @@ public unsafe class MemoryManagerStream : Stream
     public override int Read(Span<byte> buffer)
     {
         EnsureAccessorNoAlloc();
+
         var count = buffer.Length;
+        
+        if (Length - Position < count)
+            count = (int)(Length - Position);
 
         // Check if we can fit within boundaries.
         if (count <= _bytesAvailable)
@@ -113,7 +117,7 @@ public unsafe class MemoryManagerStream : Stream
         {
             // Else we might need to do something more complex across boundaries.
             // This could probably be optimised to shave a few more instructions, but is the cold path ultimately.
-            var bytesRemaining = count;
+            int bytesRemaining = count;
             var bufferOffset = 0;
             while (bytesRemaining > 0)
             {
