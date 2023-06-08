@@ -31,12 +31,14 @@ public static unsafe class FileAccessServer
     
     private static readonly Dictionary<IntPtr, FileInformation> HandleToInfoMap = new();
     private static readonly Dictionary<string, FileInformation> PathToVirtualFileMap = new(StringComparer.OrdinalIgnoreCase);
+    private static readonly Dictionary<string, IntPtr> PathToHandleMap = new(StringComparer.OrdinalIgnoreCase);
     
     private static readonly object ThreadLock = new();
     private static IHook<NtCreateFileFn> _createFileHook = null!;
     private static IHook<NtReadFileFn> _readFileHook = null!;
     private static IHook<NtSetInformationFileFn> _setFilePointerHook = null!;
     private static IHook<NtQueryInformationFileFn> _getFileSizeHook = null!;
+    private static IHook<NtQueryFullAttributesFileFn> _getFileAttributesHook = null!;
     private static IAsmHook _closeHandleHook = null!;
     private static NtQueryInformationFileFn _ntQueryInformationFile;
 
@@ -56,7 +58,8 @@ public static unsafe class FileAccessServer
         _setFilePointerHook = functions.SetFilePointer.Hook(typeof(FileAccessServer), nameof(SetInformationFileHook)).Activate();
         _getFileSizeHook = functions.GetFileSize.Hook(typeof(FileAccessServer), nameof(QueryInformationFileImpl)).Activate();
         _ntQueryInformationFile = _getFileSizeHook.OriginalFunction;
-        
+        _getFileAttributesHook = functions.NtQueryFullAttributes.Hook(typeof(FileAccessServer), nameof(QueryAttributesFileImpl)).Activate();
+
         // We need to cook some assembly for NtClose, because Native->Managed
         // transition can invoke thread setup code which will call CloseHandle again
         // and that will lead to infinite recursion; also unable to do Coop <=> Preemptive GC transition
@@ -113,6 +116,28 @@ public static unsafe class FileAccessServer
                 information->EndOfFile = newSize;
 
             _logger.Info("[FileAccessServer] File Size Override | Old: {0}, New: {1} | {2}", oldSize, newSize, info.FilePath);
+            return result;
+        }
+    }
+
+    [UnmanagedCallersOnly(CallConvs = new[] { typeof(CallConvStdcall) })]
+    private static int QueryAttributesFileImpl(OBJECT_ATTRIBUTES* attributes, FILE_NETWORK_OPEN_INFORMATION* information)
+    {
+        lock (ThreadLock)
+        {
+            var result = _getFileAttributesHook.OriginalFunction.Value.Invoke(attributes, information);
+            var path = attributes->ObjectName->ToString().Substring(4); // Substring removes the "\??\" at the start of the path
+
+            if (!PathToHandleMap.TryGetValue(path, out var hfile) || !HandleToInfoMap.TryGetValue(hfile, out var info))
+                return result;
+
+            var oldSize = information->EndOfFile;
+            var newSize = info.File.GetFileSize(hfile, info);
+            if (newSize != -1)
+                information->EndOfFile = newSize;
+
+            _logger.Info("[FileAccessServer] File Size Override | Old: {0}, New: {1} | {2}", oldSize, newSize, path);
+
             return result;
         }
     }
@@ -212,6 +237,7 @@ public static unsafe class FileAccessServer
                 {
                     // Reuse of emulated file (backed by stream) is safe because file access is single threaded.
                     HandleToInfoMap[hndl] = new(fileInfo.FilePath, 0, fileInfo.File);
+                    PathToHandleMap[newFilePath] = hndl;
                     return ntStatus;
                 }
 
@@ -223,6 +249,7 @@ public static unsafe class FileAccessServer
                         continue;
 
                     HandleToInfoMap[hndl] = new(newFilePath, 0, emulatedFile);
+                    PathToHandleMap[newFilePath] = hndl;
                     return ntStatus;
                 }
                 
@@ -257,6 +284,7 @@ public static unsafe class FileAccessServer
         // Create dummy file
         Native.CloseHandle(Native.CreateFileW(filePath, FileAccess.ReadWrite, FileShare.ReadWrite, IntPtr.Zero, FileMode.Create, FileAttributes.Normal, IntPtr.Zero));
         PathToVirtualFileMap[filePath] = info;
+        _logger.Info("[FileAccessServer] Registered {0}", filePath);
     }
 
     public static void UnregisterVirtualFile(string filePath)

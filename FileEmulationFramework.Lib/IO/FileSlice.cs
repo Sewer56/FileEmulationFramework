@@ -78,9 +78,9 @@ public class FileSlice
     public FileSlice(string filePath)
     {
         Offset = 0;
-        Length = (int)new FileInfo(filePath).Length;
         FilePath = filePath;
         SetHandle();
+        Length = (int)new FileInfo(filePath).Length;
     }
 
     private void SetHandle()
