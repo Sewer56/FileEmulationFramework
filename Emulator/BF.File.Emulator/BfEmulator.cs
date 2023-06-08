@@ -85,7 +85,7 @@ namespace BF.File.Emulator
             }
 
             // Check extension.
-            if (!filepath.EndsWith(Constants.BfExtension))
+            if (!filepath.EndsWith(Constants.BfExtension) || filepath.EndsWith(Constants.DumpExtension))
                 return false;
 
             if (!TryCreateEmulatedFile(handle, filepath, filepath, filepath, true, ref emulated!, out _))
@@ -155,14 +155,14 @@ namespace BF.File.Emulator
         /// <param name="awbPath">Full path to the file.</param>
         public void UnregisterFile(string awbPath) => _pathToStream!.Remove(awbPath, out _);
 
-        private void DumpFile(string filepath, MemoryManagerStream stream)
+        private void DumpFile(string filePath, MemoryManagerStream stream)
         {
-            var filePath = Path.GetFullPath($"{Constants.DumpFolder}/{Path.GetFileName(filepath)}");
+            var dumpPath = Path.GetFullPath($"{Constants.DumpFolder}/{Path.ChangeExtension(Path.GetFileName(filePath),Constants.DumpExtension)}");
             Directory.CreateDirectory(Constants.DumpFolder);
-            _log.Info($"[BfEmulator] Dumping {filepath}");
-            using var fileStream = new FileStream(filePath, FileMode.Create);
+            _log.Info($"[BfEmulator] Dumping {filePath}");
+            using var fileStream = new FileStream(dumpPath, FileMode.Create);
             stream.CopyTo(fileStream);
-            _log.Info($"[BfEmulator] Written To {filePath}");
+            _log.Info($"[BfEmulator] Written To {dumpPath}");
         }
 
         internal List<RouteGroupTuple> GetInput() => _builderFactory.RouteFileTuples;

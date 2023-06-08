@@ -5,6 +5,7 @@ namespace BF.File.Emulator
     {
         public const string BfExtension = ".bf";
         public const string FlowExtension = ".flow";
+        public const string DumpExtension = "dmp.bf";
         public const string DumpFolder = "FEmulator-Dumps/BFEmulator";
         public static readonly string RedirectorFolder = $"FEmulator{Path.DirectorySeparatorChar}BF";
     }
