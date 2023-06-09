@@ -38,6 +38,8 @@ namespace BF.File.Emulator.Utilities
 
         private static bool HasBfHeader(FileStream stream)
         {
+            if (stream.Length < 12)
+                return false;
             var pos = stream.Position;
             try
             {
