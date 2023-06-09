@@ -1,4 +1,5 @@
 ﻿using PAK.Stream.Emulator.Interfaces.Structures.IO;
+using Strim = System.IO.Stream;
 
 namespace PAK.Stream.Emulator.Interfaces;
 
@@ -26,4 +27,13 @@ public interface IPakEmulator
     /// Gets the list of input files from other mods fed into the emulator.
     /// </summary>
     public RouteGroupTuple[] GetEmulatorInput();
+
+    /// <summary>
+    /// Gets an entry from a pak file
+    /// </summary>
+    /// <param name="pak">A stream containing the pak file positioned at the beginning of it</param>
+    /// <param name="entryPath">The path to the desired entry in the file (e.g. field/script/field.bf)</param>
+    /// <returns>The data of the desired entry or null if it could not be found in the pak</returns>
+    public ReadOnlyMemory<byte>? GetEntry(Strim pak, string entryPath);
+
 }
