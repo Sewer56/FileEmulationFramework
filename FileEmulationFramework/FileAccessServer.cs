@@ -12,6 +12,7 @@ using Reloaded.Hooks.Definitions.Enums;
 using Reloaded.Memory.Interop;
 using IReloadedHooks = Reloaded.Hooks.ReloadedII.Interfaces.IReloadedHooks;
 using Native = FileEmulationFramework.Lib.Utilities.Native;
+using System.Collections.Concurrent;
 
 // ReSharper disable RedundantArgumentDefaultValue
 
@@ -29,9 +30,9 @@ public static unsafe class FileAccessServer
     /// </summary>
     private static List<IEmulator> Emulators { get; } = new();
     
-    private static readonly Dictionary<IntPtr, FileInformation> HandleToInfoMap = new();
-    private static readonly Dictionary<string, FileInformation> PathToVirtualFileMap = new(StringComparer.OrdinalIgnoreCase);
-    private static readonly Dictionary<string, IntPtr> PathToHandleMap = new(StringComparer.OrdinalIgnoreCase);
+    private static readonly ConcurrentDictionary<IntPtr, FileInformation> HandleToInfoMap = new();
+    private static readonly ConcurrentDictionary<string, FileInformation> PathToVirtualFileMap = new(StringComparer.OrdinalIgnoreCase);
+    private static readonly ConcurrentDictionary<string, IntPtr> PathToHandleMap = new(StringComparer.OrdinalIgnoreCase);
     
     private static readonly object ThreadLock = new();
     private static IHook<NtCreateFileFn> _createFileHook = null!;
@@ -289,7 +290,7 @@ public static unsafe class FileAccessServer
 
     public static void UnregisterVirtualFile(string filePath)
     {
-        PathToVirtualFileMap.Remove(filePath);
+        PathToVirtualFileMap.TryRemove(filePath, out _);
         try { File.Delete(filePath); }
         catch (Exception) { /* Ignored */ }
     }
