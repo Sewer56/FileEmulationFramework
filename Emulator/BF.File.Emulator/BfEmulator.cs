@@ -115,13 +115,13 @@ namespace BF.File.Emulator
                 return false;
 
             // Check file type.
-            if (!BfChecker.IsBfFile(handle))
+            if (!BfChecker.IsBfFileOrEmpty(handle, out var isEmpty))
                 return false;
 
             // Make the BF file.
             _pathToStream.TryRemove(outputPath, out _); // Avoid recursion into same file.
 
-            stream = builder!.Build(handle, srcDataPath, _flowFormat, _library, _encoding, _listener, _log);
+            stream = builder!.Build(handle, srcDataPath, _flowFormat, _library, _encoding, _listener, _log, isEmpty);
             if (stream == null)
                 return false;
             if (invokeOnStreamCreated)

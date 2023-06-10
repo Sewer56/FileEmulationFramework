@@ -31,7 +31,7 @@ namespace BF.File.Emulator.Bf
         /// <summary>
         /// Builds an BF file.
         /// </summary>
-        public unsafe MemoryManagerStream? Build(IntPtr originalHandle, string originalPath, FlowFormatVersion flowFormat, Library library, Encoding encoding, AtlusLogListener listener, Logger? logger = null)
+        public unsafe MemoryManagerStream? Build(IntPtr originalHandle, string originalPath, FlowFormatVersion flowFormat, Library library, Encoding encoding, AtlusLogListener? listener = null, Logger? logger = null, bool noBaseBf = false)
         {
             logger?.Info("[BfEmulator] Building BF File | {0}", originalPath);
 
@@ -39,19 +39,24 @@ namespace BF.File.Emulator.Bf
             compiler.Library = library;
             compiler.Encoding = encoding;
             compiler.ProcedureHookMode = ProcedureHookMode.ImportedOnly;
-            compiler.AddListener(listener);
+            if(listener != null)
+                compiler.AddListener(listener);
 
-            var bfStream = new FileStream(new SafeFileHandle(originalHandle, false), FileAccess.Read);
+            FileStream? bfStream = null;
+            if(!noBaseBf)
+                bfStream = new FileStream(new SafeFileHandle(originalHandle, false), FileAccess.Read);
 
             if (!compiler.TryCompileWithImports(bfStream, _flowFiles.GetRange(1,_flowFiles.Count-1), _flowFiles[0], out FlowScript flowScript))
             {
-                logger?.Error($"[BfEmulator] Failed to compile BF File | {0}", originalPath);
+                logger?.Error("[BfEmulator] Failed to compile BF File | {0}", originalPath);
                 return null;
             }
 
-            var manager = new MemoryManager(65536);
-            var memoryManagerStream = new MemoryManagerStream(manager);
+            var memoryManager = new MemoryManager(65536);
+            var memoryManagerStream = new MemoryManagerStream(memoryManager);
             flowScript.ToStream(memoryManagerStream, true);
+            memoryManagerStream.Position = 0;
+
             return memoryManagerStream;
         }
     }

@@ -17,12 +17,18 @@ namespace BF.File.Emulator.Utilities
     public static class BfChecker
     {
         /// <summary>
-        /// Checks if a file with a given handle is an BF file.
+        /// Checks if a file with a given handle is a BF file or an empty file (0 length).
         /// </summary>
         /// <param name="handle">The file handle to use.</param>
-        public static bool IsBfFile(IntPtr handle)
+        public static bool IsBfFileOrEmpty(IntPtr handle, out bool isEmpty)
         {
             var fileStream = new FileStream(new SafeFileHandle(handle, false), FileAccess.Read);
+            isEmpty = fileStream.Length == 0;
+            if(isEmpty)
+            {
+                fileStream.Dispose();
+                return true;
+            }
             var pos = fileStream.Position;
 
             try
