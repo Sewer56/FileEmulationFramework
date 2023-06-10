@@ -85,7 +85,7 @@ namespace BF.File.Emulator
             }
 
             // Check extension.
-            if (!filepath.EndsWith(Constants.BfExtension) || filepath.EndsWith(Constants.DumpExtension))
+            if (!filepath.EndsWith(Constants.BfExtension, StringComparison.OrdinalIgnoreCase) || filepath.EndsWith(Constants.DumpExtension, StringComparison.OrdinalIgnoreCase))
                 return false;
 
             if (!TryCreateEmulatedFile(handle, filepath, filepath, filepath, true, ref emulated!, out _))

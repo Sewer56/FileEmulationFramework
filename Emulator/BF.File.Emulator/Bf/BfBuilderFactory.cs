@@ -24,7 +24,7 @@ namespace BF.File.Emulator.Bf
             {
                 foreach (var file in group.Files)
                 {
-                    if (!file.EndsWith(".flow"))
+                    if (!file.EndsWith(".flow", StringComparison.OrdinalIgnoreCase))
                         continue;
 
                     var filePath = $@"{group.Directory.FullPath}\{file}";

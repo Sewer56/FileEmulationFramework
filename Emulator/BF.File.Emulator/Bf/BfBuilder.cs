@@ -24,7 +24,7 @@ namespace BF.File.Emulator.Bf
         /// <param name="pakName">Name of the file inside the PAK.</param>
         public void AddFlowFile(string filePath)
         {
-            if (!filePath.EndsWith(".flow")) return;
+            if (!filePath.EndsWith(".flow", StringComparison.OrdinalIgnoreCase)) return;
             _flowFiles.Add(filePath);
         }
 
