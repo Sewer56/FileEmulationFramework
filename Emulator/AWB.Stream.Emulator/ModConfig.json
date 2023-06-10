@@ -2,7 +2,7 @@
   "ModId": "reloaded.universal.fileemulationframework.awb",
   "ModName": "AWB Emulator for File Emulation Framework",
   "ModAuthor": "Sewer56",
-  "ModVersion": "2.1.2",
+  "ModVersion": "2.1.3",
   "ModDescription": "Simulates CRIWARE AWB (AFS2) files. Allows mods to add or replace existing files using files on disk.",
   "ModDll": "AWB.Stream.Emulator.dll",
   "ModIcon": "Preview.png",
