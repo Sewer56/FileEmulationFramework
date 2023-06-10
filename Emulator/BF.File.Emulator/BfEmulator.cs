@@ -47,7 +47,7 @@ namespace BF.File.Emulator
             //Debugger.Launch();
             _log = log;
             DumpFiles = dumpFiles;
-            _listener = new AtlusLogListener(log, LogLevel.Debug);
+            _listener = new AtlusLogListener(log, LogLevel.Error);
 
             _game = game;
             switch (game)
@@ -188,22 +188,22 @@ namespace BF.File.Emulator
            switch(e.Level)
             {
                 case LogLevel.Info:
-                    _logger.Info(e.Message);
+                    _logger.Info("[Script Compiler] {0}", e.Message);
                     break;
                 case LogLevel.Warning:
-                    _logger.Warning(e.Message);
+                    _logger.Warning("[Script Compiler] {0}", e.Message);
                     break;
                 case LogLevel.Error:
-                    _logger.Error(e.Message);
+                    _logger.Error("[Script Compiler] {0}", e.Message);
                     break;
                 case LogLevel.Debug:
-                    _logger.Debug(e.Message);
+                    _logger.Debug("[Script Compiler] {0}", e.Message);
                     break;
                 case LogLevel.Fatal:
-                    _logger.Fatal(e.Message);
+                    _logger.Fatal("[Script Compiler] {0}", e.Message);
                     break;
                 default:
-                    _logger.Info(e.Message);
+                    _logger.Info("[Script Compiler] {0}", e.Message);
                     break;
             };
         }
