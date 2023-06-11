@@ -155,6 +155,11 @@ namespace BF.File.Emulator
         /// <param name="awbPath">Full path to the file.</param>
         public void UnregisterFile(string awbPath) => _pathToStream!.Remove(awbPath, out _);
 
+        public void RegisterFile(string destinationPath, MemoryManagerStream stream)
+        {
+            _pathToStream.TryAdd(destinationPath, stream);
+        }
+
         private void DumpFile(string filePath, MemoryManagerStream stream)
         {
             var dumpPath = Path.GetFullPath($"{Constants.DumpFolder}/{Path.ChangeExtension(Path.GetFileName(filePath),Constants.DumpExtension)}");

@@ -1,7 +1,10 @@
 ﻿using BF.File.Emulator.Interfaces;
 using BF.File.Emulator.Interfaces.Structures.IO;
 using FileEmulationFramework.Interfaces;
+using FileEmulationFramework.Interfaces.Reference;
+using FileEmulationFramework.Lib.Memory;
 using FileEmulationFramework.Lib.Utilities;
+using Microsoft.Win32.SafeHandles;
 using System.Diagnostics;
 using System.Runtime.InteropServices;
 
@@ -43,6 +46,30 @@ namespace BF.File.Emulator
         {
             _bfEmulator.UnregisterFile(bfPath);
             _framework.UnregisterVirtualFile(bfPath);
+        }
+
+        public void RegisterBf(string sourcePath, string destinationPath)
+        {
+            var handle = Native.CreateFileW(sourcePath, FileAccess.Read, FileShare.ReadWrite, IntPtr.Zero, FileMode.Open, FileAttributes.Normal, IntPtr.Zero);
+            if (handle == new IntPtr(-1))
+            {
+                _logger.Error("[BfEmulatorApi] RegisterBf: Failed to open bf file with Win32 Error: {0}, Path {1}", Marshal.GetLastWin32Error(), sourcePath);
+                return;
+            }
+
+            Native.SetFilePointerEx(handle, 0, IntPtr.Zero, 0);
+
+            var manager = new MemoryManager(65536);
+            var fileStream = new FileStream(new SafeFileHandle(handle, false), FileAccess.Read);
+            var stream = new MemoryManagerStream(manager);
+            fileStream.CopyTo(stream);
+
+            var emulated = new EmulatedFile<MemoryManagerStream>(stream);
+            _bfEmulator.RegisterFile(destinationPath, stream);
+            _framework.RegisterVirtualFile(destinationPath, emulated);
+            _bfEmulator.InvokeOnStreamCreated(handle, destinationPath, stream!);
+
+            _logger.Info("[BfEmulatorApi] Registered bf {0} at {1}", sourcePath, destinationPath);
         }
 
         public bool TryCreateFromBf(string sourcePath, string route, string destinationPath)

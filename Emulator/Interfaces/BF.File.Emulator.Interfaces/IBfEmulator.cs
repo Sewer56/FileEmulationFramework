@@ -23,5 +23,12 @@ namespace BF.File.Emulator.Interfaces
         /// </summary>
         public RouteFileTuple[] GetEmulatorInput();
 
+        /// <summary>
+        /// Registers an already compiled BF as an emulated one
+        /// </summary>
+        /// <param name="sourcePath">The path to the bf file to registeer</param>
+        /// <param name="destinationPath">The path where the emulated bf file should be put</param>
+        public void RegisterBf(string sourcePath, string destinationPath);
+
     }
 }
