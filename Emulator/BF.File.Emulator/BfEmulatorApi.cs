@@ -45,7 +45,7 @@ namespace BF.File.Emulator
         public void InvalidateFile(string bfPath)
         {
             _bfEmulator.UnregisterFile(bfPath);
-            _framework.UnregisterVirtualFile(bfPath);
+            _framework.UnregisterVirtualFile(bfPath, false);
         }
 
         public void RegisterBf(string sourcePath, string destinationPath)
@@ -66,7 +66,7 @@ namespace BF.File.Emulator
 
             var emulated = new EmulatedFile<MemoryManagerStream>(stream);
             _bfEmulator.RegisterFile(destinationPath, stream);
-            _framework.RegisterVirtualFile(destinationPath, emulated);
+            _framework.RegisterVirtualFile(destinationPath, emulated, false);
             _bfEmulator.InvokeOnStreamCreated(handle, destinationPath, stream!);
 
             _logger.Info("[BfEmulatorApi] Registered bf {0} at {1}", sourcePath, destinationPath);
@@ -91,7 +91,7 @@ namespace BF.File.Emulator
             }
 
             _logger.Info("[BfEmulatorApi] TryCreateFromBf: Registering {0}", destinationPath);
-            _framework.RegisterVirtualFile(destinationPath, emulated!);
+            _framework.RegisterVirtualFile(destinationPath, emulated!, false);
             _bfEmulator.InvokeOnStreamCreated(handle, destinationPath, stream!);
             return true;
         }
