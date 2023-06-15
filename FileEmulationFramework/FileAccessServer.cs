@@ -24,16 +24,16 @@ namespace FileEmulationFramework;
 public static unsafe class FileAccessServer
 {
     private static Logger _logger = null!;
-    
+
     /// <summary>
     /// The emulators currently held by the framework.
     /// </summary>
     private static List<IEmulator> Emulators { get; } = new();
-    
+
     private static readonly ConcurrentDictionary<IntPtr, FileInformation> HandleToInfoMap = new();
     private static readonly ConcurrentDictionary<string, FileInformation> PathToVirtualFileMap = new(StringComparer.OrdinalIgnoreCase);
     private static readonly ConcurrentDictionary<string, IntPtr> PathToHandleMap = new(StringComparer.OrdinalIgnoreCase);
-    
+
     private static readonly object ThreadLock = new();
     private static IHook<NtCreateFileFn> _createFileHook = null!;
     private static IHook<NtReadFileFn> _readFileHook = null!;
@@ -76,7 +76,7 @@ public static unsafe class FileAccessServer
             var asm = string.Format(File.ReadAllText(Path.Combine(modDirectory, "Asm/NativeIntList_X64.asm")), listPtr);
             _closeHandleHook = hooks!.CreateAsmHook(asm, functions.CloseHandle.Address, AsmHookBehaviour.ExecuteFirst);
         }
-        
+
         _closeHandleHook.Activate();
         _createFileHook = functions.NtCreateFile.Hook(typeof(FileAccessServer), nameof(NtCreateFileImpl)).Activate();
     }
@@ -86,7 +86,7 @@ public static unsafe class FileAccessServer
         ref var nativeList = ref _closedHandleList.Value;
         var threadId = nativeList.GetCurrentThreadId();
         while (Interlocked.CompareExchange(ref nativeList.CurrentThread, threadId, NativeIntList.DefaultThreadHandle) != NativeIntList.DefaultThreadHandle) { }
-        
+
         for (int x = 0; x < nativeList.NumItems; x++)
         {
             var item = nativeList.ListPtr[x];
@@ -107,7 +107,7 @@ public static unsafe class FileAccessServer
         lock (ThreadLock)
         {
             var result = _getFileSizeHook.OriginalFunction.Value.Invoke(hfile, ioStatusBlock, fileInformation, length, fileInformationClass);
-            if (fileInformationClass != FileInformationClass.FileStandardInformation || !HandleToInfoMap.TryGetValue(hfile, out var info)) 
+            if (fileInformationClass != FileInformationClass.FileStandardInformation || !HandleToInfoMap.TryGetValue(hfile, out var info))
                 return result;
 
             var information = (FILE_STANDARD_INFORMATION*)fileInformation;
@@ -224,7 +224,7 @@ public static unsafe class FileAccessServer
                 // We don't support directory emulation, yet.
                 if (IsDirectory(hndl))
                     return ntStatus;
-                
+
                 // Append to route.
                 if (_currentRoute.IsEmpty())
                     _currentRoute = new Route(newFilePath);
@@ -253,7 +253,7 @@ public static unsafe class FileAccessServer
                     PathToHandleMap[newFilePath] = hndl;
                     return ntStatus;
                 }
-                
+
                 return ntStatus;
             }
             finally
@@ -275,15 +275,25 @@ public static unsafe class FileAccessServer
         _ntQueryInformationFile.Value.Invoke(hndl, &statusBlock, (byte*)&fileInfo, (uint)sizeof(FILE_STANDARD_INFORMATION), FileInformationClass.FileStandardInformation);
         return fileInfo.Directory;
     }
-    
+
     // PUBLIC API
     internal static void AddEmulator(IEmulator emulator) => Emulators.Add(emulator);
     internal static void RegisterVirtualFile(string filePath, IEmulatedFile file)
     {
         var info = new FileInformation(filePath, 0, file);
-        
+
         // Create dummy file
         Native.CloseHandle(Native.CreateFileW(filePath, FileAccess.ReadWrite, FileShare.ReadWrite, IntPtr.Zero, FileMode.Create, FileAttributes.Normal, IntPtr.Zero));
+        PathToVirtualFileMap[filePath] = info;
+        _logger.Info("[FileAccessServer] Registered {0}", filePath);
+    }
+
+    internal static void RegisterVirtualFile(string filePath, IEmulatedFile file, bool overwrite)
+    {
+        var info = new FileInformation(filePath, 0, file);
+
+        // Create dummy file
+        Native.CloseHandle(Native.CreateFileW(filePath, FileAccess.ReadWrite, FileShare.ReadWrite, IntPtr.Zero, overwrite ? FileMode.Create : FileMode.OpenOrCreate, FileAttributes.Normal, IntPtr.Zero));
         PathToVirtualFileMap[filePath] = info;
         _logger.Info("[FileAccessServer] Registered {0}", filePath);
     }
@@ -293,5 +303,15 @@ public static unsafe class FileAccessServer
         PathToVirtualFileMap.TryRemove(filePath, out _);
         try { File.Delete(filePath); }
         catch (Exception) { /* Ignored */ }
+    }
+
+    public static void UnregisterVirtualFile(string filePath, bool delete)
+    {
+        PathToVirtualFileMap.TryRemove(filePath, out _);
+        if (delete)
+        {
+            try { File.Delete(filePath); }
+            catch (Exception) { /* Ignored */ }
+        }
     }
 }
