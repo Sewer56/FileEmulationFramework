@@ -16,16 +16,28 @@ namespace BF.File.Emulator.Bf
     {
 
         private readonly List<string> _flowFiles = new List<string>();
+        private readonly List<string> _msgFiles = new List<string>();
 
         /// <summary>
-        /// Adds a file to the Virtual PAK builder.
+        /// Adds a flow file that will be imported when compiling the bf
         /// </summary>
-        /// <param name="filePath">Full path to the file.</param>
-        /// <param name="pakName">Name of the file inside the PAK.</param>
+        /// <param name="filePath">Full path to the bf file.</param>
         public void AddFlowFile(string filePath)
         {
             if (!filePath.EndsWith(".flow", StringComparison.OrdinalIgnoreCase)) return;
             _flowFiles.Add(filePath);
+        }
+
+        /// <summary>
+        /// Adds a msg file that will be imported when compiling the bf
+        /// </summary>
+        /// <param name="filePath">Full path to the file.</param>
+        public void AddMsgFile(string filePath)
+        {
+            if (!filePath.EndsWith(".msg", StringComparison.OrdinalIgnoreCase)) return;
+            // If there's a flow with the same name imported then this isn't actually a message hook, likely an import from that flow
+            if(_flowFiles.Contains(Path.ChangeExtension(filePath, ".flow"))) return;
+            _msgFiles.Add(filePath);
         }
 
         /// <summary>
@@ -39,6 +51,7 @@ namespace BF.File.Emulator.Bf
             compiler.Library = library;
             compiler.Encoding = encoding;
             compiler.ProcedureHookMode = ProcedureHookMode.ImportedOnly;
+            compiler.OverwriteExistingMsgs = true;
             if(listener != null)
                 compiler.AddListener(listener);
 
@@ -46,7 +59,13 @@ namespace BF.File.Emulator.Bf
             if(!noBaseBf)
                 bfStream = new FileStream(new SafeFileHandle(originalHandle, false), FileAccess.Read);
 
-            if (!compiler.TryCompileWithImports(bfStream, _flowFiles.GetRange(1,_flowFiles.Count-1), _flowFiles[0], out FlowScript flowScript))
+            var baseFlow = _flowFiles.Count > 0 ? _flowFiles[0] : null;
+            var imports = new List<string>();
+            if (_flowFiles.Count > 0)
+                imports.AddRange(_flowFiles.GetRange(1, _flowFiles.Count - 1));
+            imports.AddRange(_msgFiles);
+
+            if (!compiler.TryCompileWithImports(bfStream, imports, baseFlow, out FlowScript flowScript))
             {
                 logger?.Error("[BfEmulator] Failed to compile BF File | {0}", originalPath);
                 return null;

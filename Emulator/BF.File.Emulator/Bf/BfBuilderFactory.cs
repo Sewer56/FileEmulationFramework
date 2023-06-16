@@ -24,7 +24,7 @@ namespace BF.File.Emulator.Bf
             {
                 foreach (var file in group.Files)
                 {
-                    if (!file.EndsWith(".flow", StringComparison.OrdinalIgnoreCase))
+                    if (!file.EndsWith(".flow", StringComparison.OrdinalIgnoreCase) && !file.EndsWith(".msg", StringComparison.OrdinalIgnoreCase))
                         continue;
 
                     var filePath = $@"{group.Directory.FullPath}\{file}";
@@ -48,6 +48,7 @@ namespace BF.File.Emulator.Bf
         public bool TryCreateFromPath(string path, out BfBuilder? builder)
         {
             builder = default;
+            // Add flow files
             var route = new Route(Path.ChangeExtension(path, "flow"));
             foreach (var group in RouteFileTuples)
             {
@@ -59,6 +60,20 @@ namespace BF.File.Emulator.Bf
 
                 // Add files to builder.
                 builder.AddFlowFile(group.File);
+            }
+
+            // Add msg files for message hooks
+            route = new Route(Path.ChangeExtension(path, "msg"));
+            foreach (var group in RouteFileTuples)
+            {
+                if (!route.Matches(group.Route.FullPath))
+                    continue;
+
+                // Make builder if not made.
+                builder ??= new BfBuilder();
+
+                // Add files to builder.
+                builder.AddMsgFile(group.File);
             }
 
             return builder != null;
