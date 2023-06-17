@@ -1,5 +1,6 @@
 ﻿using FileEmulationFramework.Lib;
 using FileEmulationFramework.Lib.IO;
+using FileEmulationFramework.Lib.Utilities;
 using System.Text.RegularExpressions;
 
 namespace BF.File.Emulator.Bf
@@ -9,6 +10,15 @@ namespace BF.File.Emulator.Bf
     {
 
         internal List<RouteGroupTuple> RouteFileTuples = new();
+        internal Dictionary<string, string> FunctionOverrides = new();
+        internal Dictionary<string, string> EnumOverrides = new();
+
+        private Logger _log;
+
+        public BfBuilderFactory(Logger log)
+        {
+            _log = log;
+        }
 
         /// <summary>
         /// Adds all available routes from folders.
@@ -24,6 +34,14 @@ namespace BF.File.Emulator.Bf
             {
                 foreach (var file in group.Files)
                 {
+                    if (file.EndsWith(".json", StringComparison.OrdinalIgnoreCase))
+                    {
+                        if (file.Equals("Functions.json", StringComparison.OrdinalIgnoreCase))
+                            FunctionOverrides[group.Directory.FullPath] = $@"{group.Directory.FullPath}\{file}";
+                        else if (file.Equals("Enums.json", StringComparison.OrdinalIgnoreCase))
+                            EnumOverrides[group.Directory.FullPath] = $@"{group.Directory.FullPath}\{file}";
+                    }
+
                     if (!file.EndsWith(".flow", StringComparison.OrdinalIgnoreCase) && !file.EndsWith(".msg", StringComparison.OrdinalIgnoreCase))
                         continue;
 
@@ -60,6 +78,13 @@ namespace BF.File.Emulator.Bf
 
                 // Add files to builder.
                 builder.AddFlowFile(group.File);
+
+                var dir = Path.GetDirectoryName(group.File);
+                if (dir != null && FunctionOverrides.TryGetValue(dir, out var funcOverride))
+                    builder.AddLibraryFile(funcOverride, _log);
+
+                if (dir != null && EnumOverrides.TryGetValue(dir, out var enumOverride))
+                    builder.AddEnumFile(enumOverride, _log);
             }
 
             // Add msg files for message hooks
@@ -74,6 +99,13 @@ namespace BF.File.Emulator.Bf
 
                 // Add files to builder.
                 builder.AddMsgFile(group.File);
+
+                var dir = Path.GetDirectoryName(group.File);
+                if (dir != null && FunctionOverrides.TryGetValue(dir, out var funcOverride))
+                    builder.AddLibraryFile(funcOverride, _log);
+
+                if (dir != null && EnumOverrides.TryGetValue(dir, out var enumOverride))
+                    builder.AddEnumFile(enumOverride, _log);
             }
 
             return builder != null;

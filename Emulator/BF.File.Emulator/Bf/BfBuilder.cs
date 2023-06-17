@@ -6,9 +6,13 @@ using FlowFormatVersion = AtlusScriptLibrary.FlowScriptLanguage.FormatVersion;
 using AtlusScriptLibrary.Common.Libraries;
 using System.Text;
 using Microsoft.Win32.SafeHandles;
-using System.Reflection.Metadata;
 using AtlusScriptLibrary.FlowScriptLanguage;
-using System.IO;
+
+// Aliasing for readability, since our assembly name has priority over 'File'
+using Fiel = System.IO.File;
+using System.Text.Json;
+using Newtonsoft.Json;
+using MoreLinq;
 
 namespace BF.File.Emulator.Bf
 {
@@ -17,6 +21,9 @@ namespace BF.File.Emulator.Bf
 
         private readonly List<string> _flowFiles = new List<string>();
         private readonly List<string> _msgFiles = new List<string>();
+        private readonly List<FlowScriptModuleFunction> _libraryFuncs = new List<FlowScriptModuleFunction>();
+        private readonly List<FlowScriptModuleEnum> _libraryEnums = new List<FlowScriptModuleEnum>();
+        private readonly HashSet<string> _addedOverrides = new();
 
         /// <summary>
         /// Adds a flow file that will be imported when compiling the bf
@@ -36,8 +43,54 @@ namespace BF.File.Emulator.Bf
         {
             if (!filePath.EndsWith(".msg", StringComparison.OrdinalIgnoreCase)) return;
             // If there's a flow with the same name imported then this isn't actually a message hook, likely an import from that flow
-            if(_flowFiles.Contains(Path.ChangeExtension(filePath, ".flow"))) return;
+            if (_flowFiles.Contains(Path.ChangeExtension(filePath, ".flow"))) return;
             _msgFiles.Add(filePath);
+        }
+
+        /// <summary>
+        /// Adds a library file that will overwrite script compiler libraries
+        /// </summary>
+        /// <param name="filePath">Full path to the file.</param>
+        /// <returns>True if the library file could be addeed, false otherwise</returns>
+        public void AddLibraryFile(string filePath, Logger? log = null)
+        {
+            if (!filePath.EndsWith(".json", StringComparison.OrdinalIgnoreCase) || _addedOverrides.Contains(filePath)) return;
+
+            string jsonText = Fiel.ReadAllText(filePath);
+            var functions = JsonConvert.DeserializeObject<List<FlowScriptModuleFunction>>(jsonText);
+            _addedOverrides.Add(filePath);
+            if (functions == null)
+            {
+                log?.Info($"[BfBuilder] Failed to add library function overrides from {filePath}");
+            }
+            else
+            {
+                _libraryFuncs.AddRange(functions);
+                log?.Info($"[BfBuilder] Added library function overrides from {filePath}");
+            }
+        }
+
+        /// <summary>
+        /// Adds a enums file that will overwrite script compiler enums
+        /// </summary>
+        /// <param name="filePath">Full path to the file.</param>
+        /// <returns>True if the enum file could be addeed, false otherwise</returns>
+        public void AddEnumFile(string filePath, Logger? log = null)
+        {
+            if (!filePath.EndsWith(".json", StringComparison.OrdinalIgnoreCase) || _addedOverrides.Contains(filePath)) return;
+
+            string jsonText = Fiel.ReadAllText(filePath);
+            var enums = JsonConvert.DeserializeObject<List<FlowScriptModuleEnum>>(jsonText);
+            _addedOverrides.Add(filePath);
+            if (enums == null)
+            {
+                log?.Info($"[BfBuilder] Failed to add library enum overrides from {filePath}");
+            }
+            else
+            {
+                _libraryEnums.AddRange(enums);
+                log?.Info($"[BfBuilder] Added library enum overrides from {filePath}");
+            }
         }
 
         /// <summary>
@@ -48,15 +101,15 @@ namespace BF.File.Emulator.Bf
             logger?.Info("[BfEmulator] Building BF File | {0}", originalPath);
 
             var compiler = new FlowScriptCompiler(flowFormat);
-            compiler.Library = library;
+            compiler.Library = OverrideLibraries(library);
             compiler.Encoding = encoding;
             compiler.ProcedureHookMode = ProcedureHookMode.ImportedOnly;
             compiler.OverwriteExistingMsgs = true;
-            if(listener != null)
+            if (listener != null)
                 compiler.AddListener(listener);
 
             FileStream? bfStream = null;
-            if(!noBaseBf)
+            if (!noBaseBf)
                 bfStream = new FileStream(new SafeFileHandle(originalHandle, false), FileAccess.Read);
 
             var baseFlow = _flowFiles.Count > 0 ? _flowFiles[0] : null;
@@ -77,6 +130,29 @@ namespace BF.File.Emulator.Bf
             memoryManagerStream.Position = 0;
 
             return memoryManagerStream;
+        }
+
+        private Library OverrideLibraries(Library library)
+        {
+            if (_libraryEnums.Count == 0 && _libraryFuncs.Count == 0) return library;
+
+            // Clone library since every bf builder uses the same one
+            library = (Library)library.Clone();
+
+            // Override existing functions
+            foreach (var func in _libraryFuncs)
+            {
+                for (int i = 0; i < library.FlowScriptModules.Count; i++)
+                {
+                    var existing = library.FlowScriptModules[i].Functions.FindIndex(x => x.Index == func.Index);
+                    if (existing != -1)
+                        library.FlowScriptModules[i].Functions[existing] = func;
+                }
+            }
+
+            // Add enums
+            library.FlowScriptModules[0].Enums.AddRange(_libraryEnums);
+            return library;
         }
     }
 }

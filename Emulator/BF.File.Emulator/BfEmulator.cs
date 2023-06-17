@@ -31,7 +31,7 @@ namespace BF.File.Emulator
         public event Action<IntPtr, string, MemoryManagerStream>? OnStreamCreated;
 
         // Note: Handle->Stream exists because hashing IntPtr is easier; thus can resolve reads faster.
-        private readonly BfBuilderFactory _builderFactory = new();
+        private readonly BfBuilderFactory _builderFactory;
         private readonly ConcurrentDictionary<string, MemoryManagerStream?> _pathToStream = new(StringComparer.OrdinalIgnoreCase);
         private Logger _log;
 
@@ -44,8 +44,9 @@ namespace BF.File.Emulator
 
         public BfEmulator(Logger log, bool dumpFiles, Game game)
         {
-            //Debugger.Launch();
+            Debugger.Launch();
             _log = log;
+            _builderFactory = new BfBuilderFactory(log);
             DumpFiles = dumpFiles;
             _listener = new AtlusLogListener(log, LogLevel.Error);
 
