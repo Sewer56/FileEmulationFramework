@@ -50,7 +50,7 @@ public class PakEmulatorApi : IPakEmulator
             _logger.Error("[PakEmulatorApi] TryCreateFromFileSlice: Failed to Create Emulated File at Path {0}", sourcePath);
             return false;
         }
-        
+
         _logger.Info("[PakEmulatorApi] TryCreateFromFileSlice: Registering {0}", destinationPath);
         _framework.RegisterVirtualFile(destinationPath, emulated!);
         _pakEmulator.InvokeOnStreamCreated(handle, destinationPath, stream!);
@@ -104,7 +104,10 @@ public class PakEmulatorApi : IPakEmulator
         if (string.IsNullOrEmpty(fileRoot))
         {
             if (Path.GetDirectoryName(index).Contains("."))
+            {
                 filename = Path.GetFileName(index);
+                container = Path.GetDirectoryName(index)!.Replace("\\", "/");
+            }
             else
                 filename = index.Replace("\\", "/");
 
@@ -113,8 +116,8 @@ public class PakEmulatorApi : IPakEmulator
         {
             filename = Path.GetRelativePath(fileRoot, index).Replace("\\", "/");
             container = Path.GetDirectoryName(filename)!.Replace("\\", "/");
-            if (container == "") container = null; 
         }
+        if (container == "") container = null;
         fileStream.Seek(0, SeekOrigin.Begin);
         var format = PakBuilder.DetectVersion(fileStream);
 
@@ -156,7 +159,7 @@ public class PakEmulatorApi : IPakEmulator
                         var result = GC.AllocateUninitializedArray<byte>(length);
                         fileStream.ReadAtLeast(result, length);
                         var file = new MemoryStream(result);
-                        return ReadFileFromPak(file, filename, container);
+                        return ReadFileFromPak(file, index, container);
                     }
 
                     fileStream.Seek(length, SeekOrigin.Current);
@@ -181,7 +184,7 @@ public class PakEmulatorApi : IPakEmulator
                         var result = GC.AllocateUninitializedArray<byte>(fileentry.Length);
                         fileStream.ReadAtLeast(result, fileentry.Length);
                         var file = new MemoryStream(result);
-                        return ReadFileFromPak(file, filename, container);
+                        return ReadFileFromPak(file, index.Replace("\\", "/"), container);
                     }
 
                     fileStream.Seek(PakBuilder.Align(fileentry.Length, 64), SeekOrigin.Current);
