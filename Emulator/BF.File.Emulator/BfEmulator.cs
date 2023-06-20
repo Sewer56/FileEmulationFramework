@@ -44,7 +44,6 @@ namespace BF.File.Emulator
 
         public BfEmulator(Logger log, bool dumpFiles, Game game)
         {
-            Debugger.Launch();
             _log = log;
             _builderFactory = new BfBuilderFactory(log);
             DumpFiles = dumpFiles;
