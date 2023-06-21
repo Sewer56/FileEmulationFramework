@@ -1,7 +1,17 @@
-﻿using FileEmulationFramework.Lib;
+﻿using AtlusScriptLibrary.Common.Libraries;
+using FileEmulationFramework.Lib;
 using FileEmulationFramework.Lib.IO;
 using FileEmulationFramework.Lib.Utilities;
-using System.Text.RegularExpressions;
+using System.Text;
+using FlowFormatVersion = AtlusScriptLibrary.FlowScriptLanguage.FormatVersion;
+
+// Aliasing for readability, since our assembly name has priority over 'File'
+using Fiel = System.IO.File;
+using BF.File.Emulator.Utilities;
+using System.Text.Json.Serialization;
+using System.Text.Json;
+using AtlusScriptLibrary.Common.Text.Encodings;
+using static BF.File.Emulator.Utilities.CompilerArgs;
 
 namespace BF.File.Emulator.Bf
 {
@@ -12,6 +22,10 @@ namespace BF.File.Emulator.Bf
         internal List<RouteGroupTuple> RouteFileTuples = new();
         internal Dictionary<string, string> FunctionOverrides = new();
         internal Dictionary<string, string> EnumOverrides = new();
+
+        private FlowFormatVersion? _flowFormat;
+        private Library? _library;
+        private Encoding? _encoding;
 
         private Logger _log;
 
@@ -40,6 +54,8 @@ namespace BF.File.Emulator.Bf
                             FunctionOverrides[group.Directory.FullPath] = $@"{group.Directory.FullPath}\{file}";
                         else if (file.Equals("Enums.json", StringComparison.OrdinalIgnoreCase))
                             EnumOverrides[group.Directory.FullPath] = $@"{group.Directory.FullPath}\{file}";
+                        else if (file.Equals("CompilerArgs.json", StringComparison.OrdinalIgnoreCase))
+                            OverrideCompilerArgs($@"{group.Directory.FullPath}\{file}");
                     }
 
                     if (!file.EndsWith(".flow", StringComparison.OrdinalIgnoreCase) && !file.EndsWith(".msg", StringComparison.OrdinalIgnoreCase))
@@ -74,7 +90,7 @@ namespace BF.File.Emulator.Bf
                     continue;
 
                 // Make builder if not made.
-                builder ??= new BfBuilder();
+                builder ??= new BfBuilder(_flowFormat, _library, _encoding);
 
                 // Add files to builder.
                 builder.AddFlowFile(group.File);
@@ -95,7 +111,7 @@ namespace BF.File.Emulator.Bf
                     continue;
 
                 // Make builder if not made.
-                builder ??= new BfBuilder();
+                builder ??= new BfBuilder(_flowFormat, _library, _encoding);
 
                 // Add files to builder.
                 builder.AddMsgFile(group.File);
@@ -109,6 +125,29 @@ namespace BF.File.Emulator.Bf
             }
 
             return builder != null;
+        }
+
+        private void OverrideCompilerArgs(string file)
+        {
+            string json = Fiel.ReadAllText(file);
+            var args = JsonSerializer.Deserialize<CompilerArgs>(json);
+            if (args == null)
+            {
+                _log.Error($"[BfBuilderFactory] Unable to deserialise {file} to valid compiler args");
+                return;
+            }
+
+            if(!Enum.TryParse(args.OutFormat, true, out OutputFileFormat outFormat))
+            {
+                _log.Error($"[BfBuilderFactory] Unable parse OutFormat {args.OutFormat} to valid output format");
+                return;
+            }
+
+            _flowFormat = GetFlowScriptFormatVersion(outFormat);
+            _library = LibraryLookup.GetLibrary(args.Library);
+            _encoding = AtlusEncoding.GetByName(args.Encoding);
+
+            _log.Info($"[BfBuilderFactory] Changed script compiler args to OutFormat: {args.OutFormat}, Library: {args.Library}, Encoding: {args.Encoding}");
         }
     }
 

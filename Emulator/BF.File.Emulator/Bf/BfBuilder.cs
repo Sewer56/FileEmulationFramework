@@ -7,12 +7,11 @@ using AtlusScriptLibrary.Common.Libraries;
 using System.Text;
 using Microsoft.Win32.SafeHandles;
 using AtlusScriptLibrary.FlowScriptLanguage;
+using Newtonsoft.Json;
 
 // Aliasing for readability, since our assembly name has priority over 'File'
 using Fiel = System.IO.File;
-using System.Text.Json;
-using Newtonsoft.Json;
-using MoreLinq;
+
 
 namespace BF.File.Emulator.Bf
 {
@@ -24,6 +23,19 @@ namespace BF.File.Emulator.Bf
         private readonly List<FlowScriptModuleFunction> _libraryFuncs = new List<FlowScriptModuleFunction>();
         private readonly List<FlowScriptModuleEnum> _libraryEnums = new List<FlowScriptModuleEnum>();
         private readonly HashSet<string> _addedOverrides = new();
+        
+        private FlowFormatVersion? _flowFormat = null;
+        private Library? _library = null;
+        private Encoding? _encoding = null;
+
+        public BfBuilder(FlowFormatVersion? flowFormat, Library? library, Encoding? encoding)
+        {
+            _flowFormat = flowFormat;
+            _library = library;
+            _encoding = encoding;
+        }
+
+        public BfBuilder() { }
 
         /// <summary>
         /// Adds a flow file that will be imported when compiling the bf
@@ -99,6 +111,11 @@ namespace BF.File.Emulator.Bf
         public unsafe MemoryManagerStream? Build(IntPtr originalHandle, string originalPath, FlowFormatVersion flowFormat, Library library, Encoding encoding, AtlusLogListener? listener = null, Logger? logger = null, bool noBaseBf = false)
         {
             logger?.Info("[BfEmulator] Building BF File | {0}", originalPath);
+
+            // Use compiler arg overrides (if they're there)
+            if (_library != null) library = _library;
+            if(_encoding != null) encoding = _encoding;
+            if (_flowFormat != null) flowFormat = (FlowFormatVersion)_flowFormat;
 
             var compiler = new FlowScriptCompiler(flowFormat);
             compiler.Library = OverrideLibraries(library);
