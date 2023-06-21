@@ -1,0 +1,273 @@
+
+// 
+// FlowScript decompiled by AtlusScriptLib by TGE (2017)
+// In the unfortunate case of any bugs, please report them back to me.
+// 
+
+
+// 
+// Imports
+// 
+
+import ("OrganizeParty.flow");
+import( "DungeonTravel.msg" );
+
+// 
+// Script-level variable definitions
+// 
+
+void SelectFloor()
+{
+	bool ConsitentReaper = BIT_CHK(6328);
+	int floor = GET_FLOOR_ID();
+	int EntranceFloor;
+	int FloorText;
+	int prev;
+	// Get the entrance floor and floor text based on current floor
+	// Yukiko
+	if (floor >= 5 && floor < 14)
+	{
+		prev = 3;
+		EntranceFloor = 5;
+		FloorText = YukikoFloors1;
+	}
+	// Kanji
+	else if (floor >= 20 && floor < 32)
+	{
+		prev = 6;
+		EntranceFloor = 20;
+		FloorText = KanjiFloors1;
+	}
+	// Rise
+	else if (floor >= 40 && floor < 52)
+	{
+		prev = 6;
+		EntranceFloor = 40;
+		FloorText = RiseFloors1;
+	}
+	// Mitsuo
+	else if (floor >= 60 && floor < 71)
+	{
+		prev = 5;
+		EntranceFloor = 60;
+		FloorText = MitsuoFloors1;
+	}
+	// Naoto
+	else if (floor >= 80 && floor < 90)
+	{
+		prev = 4;
+		EntranceFloor = 80;
+		FloorText = NaotoFloors1;
+	}
+	// Nanako
+	else if (floor >= 100 && floor < 111)
+	{
+		prev = 5;
+		EntranceFloor = 100;
+		FloorText = NanakoFloors1;
+	}
+	// Adachi
+	else if (floor >= 120 && floor < 130)
+	{
+		prev = 4;
+		EntranceFloor = 120;
+		FloorText = AdachiFloors1;
+	}
+	
+	int switchFloor = GET_FLOOR_ID() - EntranceFloor;
+	int selectMask1 = 0;
+	int selectMask2 = 0;
+	// Hide current floor from options
+	switch(switchFloor)
+	{
+		case 0:
+			selectMask1 = 1;
+			break;
+		case 1:
+			selectMask1 = 2;
+			break;
+		case 2:
+			selectMask1 = 4;
+			break;
+		case 3:
+			selectMask1 = 8;
+			break;
+		case 4:
+			selectMask1 = 16;
+			break;
+		case 5:
+			selectMask1 = 32;
+			break;
+		case 6:
+			selectMask2 = 1;
+			break;
+		case 7:
+			selectMask2 = 2;
+			break;
+		case 8:
+			selectMask2 = 4;
+			break;
+		case 9:
+			selectMask2 = 8;
+			break;
+		case 10:
+			selectMask2 = 16;
+			break;
+		case 11:		
+			selectMask2 = 32;
+			break;
+		case 12:
+			selectMask2 = 64;
+			break;
+	}
+	
+	int selection;
+	bool chosen = false;
+	bool firstPage = true;
+	
+	if ( !(floor == 5 || floor == 20 || floor == 40 || floor == 60 || floor == 80 || floor == 100 || floor == 120 || floor == 140 || floor == 160 ))
+	{
+		if (sVar8 == 5)
+		{
+			MSG(SelectFloorsMsgRise);
+		}
+		else
+		{
+			MSG(SelectFloorsMsgTeddie);
+		}
+	}
+
+	while (chosen == false)
+	{
+		if (firstPage == true)
+		{	
+			SEL_CHK_PAD( 14, 11 );
+			SEL_CHK_PAD( 10, 6 );
+			SEL_CHK_PAD( 11, 6 );
+			SEL_CHK_PAD(5, 6);
+			SEL_CHK_PAD(7, 6);
+			if ( floor == 5 || floor == 20 || floor == 40 || floor == 60 || floor == 80 || floor == 100 || floor == 120 || floor == 140 || floor == 160 )
+				selection = ADV_SEL(SelectFloorsMsg, FloorText, selectMask1);
+			else
+			{
+				SET_MASK(selectMask1);
+				selection = SEL(FloorText);
+			}
+			firstPage = false;
+			
+			if (selection == 11)
+			{
+				CLOSE_MSG_WIN();
+				NAVI_BU_CLOSE( sVar7 );
+				return;
+			}
+			else if (selection < 6)
+				chosen = true;
+		}
+		else
+		{
+			SEL_CHK_PAD( 14, 11 );
+			SEL_CHK_PAD( 10, prev );
+			SEL_CHK_PAD( 11, prev );
+			SEL_CHK_PAD(5, prev);
+			SEL_CHK_PAD(7, prev);
+			if ( floor == 5 || floor == 20 || floor == 40 || floor == 60 || floor == 80 || floor == 100 || floor == 120 || floor == 140 || floor == 160 )
+				selection = ADV_SEL(SelectFloorsMsg, FloorText + 1, selectMask2 ) + 6;
+			else
+			{
+				SET_MASK(selectMask2);
+				selection = SEL(FloorText + 1) + 6;
+			}
+			firstPage = true;
+			
+			if (selection == 17)
+			{
+				CLOSE_MSG_WIN();
+				NAVI_BU_CLOSE( sVar7 );
+				return;
+			}
+			else if (selection < (prev + 6))
+				chosen = true;
+		}
+	}
+
+	CLOSE_MSG_WIN();
+	NAVI_BU_CLOSE( sVar7 );
+	
+	int nextFloor = selection + EntranceFloor;
+
+	// Turn on the "in dungeon" flag if we're entering the dungeon
+	if(floor == EntranceFloor && nextFloor != EntranceFloor)
+		BIT_ON( 3075 );
+
+	common_floor_change();
+	
+	if (ConsitentReaper && ( nextFloor == 5 || nextFloor == 20 || nextFloor == 40 || nextFloor == 60 || nextFloor == 80 || nextFloor == 100 || nextFloor == 120 || nextFloor == 140 || nextFloor == 160 ))
+	{
+		if ( BIT_CHK( 0 + 0x0400 + 0x0800 + 46 ) == 1)
+		{
+			SET_CNT( 999, 0 );
+			BIT_OFF( 0 + 0x0400 + 0x0800 + 46 );
+			BIT_OFF( 0 + 0x0400 + 0x0800 + 47 );
+		}
+	}
+	
+	FADE( 1, 10 );
+	FADE_SYNC();
+	
+	if ( (nextFloor == 7 && floor < 7) || nextFloor == 13 || nextFloor == 31 || nextFloor == 51 || nextFloor == 70 
+		|| nextFloor == 89 || nextFloor == 110 || nextFloor == 122 || nextFloor == 129)
+	{
+		CALL_DUNGEON(nextFloor, 0);
+	}
+	else if ( nextFloor == 5 || (nextFloor == 7 && floor > 7) || nextFloor == 20 || nextFloor == 40 || nextFloor == 60 || nextFloor == 80 || nextFloor == 100 || nextFloor == 120 )
+    {
+        CALL_DUNGEON( nextFloor, 1 );
+    }
+	else
+		GOTO_REL_FLOOR( nextFloor - floor );
+}
+
+// Returns true if it's pass the deadlines
+bool BeatDungeon()
+{
+	int floor = GET_FLOOR_ID();
+	int month = GET_MONTH();
+	int day = GET_DAY_OF_MONTH();
+	// Yukiko
+	if (floor >= 5 && floor < 14)
+	{
+		return CHECK_TIME_SPAN(4, 30, 3, 30);
+	}
+	// Kanji
+	else if (floor >= 20 && floor < 32)
+	{
+		return CHECK_TIME_SPAN(6, 5, 3, 30);
+	}
+	// Rise
+	else if (floor >= 40 && floor < 52)
+	{
+		return CHECK_TIME_SPAN(7, 10, 3, 30);
+	}
+	// Mitsuo
+	else if (floor >= 60 && floor < 71)
+	{
+		return CHECK_TIME_SPAN(8, 13, 3, 30);
+	}
+	// Naoto
+	else if (floor >= 80 && floor < 90)
+	{
+		return CHECK_TIME_SPAN(10, 6, 3, 30);
+	}
+	// Nanako
+	else if (floor >= 100 && floor < 111)
+	{
+		return CHECK_TIME_SPAN(11, 21, 3, 30);
+	}
+	// Adachi
+	else if (floor >= 120 && floor < 130)
+	{
+		return CHECK_TIME_SPAN(12, 25, 3, 30);
+	}
+	return false;
+}

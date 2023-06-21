@@ -1,0 +1,750 @@
+int PlayerMenuDisplay()
+{
+	while(true) 
+	{
+		SEL_CHK_PAD(10, 10);
+		SEL_CHK_PAD(11, 10);
+		SEL_CHK_PAD(5, 10);
+		SEL_CHK_PAD(7, 10);
+		SEL_CHK_PAD(14, 11);
+		SEL_CHK_PAD(15, 12);
+		int selection = ADV_SEL(Player_Menu_Text_1, Player_Menu_1, 0);
+		switch (selection)
+		{
+			case 0:
+				Rename();
+				return 0;
+			case 1:
+				if (DateSelect() == -1)
+					break;
+				else
+					return 0;
+			case 2:
+				if (ChangeYen() == -1)
+					break;
+				else
+					return 0;
+			case 3:
+				if (ChangeItem() == -1)
+					break;
+				else
+					return 0;
+			case 4:
+				LoopCurrentDay();
+				break;
+			case 10:
+				if (PlayerMenuDisplay2() == -1)
+					break;
+				else
+				{
+					if (BackToModMenu)
+						return -1;
+					return 0;
+				}
+			case 11:
+				return -1;
+			case 12:
+				return 0;
+		}
+	}
+	return -1;
+}
+
+int PlayerMenuDisplay2()
+{
+	BackToModMenu = false;
+	while(true) 
+	{
+		SEL_CHK_PAD(10, 10);
+		SEL_CHK_PAD(11, 10);
+		SEL_CHK_PAD(5, 10);
+		SEL_CHK_PAD(7, 10);
+		SEL_CHK_PAD(14, 11);
+		SEL_CHK_PAD(15, 12);
+		int selection = ADV_SEL(Player_Menu_Text_2, Player_Menu_2, 0);
+		switch (selection)
+		{
+			case 0:
+				if (SL() == -1)
+					break;
+				else
+					return 0;
+			case 1:
+				if (SS() == -1)
+					break;
+				else
+					return 0;
+			case 2:
+				if (PartyChoice() == -1)
+					break;
+				else
+					return 0;
+			case 3:
+				RefillHPSP();
+				return 0;
+			case 10:
+				return -1;
+			case 11:
+				BackToModMenu = true;
+				return 0;
+			case 12:
+				return 0;
+		}
+	}
+	return -1;
+}
+
+void LoopCurrentDay()
+{
+	NEXT_DATE(GET_MONTH(), GET_DAY_OF_MONTH(), 0);
+}
+
+void Rename()
+{
+	int floor = GET_FLOOR_ID();
+	int fieldMajor = GET_FIELD_MAJOR();
+	int fieldMinor = GET_FIELD_MINOR();
+	SET_NAME();
+	ReturnToPrevLoc(floor, fieldMajor, fieldMinor);
+}
+
+int DateSelect()
+{
+	int major = ChooseMonth();
+	if (major == -1)
+		return -1;
+	else if (major == 0)
+		return 0;
+	int minor = Get_Number(2, MSG_2_Day);
+	if (minor == -1)
+		return -1;
+	NEXT_DATE(major, minor, 0);
+	PLAY_SOUNDEFFECT( 173 );
+	RemoveParty();
+	FADE( 1, 5 );
+	FADE_SYNC();
+	TV_STUDIO();
+	return 0;
+}
+
+int ChooseMonth()
+{
+	int page = 1;
+	int month;
+	while (true)
+	{
+		if (page == 1)
+		{
+			SEL_CHK_PAD(15, 18);
+			SEL_CHK_PAD(14, 17);
+			SEL_CHK_PAD(10, 15);
+			SEL_CHK_PAD(11, 15);
+			SEL_CHK_PAD(5, 15);
+			SEL_CHK_PAD(7, 15);
+			month = ADV_SEL(Month_Text1, Months1, 0);
+			switch (month)
+			{
+				case 0:
+					return 1;
+				case 1:
+					return 2;
+				case 2:
+					return 3;
+				case 3:
+					return 4;
+				case 4:
+					return 5;
+				case 5:
+					return 6;
+				case 15:
+					page = 2;
+					break;
+				case 17:
+					return -1;
+				case 18:
+					return 0;
+			}
+		}
+		else if (page == 2)
+		{
+			SEL_CHK_PAD(15, 18);
+			SEL_CHK_PAD(14, 17);
+			SEL_CHK_PAD(10, 15);
+			SEL_CHK_PAD(11, 15);
+			SEL_CHK_PAD(5, 15);
+			SEL_CHK_PAD(7, 15);
+			month = ADV_SEL(Month_Text2, Months2, 0);
+			switch (month)
+			{
+				case 0:
+					return 7;
+				case 1:
+					return 8;
+				case 2:
+					return 9;
+				case 3:
+					return 10;
+				case 4:
+					return 11;
+				case 5:
+					return 12;
+				case 15:
+					page = 1;
+					break;
+				case 17:
+					return -1;
+				case 18:
+					return 0;
+			}
+		}
+	}
+	return -1;
+}
+
+int ChangeItem()
+{
+	tryagain:
+	int item = Get_Number(4, MSG_4_Item);
+	if (item == -1)
+		return -1;
+	if (item > 2559)
+	{
+		OPEN_MSG_WIN();
+		MSG( InvalidItem );
+		CLOSE_MSG_WIN();
+		goto tryagain;
+	}
+	SET_MSG_VAR(0, item, 1);
+	SET_MSG_VAR(1, GET_ITEM(item), 0);
+	OPEN_MSG_WIN();
+	MSG( ConfirmItem );
+	int confirm = SEL(ConfirmCancel);
+	CLOSE_MSG_WIN();
+	if (confirm == 1)
+		return -1;
+	int numItems = Get_Number(2, MSG_2_Item);
+	if (numItems == -1)
+		return -1;
+	SET_ITEM(item, numItems);
+	return 0;
+}
+
+int ChangeYen()
+{
+	int new_yen = Get_Number(7, MSG_7);
+	if (new_yen == -1)
+		return -1;
+	int reset = 0 - ADD_YEN(0);
+	ADD_YEN(reset);
+	ADD_YEN(new_yen);
+	return 0;
+}
+
+int SL()
+{
+	while(true)
+	{
+		SEL_CHK_PAD(14, 10);
+		SEL_CHK_PAD(15, 11);
+		int sl = ADV_SEL(SL_Menu_Text, SL_Menu, 0);
+		switch (sl)
+		{
+			case 0:
+				if (IncreaseSL())
+					break;
+				else
+					return 0;
+			case 1:
+				if (ReverseSL())
+					break;
+				else
+					return 0;
+			case 2:
+				if (BreakSL())
+					break;
+				else
+					return 0;
+			case 3:
+				if (LevelUpSL())
+					break;
+				else
+					return 0;
+			case 4:
+				if (AddSL())
+					break;
+				else
+					return 0;
+			case 10:
+				return -1;
+			case 11:
+				return 0;
+		}
+	}
+	return 0;
+}
+
+int ChooseSL()
+{
+	int page = 1;
+	int selection;
+	while(true)
+	{
+		if (page == 1)
+		{
+			SEL_CHK_PAD(15, 18);
+			SEL_CHK_PAD(14, 17);
+			SEL_CHK_PAD(10, 15);
+			SEL_CHK_PAD(11, 16);
+			SEL_CHK_PAD(5, 16);
+			SEL_CHK_PAD(7, 15);
+			selection = ADV_SEL(SL_SEL_Text1, SocialLinkSel1, 0);
+			switch (selection)
+			{
+				case 0:
+					return 31;
+				case 1:
+					return 32;
+				case 2:
+					return 21;
+				case 3:
+					return 22;
+				case 4:
+					return 27;
+				case 5:
+					return 28;
+				case 6:
+					return 11;
+				case 7:
+					return 12;
+				case 8:
+					return 8;
+				case 15:
+					page = 4;
+					break;
+				case 16:
+					page = 2;
+					break;
+				case 17:
+					return -1;
+				case 18:
+					return 0;
+			}
+		}
+		else if (page == 2)
+		{
+			SEL_CHK_PAD(15, 18);
+			SEL_CHK_PAD(14, 17);
+			SEL_CHK_PAD(10, 15);
+			SEL_CHK_PAD(11, 16);
+			SEL_CHK_PAD(5, 16);
+			SEL_CHK_PAD(7, 15);
+			selection = ADV_SEL(SL_SEL_Text2, SocialLinkSel2, 0);
+			switch (selection)
+			{
+				case 0:
+					return 29;
+				case 1:
+					return 16;
+				case 2:
+					return 17;
+				case 3:
+					return 13;
+				case 4:
+					return 19;
+				case 5:
+					return 1;
+				case 6:
+					return 10;
+				case 7:
+					return 20;
+				case 8:
+					return 33;
+				case 15:
+					page = 1;
+					break;
+				case 16:
+					page = 3;
+					break;
+				case 17:
+					return -1;
+				case 18:
+					return 0;
+			}
+		}
+		else if (page == 3)
+		{
+			SEL_CHK_PAD(15, 18);
+			SEL_CHK_PAD(14, 17);
+			SEL_CHK_PAD(10, 15);
+			SEL_CHK_PAD(11, 16);
+			SEL_CHK_PAD(5, 16);
+			SEL_CHK_PAD(7, 15);
+			selection = ADV_SEL(SL_SEL_Text3, SocialLinkSel3, 0);
+			switch (selection)
+			{
+				case 0:
+					return 34;
+				case 1:
+					return 18;
+				case 2:
+					return 14;
+				case 3:
+					return 15;
+				case 4:
+					return 2;
+				case 5:
+					return 3;
+				case 6:
+					return 4;
+				case 7:
+					return 9;
+				case 8:
+					return 23;
+				case 15:
+					page = 2;
+					break;
+				case 16:
+					page = 4;
+					break;
+				case 17:
+					return -1;
+				case 18:
+					return 0;
+			}
+		}
+		else
+		{
+			SEL_CHK_PAD(15, 18);
+			SEL_CHK_PAD(14, 17);
+			SEL_CHK_PAD(10, 15);
+			SEL_CHK_PAD(11, 16);
+			SEL_CHK_PAD(5, 16);
+			SEL_CHK_PAD(7, 15);
+			selection = ADV_SEL(SL_SEL_Text4, SocialLinkSel4, 0);
+			switch (selection)
+			{
+				case 0:
+					return 30;
+				case 1:
+					return 24;
+				case 2:
+					return 7;
+				case 3:
+					return 5;
+				case 4:
+					return 6;
+				case 5:
+					return 25;
+				case 6:
+					return 26;
+				case 15:
+					page = 3;
+					break;
+				case 16:
+					page = 1;
+					break;
+				case 17:
+					return -1;
+				case 18:
+					return 0;
+			}
+		}
+	}
+	return -1;
+}
+
+int IncreaseSL()
+{
+	int major = ChooseSL();
+	if (major == -1)
+		return 1;
+	else if (major == 0)
+		return 0;
+	EVT_FUNCTION_0031( major, 50, 1 );
+	SL_LVLUP_VISUAL(major, (GET_SL_LEVEL(major) + 1), 1);
+	INCREASE_SL(major);
+	return 1;
+}
+
+int ReverseSL()
+{
+	int major = ChooseSL();
+	if (major == -1)
+		return 1;
+	else if (major == 0)
+		return 0;
+	SL_LVLUP_VISUAL(major, 11, 1);
+	REVERSE_SL(major, 1);
+	return 1;
+}
+
+int BreakSL()
+{
+	int major = ChooseSL();
+	if (major == -1)
+		return 1;
+	else if (major == 0)
+		return 0;
+	SL_LVLUP_VISUAL(major, 12, 1);
+	BREAK_SL(major, 1);
+	return 1;
+}
+
+int LevelUpSL()
+{
+	int major = ChooseSL();
+	if (major == -1)
+		return 1;
+	else if (major == 0)
+		return 0;
+	int minor = Get_Number(2, MSG_2_Minor);
+	if (minor == -1)
+		return 1;
+	int oddity = Get_Number(2, MSG_2);
+	if (oddity == -1)
+		return 1;
+	SL_LVLUP_VISUAL(major, minor, oddity);
+	EVT_FUNCTION_003D();
+	return 1;
+}
+
+int AddSL()
+{
+	int major = ChooseSL();
+	if (major == -1)
+		return 1;
+	else if (major == 0)
+		return 0;
+	EVT_FUNCTION_0016( major );
+	EVT_FUNCTION_0016( major );
+	EVT_FUNCTION_0016( 0 );
+	return 1;
+}
+
+int SS()
+{
+	while(true)
+	{
+		SEL_CHK_PAD(14, 10);
+		SEL_CHK_PAD(15, 11);
+		int ss = ADV_SEL(SS_Menu_Text, SS_Menu, 0);
+		int stat = ss;
+		switch (ss)
+		{
+			case 0:
+			case 1:
+			case 2:
+			case 3:
+			case 4:
+				UpdateSS(ss);
+				break;
+			case 5:
+				MaxStats();
+				return 0;
+			case 10:
+				return -1;
+			case 11:
+				return 0;
+		}
+	}
+	return -1;
+}
+
+void UpdateSS(int stat)
+{
+	int op = ADV_SEL(Operation,PlusOrMinus,0);
+	int number = Get_Number(3, MSG_3);
+	if (op == 1)
+		number *= -1;
+	GET_SOCIAL_STATS(stat, number);
+}
+
+void MaxStats()
+{
+	int index = 0;
+	while (index < 5)
+	{
+		GET_SOCIAL_STATS(index, 240);
+		index++;
+	}
+}
+
+void RefillHPSP()
+{
+	PLAY_BTL_SOUNDEFFECT( 5, 9 );
+    FADE( 1, 5 );
+    SET_FADE_COLOUR( 0, 255, 0 );
+    FADE_SYNC();
+	int index = 1;
+	while (index < 9)
+	{
+		int hp = GET_TOT_HP(index);
+		int sp = GET_TOT_SP(index);
+		SET_HP(index, hp);
+		SET_SP(index, sp);
+		index++;
+	}
+	FADE_BACK( 15 );
+    FADE_SYNC();
+}
+
+
+int PartyChoice()
+{
+	GetOriginalParty();
+	int option = 0;
+	while (option != 2)
+	{
+		int index = 0;
+		int numMembers = 0;
+		int removeMask = 63;
+		int addMask = 0;
+		
+		while (index < 3)
+		{
+			int id = GET_PARTY_MEMBER_ID(index);
+			if (id > 1)
+			{
+				switch (id)
+				{
+					case 2:
+						removeMask = removeMask - 1;
+						addMask = addMask + 1;
+						break;
+					case 3:
+						removeMask = removeMask - 2;
+						addMask = addMask + 2;
+						break;
+					case 4:
+						removeMask = removeMask - 4;
+						addMask = addMask + 4;
+						break;
+					case 6:
+						removeMask = removeMask - 8;
+						addMask = addMask + 8;
+						break;
+					case 7:
+						removeMask = removeMask - 0x10;
+						addMask = addMask + 0x10;
+						break;
+					case 8:
+						removeMask = removeMask - 0x20;
+						addMask = addMask + 0x20;
+						break;
+				}
+				numMembers = numMembers + 1;
+			}
+			index = index + 1;
+		}
+		
+		int optionMask = 0;
+		if (numMembers == 0)
+			optionMask = optionMask + 2;
+		SEL_CHK_PAD( 14, 2 );
+		option = ADV_SEL(OptionMsg, OptionSel, optionMask);
+		
+		if (option == 0)
+		{
+			int replacedMember = 0;
+			int addedMember = ModChooseMember(SelectMemberMsg, addMask);
+			if (addedMember != -1)
+			{
+				if (numMembers == 3)
+				{
+					replacedMember = ModChooseMember(ReplaceMemberMsg, removeMask);
+					if (replacedMember != -1)
+						RM_PARTY(replacedMember);
+				}
+				if (replacedMember != -1)
+				{
+					ADD_PARTY(addedMember);
+				}
+			}
+		}
+		else if (option == 1)
+		{
+			int removedMember = ModChooseMember(RemoveMemberMsg, removeMask);
+			if (removedMember != -1)
+			{
+				RM_PARTY(removedMember);
+			}
+		}
+	}
+
+	// Reload floor
+	int floor = GET_FLOOR_ID();
+	if (!CheckParty())
+	{		
+		// Only reload floor mid-dungeon (not entrances) to get party member in
+		if (floor > 1 && floor != 2 && floor != 3 && floor != 5 && floor != 20 && floor != 40 && floor != 60 && floor != 80 && floor != 100 && floor != 120 && floor != 140 && floor != 160)
+		{
+			OPEN_MSG_WIN();
+			MSG(Reload);
+			SEL_CHK_PAD( 14, 1 );
+			int confirm = SEL(YesNo);
+			CLOSE_MSG_WIN();
+			if (confirm == 0)
+			{
+				dng_set_npc();
+				FADE( 1, 10 );
+				FADE_SYNC();
+				
+				if (floor == 7 || floor == 13 || floor == 31 || floor == 51 || floor == 70 
+				|| floor == 89 || floor == 110 || floor == 122 || floor == 129 || floor == 170)
+					CALL_DUNGEON(floor, 0);
+				else
+					CALL_FLOOR(floor);
+				return 0;
+			}
+			else
+			{
+				if (currentFirst)
+					RM_PARTY(currentFirst);
+				if (currentSecond)
+					RM_PARTY(currentSecond);
+				if (currentThird)
+					RM_PARTY(currentThird);
+				if (first)
+					ADD_PARTY(first);
+				if (second)
+					ADD_PARTY(second);
+				if (third)
+					ADD_PARTY(third);
+			}
+		}
+	}
+
+	return -1;
+}
+
+int ModChooseMember(int text, int mask)
+{
+	SEL_CHK_PAD( 14, 6 );
+	int member;
+	int selection = ADV_SEL(text, PartySel, mask);
+	switch (selection)
+	{
+		case 0:
+			member = 2;
+			break;
+		case 1:
+			member = 3;
+			break;
+		case 2:
+			member = 4;
+			break;
+		case 3:
+			member = 6;
+			break;
+		case 4:
+			member = 7;
+			break;
+		case 5:
+			member = 8;
+			break;
+		case 6:
+			member = -1;
+			break;
+	}
+	return member;
+}
