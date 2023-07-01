@@ -48,17 +48,17 @@ internal class BfBuilderFactory
         {
             foreach (var file in group.Files)
             {
-                if (file.EndsWith(".json", StringComparison.OrdinalIgnoreCase))
+                if (file.EndsWith(Constants.JsonExtension, StringComparison.OrdinalIgnoreCase))
                 {
-                    if (file.Equals("Functions.json", StringComparison.OrdinalIgnoreCase))
+                    if (file.Equals(Constants.FunctionsFile, StringComparison.OrdinalIgnoreCase))
                         FunctionOverrides[group.Directory.FullPath] = $@"{group.Directory.FullPath}\{file}";
-                    else if (file.Equals("Enums.json", StringComparison.OrdinalIgnoreCase))
+                    else if (file.Equals(Constants.EnumsFile, StringComparison.OrdinalIgnoreCase))
                         EnumOverrides[group.Directory.FullPath] = $@"{group.Directory.FullPath}\{file}";
-                    else if (file.Equals("CompilerArgs.json", StringComparison.OrdinalIgnoreCase))
+                    else if (file.Equals(Constants.ArgsFile, StringComparison.OrdinalIgnoreCase))
                         OverrideCompilerArgs($@"{group.Directory.FullPath}\{file}");
                 }
 
-                if (!file.EndsWith(".flow", StringComparison.OrdinalIgnoreCase) && !file.EndsWith(".msg", StringComparison.OrdinalIgnoreCase))
+                if (!file.EndsWith(Constants.FlowExtension, StringComparison.OrdinalIgnoreCase) && !file.EndsWith(Constants.MessageExtension, StringComparison.OrdinalIgnoreCase))
                     continue;
 
                 var filePath = $@"{group.Directory.FullPath}\{file}";
@@ -83,7 +83,7 @@ internal class BfBuilderFactory
     {
         builder = default;
         // Add flow files
-        var route = new Route(Path.ChangeExtension(path, "flow"));
+        var route = new Route(Path.ChangeExtension(path, Constants.FlowExtension));
         foreach (var group in RouteFileTuples)
         {
             if (!route.Matches(group.Route.FullPath))
@@ -104,7 +104,7 @@ internal class BfBuilderFactory
         }
 
         // Add msg files for message hooks
-        route = new Route(Path.ChangeExtension(path, "msg"));
+        route = new Route(Path.ChangeExtension(path, Constants.MessageExtension));
         foreach (var group in RouteFileTuples)
         {
             if (!route.Matches(group.Route.FullPath))

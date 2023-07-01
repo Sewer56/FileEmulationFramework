@@ -42,7 +42,7 @@ public class BfBuilder
     /// <param name="filePath">Full path to the bf file.</param>
     public void AddFlowFile(string filePath)
     {
-        if (!filePath.EndsWith(".flow", StringComparison.OrdinalIgnoreCase)) return;
+        if (!filePath.EndsWith(Constants.FlowExtension, StringComparison.OrdinalIgnoreCase)) return;
         _flowFiles.Add(filePath);
     }
 
@@ -52,9 +52,9 @@ public class BfBuilder
     /// <param name="filePath">Full path to the file.</param>
     public void AddMsgFile(string filePath)
     {
-        if (!filePath.EndsWith(".msg", StringComparison.OrdinalIgnoreCase)) return;
+        if (!filePath.EndsWith(Constants.MessageExtension, StringComparison.OrdinalIgnoreCase)) return;
         // If there's a flow with the same name imported then this isn't actually a message hook, likely an import from that flow
-        if (_flowFiles.Contains(Path.ChangeExtension(filePath, ".flow"))) return;
+        if (_flowFiles.Contains(Path.ChangeExtension(filePath, Constants.FlowExtension))) return;
         _msgFiles.Add(filePath);
     }
 
@@ -65,7 +65,7 @@ public class BfBuilder
     /// <returns>True if the library file could be addeed, false otherwise</returns>
     public void AddLibraryFile(string filePath, Logger? log = null)
     {
-        if (!filePath.EndsWith(".json", StringComparison.OrdinalIgnoreCase) || _addedOverrides.Contains(filePath)) return;
+        if (!filePath.EndsWith(Constants.JsonExtension, StringComparison.OrdinalIgnoreCase) || _addedOverrides.Contains(filePath)) return;
 
         string jsonText = Fiel.ReadAllText(filePath);
         var functions = JsonSerializer.Deserialize<List<FlowScriptModuleFunction>>(jsonText);
@@ -88,7 +88,7 @@ public class BfBuilder
     /// <returns>True if the enum file could be addeed, false otherwise</returns>
     public void AddEnumFile(string filePath, Logger? log = null)
     {
-        if (!filePath.EndsWith(".json", StringComparison.OrdinalIgnoreCase) || _addedOverrides.Contains(filePath)) return;
+        if (!filePath.EndsWith(Constants.JsonExtension, StringComparison.OrdinalIgnoreCase) || _addedOverrides.Contains(filePath)) return;
 
         string jsonText = Fiel.ReadAllText(filePath);
         var enums = JsonSerializer.Deserialize<List<FlowScriptModuleEnum>>(jsonText);
