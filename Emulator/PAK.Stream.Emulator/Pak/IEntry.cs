@@ -1,9 +1,8 @@
-namespace PAK.Stream.Emulator.Pak
-{
-    public interface IEntry : IDisposable
-    {
-        string FileName { get; }
+namespace PAK.Stream.Emulator.Pak;
 
-        int Length { get; }
-    }
+public interface IEntry : IDisposable
+{
+    string FileName { get; }
+
+    int Length { get; }
 }

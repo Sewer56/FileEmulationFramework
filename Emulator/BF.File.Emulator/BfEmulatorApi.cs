@@ -8,92 +8,91 @@ using Microsoft.Win32.SafeHandles;
 using System.Diagnostics;
 using System.Runtime.InteropServices;
 
-namespace BF.File.Emulator
+namespace BF.File.Emulator;
+
+public class BfEmulatorApi : IBfEmulator
 {
-    public class BfEmulatorApi : IBfEmulator
+    private readonly IEmulationFramework _framework;
+    private readonly BfEmulator _bfEmulator;
+    private readonly Logger _logger;
+
+    public BfEmulatorApi(IEmulationFramework framework, BfEmulator bfEmulator, Logger logger)
     {
-        private readonly IEmulationFramework _framework;
-        private readonly BfEmulator _bfEmulator;
-        private readonly Logger _logger;
+        //Debugger.Launch();
+        _framework = framework;
+        _bfEmulator = bfEmulator;
+        _logger = logger;
+    }
 
-        public BfEmulatorApi(IEmulationFramework framework, BfEmulator bfEmulator, Logger logger)
+    RouteFileTuple[] IBfEmulator.GetEmulatorInput()
+    {
+        // Map input to API.
+        var input = _bfEmulator.GetInput();
+        var result = GC.AllocateUninitializedArray<RouteFileTuple>(input.Count);
+        for (int x = 0; x < result.Length; x++)
         {
-            //Debugger.Launch();
-            _framework = framework;
-            _bfEmulator = bfEmulator;
-            _logger = logger;
-        }
-
-        RouteFileTuple[] IBfEmulator.GetEmulatorInput()
-        {
-            // Map input to API.
-            var input = _bfEmulator.GetInput();
-            var result = GC.AllocateUninitializedArray<RouteFileTuple>(input.Count);
-            for (int x = 0; x < result.Length; x++)
+            var original = input[x];
+            result[x] = new RouteFileTuple()
             {
-                var original = input[x];
-                result[x] = new RouteFileTuple()
-                {
-                    Route = original.Route.FullPath,
-                    File = original.File
-                };
-            }
-
-            return result;
+                Route = original.Route.FullPath,
+                File = original.File
+            };
         }
 
-        public void InvalidateFile(string bfPath)
+        return result;
+    }
+
+    public void InvalidateFile(string bfPath)
+    {
+        _bfEmulator.UnregisterFile(bfPath);
+        _framework.UnregisterVirtualFile(bfPath, false);
+    }
+
+    public void RegisterBf(string sourcePath, string destinationPath)
+    {
+        var handle = Native.CreateFileW(sourcePath, FileAccess.Read, FileShare.ReadWrite, IntPtr.Zero, FileMode.Open, FileAttributes.Normal, IntPtr.Zero);
+        if (handle == new IntPtr(-1))
         {
-            _bfEmulator.UnregisterFile(bfPath);
-            _framework.UnregisterVirtualFile(bfPath, false);
+            _logger.Error("[BfEmulatorApi] RegisterBf: Failed to open bf file with Win32 Error: {0}, Path {1}", Marshal.GetLastWin32Error(), sourcePath);
+            return;
         }
 
-        public void RegisterBf(string sourcePath, string destinationPath)
+        Native.SetFilePointerEx(handle, 0, IntPtr.Zero, 0);
+
+        var manager = new MemoryManager(65536);
+        var fileStream = new FileStream(new SafeFileHandle(handle, false), FileAccess.Read);
+        var stream = new MemoryManagerStream(manager);
+        fileStream.CopyTo(stream);
+
+        var emulated = new EmulatedFile<MemoryManagerStream>(stream);
+        _bfEmulator.RegisterFile(destinationPath, stream);
+        _framework.RegisterVirtualFile(destinationPath, emulated, false);
+        _bfEmulator.InvokeOnStreamCreated(handle, destinationPath, stream!);
+
+        _logger.Info("[BfEmulatorApi] Registered bf {0} at {1}", sourcePath, destinationPath);
+    }
+
+    public bool TryCreateFromBf(string sourcePath, string route, string destinationPath)
+    {
+        _logger.Info("[BfEmulatorApi] TryCreateFromBf: {0}, Route {1}", sourcePath, route);
+        var handle = Native.CreateFileW(sourcePath, FileAccess.Read, FileShare.ReadWrite, IntPtr.Zero, FileMode.Open, FileAttributes.Normal, IntPtr.Zero);
+        if (handle == new IntPtr(-1))
         {
-            var handle = Native.CreateFileW(sourcePath, FileAccess.Read, FileShare.ReadWrite, IntPtr.Zero, FileMode.Open, FileAttributes.Normal, IntPtr.Zero);
-            if (handle == new IntPtr(-1))
-            {
-                _logger.Error("[BfEmulatorApi] RegisterBf: Failed to open bf file with Win32 Error: {0}, Path {1}", Marshal.GetLastWin32Error(), sourcePath);
-                return;
-            }
-
-            Native.SetFilePointerEx(handle, 0, IntPtr.Zero, 0);
-
-            var manager = new MemoryManager(65536);
-            var fileStream = new FileStream(new SafeFileHandle(handle, false), FileAccess.Read);
-            var stream = new MemoryManagerStream(manager);
-            fileStream.CopyTo(stream);
-
-            var emulated = new EmulatedFile<MemoryManagerStream>(stream);
-            _bfEmulator.RegisterFile(destinationPath, stream);
-            _framework.RegisterVirtualFile(destinationPath, emulated, false);
-            _bfEmulator.InvokeOnStreamCreated(handle, destinationPath, stream!);
-
-            _logger.Info("[BfEmulatorApi] Registered bf {0} at {1}", sourcePath, destinationPath);
+            _logger.Error("[BfEmulatorApi] TryCreateFromBf: Failed to open base file with Win32 Error: {0}, Path {1}", Marshal.GetLastWin32Error(), sourcePath);
+            return false;
         }
 
-        public bool TryCreateFromBf(string sourcePath, string route, string destinationPath)
+        IEmulatedFile? emulated = null;
+        Native.SetFilePointerEx(handle, 0, IntPtr.Zero, 0);
+        if (!_bfEmulator.TryCreateEmulatedFile(handle, sourcePath, destinationPath, route, false, ref emulated, out var stream))
         {
-            _logger.Info("[BfEmulatorApi] TryCreateFromBf: {0}, Route {1}", sourcePath, route);
-            var handle = Native.CreateFileW(sourcePath, FileAccess.Read, FileShare.ReadWrite, IntPtr.Zero, FileMode.Open, FileAttributes.Normal, IntPtr.Zero);
-            if (handle == new IntPtr(-1))
-            {
-                _logger.Error("[BfEmulatorApi] TryCreateFromBf: Failed to open base file with Win32 Error: {0}, Path {1}", Marshal.GetLastWin32Error(), sourcePath);
-                return false;
-            }
-
-            IEmulatedFile? emulated = null;
-            Native.SetFilePointerEx(handle, 0, IntPtr.Zero, 0);
-            if (!_bfEmulator.TryCreateEmulatedFile(handle, sourcePath, destinationPath, route, false, ref emulated, out var stream))
-            {
-                _logger.Error("[BfEmulatorApi] TryCreateFromBf: Failed to Create Emulated File at Path {0}", sourcePath);
-                return false;
-            }
-
-            _logger.Info("[BfEmulatorApi] TryCreateFromBf: Registering {0}", destinationPath);
-            _framework.RegisterVirtualFile(destinationPath, emulated!, false);
-            _bfEmulator.InvokeOnStreamCreated(handle, destinationPath, stream!);
-            return true;
+            _logger.Error("[BfEmulatorApi] TryCreateFromBf: Failed to Create Emulated File at Path {0}", sourcePath);
+            return false;
         }
+
+        _logger.Info("[BfEmulatorApi] TryCreateFromBf: Registering {0}", destinationPath);
+        _framework.RegisterVirtualFile(destinationPath, emulated!, false);
+        _bfEmulator.InvokeOnStreamCreated(handle, destinationPath, stream!);
+        return true;
     }
 }
