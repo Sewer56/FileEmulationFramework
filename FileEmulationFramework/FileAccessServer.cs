@@ -13,6 +13,7 @@ using Reloaded.Memory.Interop;
 using IReloadedHooks = Reloaded.Hooks.ReloadedII.Interfaces.IReloadedHooks;
 using Native = FileEmulationFramework.Lib.Utilities.Native;
 using System.Collections.Concurrent;
+using System.Diagnostics;
 
 // ReSharper disable RedundantArgumentDefaultValue
 
@@ -127,7 +128,7 @@ public static unsafe class FileAccessServer
         lock (ThreadLock)
         {
             var result = _getFileAttributesHook.OriginalFunction.Value.Invoke(attributes, information);
-            var path = attributes->ObjectName->ToString().Substring(4); // Substring removes the "\??\" at the start of the path
+            var path = Strings.TrimWindowsPrefixes(attributes->ObjectName);
 
             if (!PathToHandleMap.TryGetValue(path, out var hfile) || !HandleToInfoMap.TryGetValue(hfile, out var info))
                 return result;
