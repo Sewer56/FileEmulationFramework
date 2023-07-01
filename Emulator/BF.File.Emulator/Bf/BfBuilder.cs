@@ -26,12 +26,14 @@ public class BfBuilder
     private FlowFormatVersion? _flowFormat = null;
     private Library? _library = null;
     private Encoding? _encoding = null;
+    private Logger? _log = null;
 
-    public BfBuilder(FlowFormatVersion? flowFormat, Library? library, Encoding? encoding)
+    public BfBuilder(FlowFormatVersion? flowFormat, Library? library, Encoding? encoding, Logger? log)
     {
         _flowFormat = flowFormat;
         _library = library;
         _encoding = encoding;
+        _log = log;
     }
 
     public BfBuilder() { }
@@ -63,7 +65,7 @@ public class BfBuilder
     /// </summary>
     /// <param name="filePath">Full path to the file.</param>
     /// <returns>True if the library file could be addeed, false otherwise</returns>
-    public void AddLibraryFile(string filePath, Logger? log = null)
+    public void AddLibraryFile(string filePath)
     {
         if (!filePath.EndsWith(Constants.JsonExtension, StringComparison.OrdinalIgnoreCase) || _addedOverrides.Contains(filePath)) return;
 
@@ -72,12 +74,12 @@ public class BfBuilder
         _addedOverrides.Add(filePath);
         if (functions == null)
         {
-            log?.Info($"[BfBuilder] Failed to add library function overrides from {filePath}");
+            _log?.Info($"[BfBuilder] Failed to add library function overrides from {filePath}");
         }
         else
         {
             _libraryFuncs.AddRange(functions);
-            log?.Info($"[BfBuilder] Added library function overrides from {filePath}");
+            _log?.Info($"[BfBuilder] Added library function overrides from {filePath}");
         }
     }
 
@@ -86,7 +88,7 @@ public class BfBuilder
     /// </summary>
     /// <param name="filePath">Full path to the file.</param>
     /// <returns>True if the enum file could be addeed, false otherwise</returns>
-    public void AddEnumFile(string filePath, Logger? log = null)
+    public void AddEnumFile(string filePath)
     {
         if (!filePath.EndsWith(Constants.JsonExtension, StringComparison.OrdinalIgnoreCase) || _addedOverrides.Contains(filePath)) return;
 
@@ -95,21 +97,21 @@ public class BfBuilder
         _addedOverrides.Add(filePath);
         if (enums == null)
         {
-            log?.Info($"[BfBuilder] Failed to add library enum overrides from {filePath}");
+            _log?.Info($"[BfBuilder] Failed to add library enum overrides from {filePath}");
         }
         else
         {
             _libraryEnums.AddRange(enums);
-            log?.Info($"[BfBuilder] Added library enum overrides from {filePath}");
+            _log?.Info($"[BfBuilder] Added library enum overrides from {filePath}");
         }
     }
 
     /// <summary>
     /// Builds an BF file.
     /// </summary>
-    public unsafe MemoryManagerStream? Build(IntPtr originalHandle, string originalPath, FlowFormatVersion flowFormat, Library library, Encoding encoding, AtlusLogListener? listener = null, Logger? logger = null, bool noBaseBf = false)
+    public unsafe MemoryManagerStream? Build(IntPtr originalHandle, string originalPath, FlowFormatVersion flowFormat, Library library, Encoding encoding, AtlusLogListener? listener = null, bool noBaseBf = false)
     {
-        logger?.Info("[BfEmulator] Building BF File | {0}", originalPath);
+        _log?.Info("[BfEmulator] Building BF File | {0}", originalPath);
 
         // Use compiler arg overrides (if they're there)
         if (_library != null) library = _library;
@@ -136,7 +138,7 @@ public class BfBuilder
 
         if (!compiler.TryCompileWithImports(bfStream, imports, baseFlow, out FlowScript flowScript))
         {
-            logger?.Error("[BfEmulator] Failed to compile BF File | {0}", originalPath);
+            _log?.Error("[BfEmulator] Failed to compile BF File | {0}", originalPath);
             return null;
         }
 

@@ -115,7 +115,7 @@ public class BfEmulator : IEmulator
         // Make the BF file.
         _pathToStream[outputPath] = null; // Avoid recursion into same file.
 
-        stream = builder!.Build(handle, srcDataPath, _flowFormat, _library, _encoding, _listener, _log, isEmpty);
+        stream = builder!.Build(handle, srcDataPath, _flowFormat, _library, _encoding, _listener, isEmpty);
         if (stream == null)
             return false;
 

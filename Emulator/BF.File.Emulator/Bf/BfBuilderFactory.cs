@@ -90,17 +90,17 @@ internal class BfBuilderFactory
                 continue;
 
             // Make builder if not made.
-            builder ??= new BfBuilder(_flowFormat, _library, _encoding);
+            builder ??= new BfBuilder(_flowFormat, _library, _encoding, _log);
 
             // Add files to builder.
             builder.AddFlowFile(group.File);
 
             var dir = Path.GetDirectoryName(group.File);
             if (dir != null && FunctionOverrides.TryGetValue(dir, out var funcOverride))
-                builder.AddLibraryFile(funcOverride, _log);
+                builder.AddLibraryFile(funcOverride);
 
             if (dir != null && EnumOverrides.TryGetValue(dir, out var enumOverride))
-                builder.AddEnumFile(enumOverride, _log);
+                builder.AddEnumFile(enumOverride);
         }
 
         // Add msg files for message hooks
@@ -111,17 +111,17 @@ internal class BfBuilderFactory
                 continue;
 
             // Make builder if not made.
-            builder ??= new BfBuilder(_flowFormat, _library, _encoding);
+            builder ??= new BfBuilder(_flowFormat, _library, _encoding, _log);
 
             // Add files to builder.
             builder.AddMsgFile(group.File);
 
             var dir = Path.GetDirectoryName(group.File);
             if (dir != null && FunctionOverrides.TryGetValue(dir, out var funcOverride))
-                builder.AddLibraryFile(funcOverride, _log);
+                builder.AddLibraryFile(funcOverride);
 
             if (dir != null && EnumOverrides.TryGetValue(dir, out var enumOverride))
-                builder.AddEnumFile(enumOverride, _log);
+                builder.AddEnumFile(enumOverride);
         }
 
         return builder != null;
