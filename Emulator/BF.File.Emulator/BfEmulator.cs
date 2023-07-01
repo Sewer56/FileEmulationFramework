@@ -25,11 +25,6 @@ public class BfEmulator : IEmulator
     /// </summary>
     public bool DumpFiles { get; set; }
 
-    /// <summary>
-    /// Event that is fired when a stream is created, before redirection kicks in.
-    /// </summary>
-    public event Action<IntPtr, string, MemoryManagerStream>? OnStreamCreated;
-
     // Note: Handle->Stream exists because hashing IntPtr is easier; thus can resolve reads faster.
     private readonly BfBuilderFactory _builderFactory;
     private readonly ConcurrentDictionary<string, MemoryManagerStream?> _pathToStream = new(StringComparer.OrdinalIgnoreCase);
@@ -88,7 +83,7 @@ public class BfEmulator : IEmulator
         if (!filepath.EndsWith(Constants.BfExtension, StringComparison.OrdinalIgnoreCase) || filepath.EndsWith(Constants.DumpExtension, StringComparison.OrdinalIgnoreCase))
             return false;
 
-        if (!TryCreateEmulatedFile(handle, filepath, filepath, filepath, true, ref emulated!, out _))
+        if (!TryCreateEmulatedFile(handle, filepath, filepath, filepath, ref emulated!, out _))
             return false;
 
         return true;
@@ -101,11 +96,10 @@ public class BfEmulator : IEmulator
     /// <param name="srcDataPath">Path of the file where the handle refers to.</param>
     /// <param name="outputPath">Path where the emulated file is stored.</param>
     /// <param name="route">The route of the emulated file, for builder to pick up.</param>
-    /// <param name="invokeOnStreamCreated">Invokes the <see cref="OnStreamCreated"/> event.</param>
     /// <param name="emulated">The emulated file.</param>
     /// <param name="stream">The created stream under the hood.</param>
     /// <returns></returns>
-    public bool TryCreateEmulatedFile(IntPtr handle, string srcDataPath, string outputPath, string route, bool invokeOnStreamCreated, ref IEmulatedFile? emulated, out MemoryManagerStream? stream)
+    public bool TryCreateEmulatedFile(IntPtr handle, string srcDataPath, string outputPath, string route, ref IEmulatedFile? emulated, out MemoryManagerStream? stream)
     {
         stream = null;
 
@@ -124,8 +118,6 @@ public class BfEmulator : IEmulator
         stream = builder!.Build(handle, srcDataPath, _flowFormat, _library, _encoding, _listener, _log, isEmpty);
         if (stream == null)
             return false;
-        if (invokeOnStreamCreated)
-            OnStreamCreated?.Invoke(handle, outputPath, stream);
 
         _pathToStream.TryAdd(outputPath, stream);
         emulated = new EmulatedFile<MemoryManagerStream>(stream);
@@ -171,11 +163,6 @@ public class BfEmulator : IEmulator
     }
 
     internal List<RouteGroupTuple> GetInput() => _builderFactory.RouteFileTuples;
-
-    /// <summary>
-    /// Manually invokes the <see cref="OnStreamCreated"/> event. For internal use only.
-    /// </summary>
-    internal void InvokeOnStreamCreated(IntPtr handle, string outputPath, MemoryManagerStream stream) => OnStreamCreated?.Invoke(handle, outputPath, stream);
 }
 
 public class AtlusLogListener : LogListener

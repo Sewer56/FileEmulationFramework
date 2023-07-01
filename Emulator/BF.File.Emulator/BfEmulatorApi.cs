@@ -67,7 +67,6 @@ public class BfEmulatorApi : IBfEmulator
         var emulated = new EmulatedFile<MemoryManagerStream>(stream);
         _bfEmulator.RegisterFile(destinationPath, stream);
         _framework.RegisterVirtualFile(destinationPath, emulated, false);
-        _bfEmulator.InvokeOnStreamCreated(handle, destinationPath, stream!);
 
         _logger.Info("[BfEmulatorApi] Registered bf {0} at {1}", sourcePath, destinationPath);
     }
@@ -84,7 +83,7 @@ public class BfEmulatorApi : IBfEmulator
 
         IEmulatedFile? emulated = null;
         Native.SetFilePointerEx(handle, 0, IntPtr.Zero, 0);
-        if (!_bfEmulator.TryCreateEmulatedFile(handle, sourcePath, destinationPath, route, false, ref emulated, out var stream))
+        if (!_bfEmulator.TryCreateEmulatedFile(handle, sourcePath, destinationPath, route, ref emulated, out var stream))
         {
             _logger.Error("[BfEmulatorApi] TryCreateFromBf: Failed to Create Emulated File at Path {0}", sourcePath);
             return false;
@@ -92,7 +91,6 @@ public class BfEmulatorApi : IBfEmulator
 
         _logger.Info("[BfEmulatorApi] TryCreateFromBf: Registering {0}", destinationPath);
         _framework.RegisterVirtualFile(destinationPath, emulated!, false);
-        _bfEmulator.InvokeOnStreamCreated(handle, destinationPath, stream!);
         return true;
     }
 }
