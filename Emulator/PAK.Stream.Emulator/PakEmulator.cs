@@ -85,7 +85,7 @@ public class PakEmulator : IEmulator
             return false;
 
         // Make the AFS file.
-        _pathToStream.TryRemove(outputPath, out _); // Avoid recursion into same file.
+        _pathToStream[outputPath] = null; // Avoid recursion into same file.
 
         stream = builder!.Build(handle, srcDataPath, _log);
         if (invokeOnStreamCreated)

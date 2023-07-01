@@ -119,7 +119,7 @@ namespace BF.File.Emulator
                 return false;
 
             // Make the BF file.
-            _pathToStream.TryRemove(outputPath, out _); // Avoid recursion into same file.
+            _pathToStream[outputPath] = null; // Avoid recursion into same file.
 
             stream = builder!.Build(handle, srcDataPath, _flowFormat, _library, _encoding, _listener, _log, isEmpty);
             if (stream == null)
