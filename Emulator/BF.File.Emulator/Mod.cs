@@ -55,7 +55,6 @@ public class Mod : ModBase, IExports // <= Do not Remove.
 
     public Mod(ModContext context)
     {
-        //Debugger.Launch();
         _modLoader = context.ModLoader;
         _hooks = context.Hooks;
         _logger = context.Logger;

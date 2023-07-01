@@ -35,7 +35,6 @@ public class PakBuilder
     /// </summary>
     public unsafe MultiStream Build(IntPtr handle, string filepath, Logger? logger = null, string folder = "", long baseOffset = 0)
     {
-        //Debugger.Launch();
         logger?.Info($"[{nameof(PakBuilder)}] Building PAK File | {{0}}", filepath);
        
         // Get original file's entries.

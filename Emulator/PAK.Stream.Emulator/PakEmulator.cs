@@ -26,7 +26,6 @@ public class PakEmulator : IEmulator
 
     public PakEmulator(Logger log, bool dumpFiles)
     {
-        //Debugger.Launch();
         _log = log;
         DumpFiles = dumpFiles;
     }

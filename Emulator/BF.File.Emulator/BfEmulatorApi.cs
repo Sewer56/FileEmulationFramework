@@ -18,7 +18,6 @@ public class BfEmulatorApi : IBfEmulator
 
     public BfEmulatorApi(IEmulationFramework framework, BfEmulator bfEmulator, Logger logger)
     {
-        //Debugger.Launch();
         _framework = framework;
         _bfEmulator = bfEmulator;
         _logger = logger;
