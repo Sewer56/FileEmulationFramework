@@ -7,11 +7,10 @@ using AtlusScriptLibrary.Common.Libraries;
 using System.Text;
 using Microsoft.Win32.SafeHandles;
 using AtlusScriptLibrary.FlowScriptLanguage;
-using Newtonsoft.Json;
 
 // Aliasing for readability, since our assembly name has priority over 'File'
 using Fiel = System.IO.File;
-
+using System.Text.Json;
 
 namespace BF.File.Emulator.Bf;
 
@@ -69,7 +68,7 @@ public class BfBuilder
         if (!filePath.EndsWith(".json", StringComparison.OrdinalIgnoreCase) || _addedOverrides.Contains(filePath)) return;
 
         string jsonText = Fiel.ReadAllText(filePath);
-        var functions = JsonConvert.DeserializeObject<List<FlowScriptModuleFunction>>(jsonText);
+        var functions = JsonSerializer.Deserialize<List<FlowScriptModuleFunction>>(jsonText);
         _addedOverrides.Add(filePath);
         if (functions == null)
         {
@@ -92,7 +91,7 @@ public class BfBuilder
         if (!filePath.EndsWith(".json", StringComparison.OrdinalIgnoreCase) || _addedOverrides.Contains(filePath)) return;
 
         string jsonText = Fiel.ReadAllText(filePath);
-        var enums = JsonConvert.DeserializeObject<List<FlowScriptModuleEnum>>(jsonText);
+        var enums = JsonSerializer.Deserialize<List<FlowScriptModuleEnum>>(jsonText);
         _addedOverrides.Add(filePath);
         if (enums == null)
         {
