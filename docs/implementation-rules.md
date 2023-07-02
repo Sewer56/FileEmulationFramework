@@ -24,6 +24,10 @@ If using using `Type B` emulation, use memory mapped files (`MemoryManager` & `M
 
 When using memory mapped files, only sections that are currently mapped/viewed use up the address space, in the case of `MemoryManager`, this means only `AllocationGranularity` is used.  
 
+!!! warning
+
+    For files smaller than `AllocationGranularity` use a `MemoryStream` instead to avoid wasting address space.
+
 ### Use Lazy Loading & Immutability
 
 Implementations should only produce/initialize emulated files when they are first requested by the application; i.e. when a handle is opened.  
