@@ -122,7 +122,7 @@ public class BfEmulator : IEmulator
         _log.Info("[BfEmulator] Created Emulated file with Path {0}", outputPath);
 
         if (DumpFiles)
-            DumpFile(outputPath, stream);
+            DumpFile(route, stream);
 
         return true;
     }
@@ -150,11 +150,11 @@ public class BfEmulator : IEmulator
         _pathToStream.TryAdd(destinationPath, stream);
     }
 
-    private void DumpFile(string filePath, Stream stream)
+    private void DumpFile(string route, Stream stream)
     {
-        var dumpPath = Path.GetFullPath($"{Constants.DumpFolder}/{Path.ChangeExtension(Path.GetFileName(filePath),Constants.DumpExtension)}");
-        Directory.CreateDirectory(Constants.DumpFolder);
-        _log.Info($"[BfEmulator] Dumping {filePath}");
+        var dumpPath = Path.GetFullPath($"{Constants.DumpFolder}/{Path.ChangeExtension(route,Constants.DumpExtension)}");
+        Directory.CreateDirectory(Path.GetDirectoryName(dumpPath));
+        _log.Info($"[BfEmulator] Dumping {route}");
         using var fileStream = new FileStream(dumpPath, FileMode.Create);
         stream.CopyTo(fileStream);
         _log.Info($"[BfEmulator] Written To {dumpPath}");
