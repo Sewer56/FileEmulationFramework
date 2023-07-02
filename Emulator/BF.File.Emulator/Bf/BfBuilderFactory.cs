@@ -74,7 +74,7 @@ internal class BfBuilderFactory
     }
 
     /// <summary>
-    /// Tries to create an BF from a given route.
+    /// Tries to create a BF from a given route.
     /// </summary>
     /// <param name="path">The file path/route to create BF Builder for.</param>
     /// <param name="builder">The created builder.</param>

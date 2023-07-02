@@ -31,7 +31,7 @@ public class PakBuilder
     }
 
     /// <summary>
-    /// Builds an PAK file.
+    /// Builds a PAK file.
     /// </summary>
     public unsafe MultiStream Build(IntPtr handle, string filepath, Logger? logger = null, string folder = "", long baseOffset = 0)
     {

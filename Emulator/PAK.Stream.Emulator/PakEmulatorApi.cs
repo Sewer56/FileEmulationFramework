@@ -17,7 +17,7 @@ using Reloaded.Memory;
 namespace PAK.Stream.Emulator;
 
 /// <summary>
-/// Tries to create an PAK emulator.
+/// Tries to create a PAK emulator.
 /// </summary>
 public class PakEmulatorApi : IPakEmulator
 {

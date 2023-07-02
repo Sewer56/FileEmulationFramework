@@ -108,7 +108,7 @@ public class BfBuilder
     }
 
     /// <summary>
-    /// Builds an BF file.
+    /// Builds a BF file.
     /// </summary>
     public unsafe Stream? Build(IntPtr originalHandle, string originalPath, FlowFormatVersion flowFormat, Library library, Encoding encoding, AtlusLogListener? listener = null, bool noBaseBf = false)
     {

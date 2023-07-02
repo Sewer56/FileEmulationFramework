@@ -16,7 +16,7 @@ using System.Diagnostics;
 namespace BF.File.Emulator;
 
 /// <summary>
-/// Simple emulator for Atlus PAK files.
+/// Emulator for Atlus BF files.
 /// </summary>
 public class BfEmulator : IEmulator
 {
@@ -30,7 +30,6 @@ public class BfEmulator : IEmulator
     private readonly ConcurrentDictionary<string, Stream?> _pathToStream = new(StringComparer.OrdinalIgnoreCase);
     private Logger _log;
 
-    private Game _game;
     private FlowFormatVersion _flowFormat;
     private Library _library;
     private Encoding _encoding;
@@ -44,7 +43,6 @@ public class BfEmulator : IEmulator
         DumpFiles = dumpFiles;
         _listener = new AtlusLogListener(log, LogLevel.Error);
 
-        _game = game;
         switch (game)
         {
             case Game.P3P:
@@ -92,13 +90,13 @@ public class BfEmulator : IEmulator
     /// <summary>
     /// Tries to create an emulated file from a given file handle.
     /// </summary>
-    /// <param name="handle">Handle of the bf file where to use as a base.</param>
-    /// <param name="srcDataPath">Path of the file where the handle refers to.</param>
+    /// <param name="handle">Handle of the bf file to use as a base.</param>
+    /// <param name="srcDataPath">Path of the file the handle refers to.</param>
     /// <param name="outputPath">Path where the emulated file is stored.</param>
     /// <param name="route">The route of the emulated file, for builder to pick up.</param>
     /// <param name="emulated">The emulated file.</param>
     /// <param name="stream">The created stream under the hood.</param>
-    /// <returns></returns>
+    /// <returns>True if an emulated file could be created, false otherwise</returns>
     public bool TryCreateEmulatedFile(IntPtr handle, string srcDataPath, string outputPath, string route, ref IEmulatedFile? emulated, out Stream? stream)
     {
         stream = null;
@@ -142,10 +140,10 @@ public class BfEmulator : IEmulator
     }
 
     /// <summary>
-    /// Invalidates an AWB file with a specified name.
+    /// Invalidates a BF file with a specified name.
     /// </summary>
-    /// <param name="awbPath">Full path to the file.</param>
-    public void UnregisterFile(string awbPath) => _pathToStream!.Remove(awbPath, out _);
+    /// <param name="bfPath">Full path to the file.</param>
+    public void UnregisterFile(string bfPath) => _pathToStream!.Remove(bfPath, out _);
 
     public void RegisterFile(string destinationPath, Stream stream)
     {
