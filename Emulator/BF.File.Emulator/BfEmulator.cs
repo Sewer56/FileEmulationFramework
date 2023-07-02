@@ -27,7 +27,7 @@ public class BfEmulator : IEmulator
 
     // Note: Handle->Stream exists because hashing IntPtr is easier; thus can resolve reads faster.
     private readonly BfBuilderFactory _builderFactory;
-    private readonly ConcurrentDictionary<string, MemoryManagerStream?> _pathToStream = new(StringComparer.OrdinalIgnoreCase);
+    private readonly ConcurrentDictionary<string, Stream?> _pathToStream = new(StringComparer.OrdinalIgnoreCase);
     private Logger _log;
 
     private Game _game;
@@ -75,7 +75,7 @@ public class BfEmulator : IEmulator
             if (stream == null)
                 return false;
 
-            emulated = new EmulatedFile<MemoryManagerStream>(stream);
+            emulated = new EmulatedFile<Stream>(stream);
             return true;
         }
 
@@ -99,7 +99,7 @@ public class BfEmulator : IEmulator
     /// <param name="emulated">The emulated file.</param>
     /// <param name="stream">The created stream under the hood.</param>
     /// <returns></returns>
-    public bool TryCreateEmulatedFile(IntPtr handle, string srcDataPath, string outputPath, string route, ref IEmulatedFile? emulated, out MemoryManagerStream? stream)
+    public bool TryCreateEmulatedFile(IntPtr handle, string srcDataPath, string outputPath, string route, ref IEmulatedFile? emulated, out Stream? stream)
     {
         stream = null;
 
@@ -120,7 +120,7 @@ public class BfEmulator : IEmulator
             return false;
 
         _pathToStream.TryAdd(outputPath, stream);
-        emulated = new EmulatedFile<MemoryManagerStream>(stream);
+        emulated = new EmulatedFile<Stream>(stream);
         _log.Info("[BfEmulator] Created Emulated file with Path {0}", outputPath);
 
         if (DumpFiles)
@@ -147,12 +147,12 @@ public class BfEmulator : IEmulator
     /// <param name="awbPath">Full path to the file.</param>
     public void UnregisterFile(string awbPath) => _pathToStream!.Remove(awbPath, out _);
 
-    public void RegisterFile(string destinationPath, MemoryManagerStream stream)
+    public void RegisterFile(string destinationPath, Stream stream)
     {
         _pathToStream.TryAdd(destinationPath, stream);
     }
 
-    private void DumpFile(string filePath, MemoryManagerStream stream)
+    private void DumpFile(string filePath, Stream stream)
     {
         var dumpPath = Path.GetFullPath($"{Constants.DumpFolder}/{Path.ChangeExtension(Path.GetFileName(filePath),Constants.DumpExtension)}");
         Directory.CreateDirectory(Constants.DumpFolder);

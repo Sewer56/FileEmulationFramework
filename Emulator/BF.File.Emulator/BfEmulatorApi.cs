@@ -1,5 +1,6 @@
 ﻿using BF.File.Emulator.Interfaces;
 using BF.File.Emulator.Interfaces.Structures.IO;
+using BF.File.Emulator.Utilities;
 using FileEmulationFramework.Interfaces;
 using FileEmulationFramework.Interfaces.Reference;
 using FileEmulationFramework.Lib.Memory;
@@ -58,12 +59,11 @@ public class BfEmulatorApi : IBfEmulator
 
         Native.SetFilePointerEx(handle, 0, IntPtr.Zero, 0);
 
-        var manager = new MemoryManager(65536);
         var fileStream = new FileStream(new SafeFileHandle(handle, false), FileAccess.Read);
-        var stream = new MemoryManagerStream(manager);
+        var stream = StreamUtils.CreateMemoryStream(fileStream.Length);
         fileStream.CopyTo(stream);
 
-        var emulated = new EmulatedFile<MemoryManagerStream>(stream);
+        var emulated = new EmulatedFile<Stream>(stream);
         _bfEmulator.RegisterFile(destinationPath, stream);
         _framework.RegisterVirtualFile(destinationPath, emulated, false);
 

@@ -7,10 +7,11 @@ using AtlusScriptLibrary.Common.Libraries;
 using System.Text;
 using Microsoft.Win32.SafeHandles;
 using AtlusScriptLibrary.FlowScriptLanguage;
+using System.Text.Json;
+using BF.File.Emulator.Utilities;
 
 // Aliasing for readability, since our assembly name has priority over 'File'
 using Fiel = System.IO.File;
-using System.Text.Json;
 
 namespace BF.File.Emulator.Bf;
 
@@ -109,7 +110,7 @@ public class BfBuilder
     /// <summary>
     /// Builds an BF file.
     /// </summary>
-    public unsafe MemoryManagerStream? Build(IntPtr originalHandle, string originalPath, FlowFormatVersion flowFormat, Library library, Encoding encoding, AtlusLogListener? listener = null, bool noBaseBf = false)
+    public unsafe Stream? Build(IntPtr originalHandle, string originalPath, FlowFormatVersion flowFormat, Library library, Encoding encoding, AtlusLogListener? listener = null, bool noBaseBf = false)
     {
         _log?.Info("[BfEmulator] Building BF File | {0}", originalPath);
 
@@ -142,12 +143,13 @@ public class BfBuilder
             return null;
         }
 
-        var memoryManager = new MemoryManager(65536);
-        var memoryManagerStream = new MemoryManagerStream(memoryManager);
-        flowScript.ToStream(memoryManagerStream, true);
-        memoryManagerStream.Position = 0;
+        // Return the compiled bf
+        var bfBinary = flowScript.ToBinary();
+        var stream = StreamUtils.CreateMemoryStream(bfBinary.Header.FileSize);
+        bfBinary.ToStream(stream, true);
+        stream.Position = 0;
 
-        return memoryManagerStream;
+        return stream;
     }
 
     private Library OverrideLibraries(Library library)

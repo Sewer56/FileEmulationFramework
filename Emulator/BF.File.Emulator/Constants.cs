@@ -13,4 +13,5 @@ internal class Constants
     public const string EnumsFile = "Enums.json";
     public const string ArgsFile = "CompilerArgs.json";
     public static readonly string RedirectorFolder = $"FEmulator{Path.DirectorySeparatorChar}BF";
+    public const int AllocationGranularity = 65536;
 }
