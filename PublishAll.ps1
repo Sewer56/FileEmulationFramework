@@ -19,6 +19,7 @@ Split-Path $MyInvocation.MyCommand.Path | Push-Location
               -PublishOutputDir "Publish/ToUpload/bf" `
 			  -ReadmePath "docs/emulators/bf.md" `
 			  -ChangelogPath "Emulator/BF.File.Emulator/CHANGELOG.MD" `
+              -IncludeRegexes ("ModConfig\.json", "\.deps\.json", "\.runtimeconfig\.json", "Libraries") `
 
 ./Publish.ps1 -ProjectPath "Emulator/AFS.Stream.Emulator/AFS.Stream.Emulator.csproj" `
               -PackageName "AFS.Stream.Emulator" `
