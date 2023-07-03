@@ -323,6 +323,8 @@ function Get-Common-Publish-Args {
         $arguments += " --olderversionfolders `"$deltaDirectory`""
 	}
 
+    $arguments += "--includeregexes $IncludeRegexes"
+
 	return $arguments
 }
 
@@ -336,7 +338,7 @@ function Publish-Common {
     
     Remove-Item $Directory -Recurse -ErrorAction SilentlyContinue
     New-Item $Directory -ItemType Directory -ErrorAction SilentlyContinue
-    $arguments = "$(Get-Common-Publish-Args -AllowDeltas $AllowDeltas) --outputfolder `"$Directory`" --publishtarget $PublishTarget --includeregexes `"$($IncludeRegexes -join '", "')`""
+    $arguments = "$(Get-Common-Publish-Args -AllowDeltas $AllowDeltas) --outputfolder `"$Directory`" --publishtarget $PublishTarget"
 	$command = "$reloadedToolPath $arguments"
 	Write-Host "$command`r`n`r`n"
 	Invoke-Expression $command
