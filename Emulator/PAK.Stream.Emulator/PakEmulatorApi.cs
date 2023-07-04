@@ -87,6 +87,11 @@ public class PakEmulatorApi : IPakEmulator
         return result;
     }
 
+    public void AddFile(string file, string route, string inPakPath)
+    {
+        _pakEmulator.AddFile(file, route, inPakPath);
+    }
+
     public ReadOnlyMemory<byte>? GetEntry(Strim pak, string entryPath)
     {
         entryPath = entryPath.Replace('\\', '/');

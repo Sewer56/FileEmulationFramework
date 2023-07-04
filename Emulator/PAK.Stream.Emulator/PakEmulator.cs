@@ -20,7 +20,7 @@ public class PakEmulator : IEmulator
     public bool DumpFiles { get; set; }
 
     // Note: Handle->Stream exists because hashing IntPtr is easier; thus can resolve reads faster.
-    private readonly PakBuilderFactory _builderFactory = new();
+    private readonly PakBuilderFactory _builderFactory;
     private readonly ConcurrentDictionary<string, MultiStream?> _pathToStream = new(StringComparer.OrdinalIgnoreCase);
     private Logger _log;
 
@@ -28,6 +28,7 @@ public class PakEmulator : IEmulator
     {
         _log = log;
         DumpFiles = dumpFiles;
+        _builderFactory = new(log);
     }
 
     public bool TryCreateFile(IntPtr handle, string filepath, string route, out IEmulatedFile emulated)
@@ -119,6 +120,8 @@ public class PakEmulator : IEmulator
         stream.CopyTo(fileStream);
         _log.Info($"[PakEmulator] Written To {filePath}");
     }
+
+    public void AddFile(string file, string route, string inPakPath) => _builderFactory.AddFile(file, route, inPakPath);
 
     internal List<RouteGroupTuple> GetInput() => _builderFactory.RouteGroupTuples;
 }
