@@ -3,11 +3,20 @@ using PAK.Stream.Emulator.Interfaces;
 using PAK.Stream.Emulator.Interfaces.Structures.IO;
 using FileEmulationFramework.Interfaces;
 using FileEmulationFramework.Lib.Utilities;
+using FileEmulationFramework.Lib.IO;
+using PAK.Stream.Emulator.Pak;
+
+// Aliasing for readability, since our assembly name has priority over 'stream'
+using Strim = System.IO.Stream;
+using RouteGroupTuple = PAK.Stream.Emulator.Interfaces.Structures.IO.RouteGroupTuple;
+using DirectoryFilesGroup = PAK.Stream.Emulator.Interfaces.Structures.IO.DirectoryFilesGroup;
+using DirectoryInformation = PAK.Stream.Emulator.Interfaces.Structures.IO.DirectoryInformation;
+using PAK.Stream.Emulator.Utilities;
 
 namespace PAK.Stream.Emulator;
 
 /// <summary>
-/// Tries to create an PAK emulator.
+/// Tries to create a PAK emulator.
 /// </summary>
 public class PakEmulatorApi : IPakEmulator
 {
@@ -25,7 +34,6 @@ public class PakEmulatorApi : IPakEmulator
     /// <inheritdoc/>
     public bool TryCreateFromFileSlice(string sourcePath, long offset, string route, string destinationPath)
     {
-        //Debugger.Launch();
         _logger.Info("[PakEmulatorApi] TryCreateFromFileSlice: {0}, Ofs {1}, Route {2}", sourcePath, offset, route);
         var handle = Native.CreateFileW(sourcePath, FileAccess.Read, FileShare.ReadWrite, IntPtr.Zero, FileMode.Open, FileAttributes.Normal, IntPtr.Zero);
         if (handle == new IntPtr(-1))
@@ -36,15 +44,14 @@ public class PakEmulatorApi : IPakEmulator
 
         IEmulatedFile? emulated = null;
         Native.SetFilePointerEx(handle, offset, IntPtr.Zero, 0);
-        if (!_pakEmulator.TryCreateEmulatedFile(handle, sourcePath, destinationPath, route, false, ref emulated, out var stream))
+        if (!_pakEmulator.TryCreateEmulatedFile(handle, sourcePath, destinationPath, route, ref emulated, out var stream))
         {
             _logger.Error("[PakEmulatorApi] TryCreateFromFileSlice: Failed to Create Emulated File at Path {0}", sourcePath);
             return false;
         }
-        
+
         _logger.Info("[PakEmulatorApi] TryCreateFromFileSlice: Registering {0}", destinationPath);
         _framework.RegisterVirtualFile(destinationPath, emulated!);
-        _pakEmulator.InvokeOnStreamCreated(handle, destinationPath, stream!);
         return true;
     }
 
@@ -78,5 +85,15 @@ public class PakEmulatorApi : IPakEmulator
         }
 
         return result;
+    }
+
+    public ReadOnlyMemory<byte>? GetEntry(Strim pak, string entryPath)
+    {
+        entryPath = entryPath.Replace('\\', '/');
+        if (!entryPath.StartsWith("/")) 
+            entryPath = '/' + entryPath;
+        var entry = PakReader.ReadFileFromPak(pak, entryPath, Path.GetPathRoot(entryPath));
+        if (entry == null) return null;
+        return entry.AsMemory();
     }
 }

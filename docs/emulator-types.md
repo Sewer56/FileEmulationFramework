@@ -26,6 +26,6 @@ In this case of archives, you would usually produce the whole header of your new
 
 In this case, you should simply merge the files manually, to produce a new standalone file, just like you would with a regular program.  
 
-If dealing with small files, it is recommended to write the final file to a `MemoryManagerStream`, and use that stream to fulfill read requests; as reading small files from disk is slow. 
+If dealing with small files, it is recommended to write the final file to a `MemoryManagerStream`, and use that stream to fulfill read requests; as reading small files from disk is slow. For very small files (<64KiB) use a `MemoryStream` instead. 
 
 For big files (>100MB) or where the total expected sum of the files is big (2GB+), consider writing them to disk, and fulfilling the read requests from disk.

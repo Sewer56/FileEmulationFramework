@@ -396,6 +396,27 @@ public static class Native
                 return "";
             }
         }
+
+        /// <summary>
+        /// Returns a substring with the contents from the specified start index
+        /// </summary>
+        /// <param name="startIndex">The position to start the substring at</param>
+        /// <returns>A substring with the contents</returns>
+        public string Substring(int startIndex)
+        {
+            try
+            {
+                if (Buffer != IntPtr.Zero)
+                    return Encoding.Unicode.GetString((byte*)(Buffer+startIndex*2), Length-startIndex*2);
+
+                return "";
+            }
+            catch
+            {
+                return "";
+            }
+        }
+
     }
 
     /// <summary>

@@ -29,6 +29,9 @@
     <Content Include="Emulators\PAK\**">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
+	  <Content Include="Emulators\BF\**">
+		  <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+	  </Content>
   </ItemGroup>
 
   <ItemGroup>
@@ -50,6 +53,7 @@
   <ItemGroup>
     <ProjectReference Include="..\Emulator\AWB.Stream.Emulator\AWB.Stream.Emulator.csproj" />
     <ProjectReference Include="..\Emulator\AFS.Stream.Emulator\AFS.Stream.Emulator.csproj" />
+    <ProjectReference Include="..\Emulator\BF.File.Emulator\BF.File.Emulator.csproj" />
     <ProjectReference Include="..\Emulator\ONE.Heroes.Stream.Emulator\ONE.Heroes.Stream.Emulator.csproj" />
     <ProjectReference Include="..\Emulator\PAK.Stream.Emulator\PAK.Stream.Emulator.csproj" />
     <ProjectReference Include="..\FileEmulationFramework.Lib\FileEmulationFramework.Lib.csproj" />

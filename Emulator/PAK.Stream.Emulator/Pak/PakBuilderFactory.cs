@@ -33,7 +33,7 @@ public class PakBuilderFactory
     }
 
     /// <summary>
-    /// Tries to create an PAK from a given route.
+    /// Tries to create a PAK from a given route.
     /// </summary>
     /// <param name="path">The file path/route to create PAK Builder for.</param>
     /// <param name="builder">The created builder.</param>

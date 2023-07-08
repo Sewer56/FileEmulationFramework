@@ -86,6 +86,18 @@ public class Native
         > Value;
     }
 
+    [Reloaded.Hooks.Definitions.X64.Function(Reloaded.Hooks.Definitions.X64.CallingConventions.Microsoft)]
+    [Reloaded.Hooks.Definitions.X86.Function(Reloaded.Hooks.Definitions.X86.CallingConventions.Stdcall)]
+    public struct NtQueryFullAttributesFileFn
+    {
+        public FuncPtr<
+            BlittablePointer<OBJECT_ATTRIBUTES>, // attributes
+            BlittablePointer<FILE_NETWORK_OPEN_INFORMATION>, // information
+            int // status
+        > Value;
+    }
+
+
     /// <summary>
     /// A driver sets an IRP's I/O status block to indicate the final status of an I/O request, before calling IoCompleteRequest for the IRP.
     /// </summary>
@@ -105,6 +117,19 @@ public class Native
         public bool DeletePending;
         public bool Directory;
     }
+
+    [StructLayout(LayoutKind.Sequential)]
+    public struct FILE_NETWORK_OPEN_INFORMATION
+    {
+        public LARGE_INTEGER CreationTime;
+        public LARGE_INTEGER LastAccessTime;
+        public LARGE_INTEGER LastWriteTime;
+        public LARGE_INTEGER ChangeTime;
+        public LARGE_INTEGER AllocationSize;
+        public long EndOfFile;
+        public ulong FileAttributes;
+    }
+
 
     /// <summary>
     ///     Enumeration of the various file information classes.

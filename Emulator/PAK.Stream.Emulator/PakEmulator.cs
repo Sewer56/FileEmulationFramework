@@ -5,6 +5,7 @@ using FileEmulationFramework.Lib.IO;
 using FileEmulationFramework.Lib.Utilities;
 using PAK.Stream.Emulator.Utilities;
 using System.Collections.Concurrent;
+using System.Diagnostics;
 
 namespace PAK.Stream.Emulator;
 
@@ -17,11 +18,6 @@ public class PakEmulator : IEmulator
     /// If enabled, dumps newly emulated files.
     /// </summary>
     public bool DumpFiles { get; set; }
-
-    /// <summary>
-    /// Event that is fired when a stream is created, before redirection kicks in.
-    /// </summary>
-    public event Action<IntPtr, string, MultiStream>? OnStreamCreated;
 
     // Note: Handle->Stream exists because hashing IntPtr is easier; thus can resolve reads faster.
     private readonly PakBuilderFactory _builderFactory = new();
@@ -52,7 +48,7 @@ public class PakEmulator : IEmulator
         if (!Directory.Exists(filepath))
             return false;
 
-        if (!TryCreateEmulatedFile(handle, filepath, filepath, filepath, true, ref emulated!, out _))
+        if (!TryCreateEmulatedFile(handle, filepath, filepath, filepath, ref emulated!, out _))
             return false;
 
         return true;
@@ -65,11 +61,10 @@ public class PakEmulator : IEmulator
     /// <param name="srcDataPath">Path of the file where the handle refers to.</param>
     /// <param name="outputPath">Path where the emulated file is stored.</param>
     /// <param name="route">The route of the emulated file, for builder to pick up.</param>
-    /// <param name="invokeOnStreamCreated">Invokes the <see cref="OnStreamCreated"/> event.</param>
     /// <param name="emulated">The emulated file.</param>
     /// <param name="stream">The created stream under the hood.</param>
-    /// <returns></returns>
-    public bool TryCreateEmulatedFile(IntPtr handle, string srcDataPath, string outputPath, string route, bool invokeOnStreamCreated, ref IEmulatedFile? emulated, out MultiStream? stream)
+    /// <returns>True if an emulated file could be created, false otherwise</returns>
+    public bool TryCreateEmulatedFile(IntPtr handle, string srcDataPath, string outputPath, string route, ref IEmulatedFile? emulated, out MultiStream? stream)
     {
         stream = null;
         
@@ -82,12 +77,10 @@ public class PakEmulator : IEmulator
         if (!PakChecker.IsPakFile(handle))
             return false;
 
-        // Make the AFS file.
-        _pathToStream.TryRemove(outputPath, out _); // Avoid recursion into same file.
+        // Make the PAK file.
+        _pathToStream[outputPath] = null; // Avoid recursion into same file.
 
         stream = builder!.Build(handle, srcDataPath, _log);
-        if (invokeOnStreamCreated)
-            OnStreamCreated?.Invoke(handle, outputPath, stream);
 
         _pathToStream.TryAdd(outputPath, stream);
         emulated = new EmulatedFile<MultiStream>(stream);
@@ -112,10 +105,10 @@ public class PakEmulator : IEmulator
     }
 
     /// <summary>
-    /// Invalidates an AWB file with a specified name.
+    /// Invalidates a PAK file with a specified name.
     /// </summary>
-    /// <param name="awbPath">Full path to the file.</param>
-    public void UnregisterFile(string awbPath) => _pathToStream!.Remove(awbPath, out _);
+    /// <param name="pakPath">Full path to the file.</param>
+    public void UnregisterFile(string pakPath) => _pathToStream!.Remove(pakPath, out _);
 
     private void DumpFile(string filepath, MultiStream stream)
     {
@@ -128,9 +121,4 @@ public class PakEmulator : IEmulator
     }
 
     internal List<RouteGroupTuple> GetInput() => _builderFactory.RouteGroupTuples;
-
-    /// <summary>
-    /// Manually invokes the <see cref="OnStreamCreated"/> event. For internal use only.
-    /// </summary>
-    internal void InvokeOnStreamCreated(IntPtr handle, string outputPath, MultiStream stream) => OnStreamCreated?.Invoke(handle, outputPath, stream);
 }

@@ -1,0 +1,35 @@
+import("test.msg");
+
+void night_fishing_hook()
+{
+    OPEN_MSG_WIN();
+    MSG(Fishing);
+    CLOSE_MSG_WIN();
+    if ( GET_ITEM( ( 768 + 248 ) ) >= 1 )
+    {
+        
+        if ( BIT_CHK( 138 ) == 1 )
+        {
+            BIT_ON( 2687 );
+        }
+
+        MSG( TURI_EXEC );
+        CLOSE_MSG_WIN();
+        FADE( FadeType.Smooth, 10 );
+        FADE_SYNC();
+        CALL_EVENT( 860, 82, 0 );
+        
+        if ( BIT_CHK( 2687 ) == 1 )
+        {
+            BIT_OFF( 2687 );
+        }
+
+        commu_yoru();
+    }
+    else 
+    {
+        MSG( TURI_ESA_HAZIKI );
+        CLOSE_MSG_WIN();
+    }
+
+}

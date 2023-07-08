@@ -36,6 +36,7 @@ public class Logger
     /// <param name="severity">The severity to check if enabled.</param>
     public bool IsEnabled(LogSeverity severity) => LogLevel <= severity;
 
+    #region Fatal
     /// <summary>
     /// Logs a message using the <see cref="LogSeverity.Fatal"/> severity.
     /// </summary>
@@ -44,6 +45,40 @@ public class Logger
     {
         Log.WriteLineAsync(message, Log.ColorRed);
     }
+
+    /// <summary>
+    /// Logs a message using the <see cref="LogSeverity.Fatal"/> severity.
+    /// </summary>
+    /// <param name="format">The format to use.</param>
+    /// <param name="item1">The first generic item.</param>
+    public void Fatal<T1>(string format, T1 item1)
+    {
+        Log.WriteLineAsync(string.Format(format, item1!.ToString()), Log.ColorRed);
+    }
+
+    /// <summary>
+    /// Logs a message using the <see cref="LogSeverity.Fatal"/> severity.
+    /// </summary>
+    /// <param name="format">The format to use.</param>
+    /// <param name="item1">The first generic item.</param>
+    /// <param name="item2">The second generic item.</param>
+    public void Fatal<T1, T2>(string format, T1 item1, T2 item2)
+    {
+        Log.WriteLineAsync(string.Format(format, item1!.ToString(), item2!.ToString()), Log.ColorRed);
+    }
+
+    /// <summary>
+    /// Logs a message using the <see cref="LogSeverity.Fatal"/> severity.
+    /// </summary>
+    /// <param name="format">The format to use.</param>
+    /// <param name="item1">The first generic item.</param>
+    /// <param name="item2">The second generic item.</param>
+    /// <param name="item3">The third generic item.</param>
+    public void Fatal<T1, T2, T3>(string format, T1 item1, T2 item2, T3 item3)
+    {
+        Log.WriteLineAsync(string.Format(format, item1!.ToString(), item2!.ToString(), item3!.ToString()), Log.ColorRed);
+    }
+    #endregion
 
     #region Error
     /// <summary>
@@ -64,7 +99,7 @@ public class Logger
     public void Error<T1>(string format, T1 item1)
     {
         if (IsEnabled(LogSeverity.Error))
-            Log.WriteLineAsync(string.Format(format, item1!.ToString(), Log.ColorRed));
+            Log.WriteLineAsync(string.Format(format, item1!.ToString()), Log.ColorRed);
     }
 
     /// <summary>
@@ -112,7 +147,7 @@ public class Logger
     public void Warning<T1>(string format, T1 item1)
     {
         if (IsEnabled(LogSeverity.Warning))
-            Log.WriteLineAsync(string.Format(format, item1!.ToString(), Log.ColorYellow));
+            Log.WriteLineAsync(string.Format(format, item1!.ToString()), Log.ColorYellow);
     }
 
     /// <summary>
@@ -160,7 +195,7 @@ public class Logger
     public void Info<T1>(string format, T1 item1)
     {
         if (IsEnabled(LogSeverity.Information))
-            Log.WriteLineAsync(string.Format(format, item1!.ToString(), Log.ColorLightBlue));
+            Log.WriteLineAsync(string.Format(format, item1!.ToString()), Log.ColorLightBlue);
     }
 
     /// <summary>

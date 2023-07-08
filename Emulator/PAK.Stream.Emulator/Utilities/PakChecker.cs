@@ -12,7 +12,7 @@ namespace PAK.Stream.Emulator.Utilities;
 public static class PakChecker
 {
     /// <summary>
-    /// Checks if a file with a given handle is an PAK file.
+    /// Checks if a file with a given handle is a PAK file.
     /// </summary>
     /// <param name="handle">The file handle to use.</param>
     public static bool IsPakFile(IntPtr handle)

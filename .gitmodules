@@ -1,3 +1,7 @@
 [submodule "Submodules/Heroes.SDK"]
 	path = Submodules/Heroes.SDK
 	url = https://github.com/Heroes-Hacking-Central/Heroes.SDK.git
+[submodule "Submodules/Atlus-Script-Tools"]
+	path = Submodules/Atlus-Script-Tools
+	url = https://github.com/AnimatedSwine37/Atlus-Script-Tools.git
+	branch = bf-emulator

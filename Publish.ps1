@@ -135,6 +135,11 @@
 
     Removes executables from build output. Useful when performing R2R Optimisation.
 
+.PARAMETER IncludeRegexes
+    Default: "ModConfig\.json", "\.deps\.json", "\.runtimeconfig\.json"
+
+    Regexes of files to make sure are included by Reloaded.Publisher
+
 .EXAMPLE
   .\Publish.ps1 -ProjectPath "Reloaded.Hooks.ReloadedII/Reloaded.Hooks.ReloadedII.csproj" -PackageName "Reloaded.Hooks.ReloadedII" -PublishOutputDir "Publish/ToUpload"
 
@@ -154,6 +159,7 @@ param (
     $Build=$True,
     $BuildR2R=$False,
     $RemoveExe = $True,
+    $IncludeRegexes = ("ModConfig\.json", "\.deps\.json", "\.runtimeconfig\.json"),
 	
     ## => User Config <= ## 
     $ProjectPath = "AFS.Stream.Emulator.csproj",
@@ -316,7 +322,9 @@ function Get-Common-Publish-Args {
 	if ($AllowDeltas -and $MakeDelta) {
         $arguments += " --olderversionfolders `"$deltaDirectory`""
 	}
-	
+
+    $arguments += "--includeregexes $IncludeRegexes"
+
 	return $arguments
 }
 
@@ -330,7 +338,7 @@ function Publish-Common {
     
     Remove-Item $Directory -Recurse -ErrorAction SilentlyContinue
     New-Item $Directory -ItemType Directory -ErrorAction SilentlyContinue
-	$arguments = "$(Get-Common-Publish-Args -AllowDeltas $AllowDeltas) --outputfolder `"$Directory`" --publishtarget $PublishTarget"
+    $arguments = "$(Get-Common-Publish-Args -AllowDeltas $AllowDeltas) --outputfolder `"$Directory`" --publishtarget $PublishTarget"
 	$command = "$reloadedToolPath $arguments"
 	Write-Host "$command`r`n`r`n"
 	Invoke-Expression $command
