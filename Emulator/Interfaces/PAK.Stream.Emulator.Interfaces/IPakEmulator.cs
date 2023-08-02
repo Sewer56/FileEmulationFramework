@@ -43,4 +43,10 @@ public interface IPakEmulator
     /// <param name="route">The route the file is in</param>
     /// <param name="inPakPath">The path in the pak the file will take</param>
     public void AddFile(string file, string route, string inPakPath);
+
+    /// <summary>
+    /// Adds a directory to PAK Emulator so it's like the files were in FEmulator\PAK
+    /// </summary>
+    /// <param name="dir">The directory to add the files from</param>
+    public void AddDirectory(string dir);
 }
