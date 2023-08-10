@@ -36,4 +36,17 @@ public interface IPakEmulator
     /// <returns>The data of the desired entry or null if it could not be found in the pak</returns>
     public ReadOnlyMemory<byte>? GetEntry(Strim pak, string entryPath);
 
+    /// <summary>
+    /// Adds a new file to be injected into emulated paks
+    /// </summary>
+    /// <param name="file">The path to the file to add</param>
+    /// <param name="route">The route the file is in</param>
+    /// <param name="inPakPath">The path in the pak the file will take</param>
+    public void AddFile(string file, string route, string inPakPath);
+
+    /// <summary>
+    /// Adds a directory to PAK Emulator so it's like the files were in FEmulator\PAK
+    /// </summary>
+    /// <param name="dir">The directory to add the files from</param>
+    public void AddDirectory(string dir);
 }

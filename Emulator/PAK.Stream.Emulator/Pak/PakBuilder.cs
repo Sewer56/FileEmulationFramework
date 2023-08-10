@@ -32,6 +32,18 @@ public class PakBuilder
 
     /// <summary>
     /// Builds a PAK file.
+    /// Adds a file to the Virtual PAK builder using its path in the pak.
+    /// </summary>
+    /// <param name="filePath">Full path to the file.</param>
+    /// <param name="inPakPath">Path to where the file will be in the pak</param>
+    public void AddOrReplaceFileWithPath(string filePath, string inPakPath)
+    {
+        _customFiles[inPakPath.Replace('\\', '/')] = new(filePath);
+    }
+
+
+    /// <summary>
+    /// Builds an PAK file.
     /// </summary>
     public unsafe MultiStream Build(IntPtr handle, string filepath, Logger? logger = null, string folder = "", long baseOffset = 0)
     {
