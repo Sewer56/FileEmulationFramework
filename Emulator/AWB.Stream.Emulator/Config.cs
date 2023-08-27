@@ -16,6 +16,11 @@ public class Config : Configurable<Config>
     [DefaultValue(LogSeverity.Information)]
     public bool DumpAwb { get; set; } = false;
     
+    [DisplayName("Dump Emulated ACB Files")]
+    [Description("Creates a dump of emulated ACB files as they are written.")]
+    [DefaultValue(LogSeverity.Information)]
+    public bool DumpAcb { get; set; } = false;
+    
     [DisplayName("Check Extensions for ACB files.")]
     [Description("Discards files based on known extensions to help with load times.")]
     [DefaultValue(true)]

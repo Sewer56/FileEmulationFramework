@@ -91,9 +91,9 @@ public class AwbEmulator : IEmulator
         _pathToStream[outputPath] = stream;
         emulated = new EmulatedFile<MultiStream>(stream);
         _log.Info("[AwbEmulator] Created Emulated file with Path {0}", outputPath);
-        
+
         if (DumpFiles)
-            DumpFile(outputPath, stream);
+            Utility.DumpFile(_log, outputPath, stream);
         
         return true;
     }
@@ -115,18 +115,6 @@ public class AwbEmulator : IEmulator
     /// </summary>
     /// <param name="awbPath">Full path to the file.</param>
     public void UnregisterFile(string awbPath) => _pathToStream.Remove(awbPath);
-    
-    private void DumpFile(string filepath, MultiStream stream)
-    {
-        var lastPosition = stream.Position;
-        var filePath = Path.GetFullPath($"{Constants.DumpFolder}/{Path.GetFileName(filepath)}");
-        Directory.CreateDirectory(Constants.DumpFolder);
-        _log.Info($"[AwbEmulator] Dumping {filepath}");
-        using var fileStream = new FileStream(filePath, FileMode.Create);
-        stream.CopyTo(fileStream);
-        _log.Info($"[AwbEmulator] Written To {filePath}");
-        stream.Position = lastPosition;
-    }
 
     internal List<RouteGroupTuple> GetInput() => _builderFactory.RouteGroupTuples;
     

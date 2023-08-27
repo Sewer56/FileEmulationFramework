@@ -15,6 +15,11 @@ namespace AWB.Stream.Emulator;
 /// </summary>
 public class AcbPatcherEmulator : IEmulator
 {
+    /// <summary>
+    /// If enabled, dumps newly emulated files.
+    /// </summary>
+    public bool DumpFiles { get; set; }
+    
     private readonly Logger _log;
     private readonly IScannerFactory _scannerFac;
     
@@ -22,12 +27,13 @@ public class AcbPatcherEmulator : IEmulator
     private readonly Dictionary<string, MemoryStream?> _pathToStream = new(StringComparer.OrdinalIgnoreCase);
     private readonly Dictionary<string, AwbToAcbEntry?> _awbToAcbMap = new(StringComparer.OrdinalIgnoreCase);
     private bool _checkAcbExtension;
-    
-    public AcbPatcherEmulator(AwbEmulator awbEmulator, Logger log, IScannerFactory scannerFactory, bool checkAcbExtension)
+
+    public AcbPatcherEmulator(AwbEmulator awbEmulator, Logger log, IScannerFactory scannerFactory, bool checkAcbExtension, bool dumpFiles)
     {
         _scannerFac = scannerFactory;
         _log = log;
         _checkAcbExtension = checkAcbExtension;
+        DumpFiles = dumpFiles;
         awbEmulator.OnStreamCreated += OnAwbCreated;
     }
 
@@ -118,6 +124,9 @@ public class AcbPatcherEmulator : IEmulator
                 stream = new MemoryStream(data);
                 _log.Info("[AcbPatcherEmulator] Overwritten ACB header in {0}", filepath);
                 _awbToAcbMap[patcherEntry.AwbPath] = new AwbToAcbEntry(filepath, hash);
+                
+                if (DumpFiles)
+                    Utility.DumpFile(_log, filepath, stream);
             }
         }
         finally
