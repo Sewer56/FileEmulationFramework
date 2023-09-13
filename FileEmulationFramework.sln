@@ -37,9 +37,13 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "PAK.Stream.Emulator.Interfa
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "BF.File.Emulator", "Emulator\BF.File.Emulator\BF.File.Emulator.csproj", "{4132B2C3-4380-4193-A1E5-17395311D784}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "AtlusScriptLibrary", "Submodules\Atlus-Script-Tools\Source\AtlusScriptLibrary\AtlusScriptLibrary.csproj", "{62EE486F-AE33-4DBB-AC4C-409A22CB04AD}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "AtlusScriptLibrary", "Submodules\Atlus-Script-Tools\Source\AtlusScriptLibrary\AtlusScriptLibrary.csproj", "{62EE486F-AE33-4DBB-AC4C-409A22CB04AD}"
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "BF.File.Emulator.Interfaces", "Emulator\Interfaces\BF.File.Emulator.Interfaces\BF.File.Emulator.Interfaces.csproj", "{EE178CAD-7CD0-41EB-96FA-B1DCC4DA4E73}"
+EndProject
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "SPD.File.Emulator", "Emulator\SPD.File.Emulator\SPD.File.Emulator.csproj", "{8B9B13C0-DA50-4E0F-9454-6E95BE9BC9E2}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SPD.File.Emulator.Interfaces", "Emulators\Interfaces\SPD.File.Emulator.Interfaces\SPD.File.Emulator.Interfaces.csproj", "{8E9879FE-76AD-4072-89E6-5A2CDC87F6F9}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -111,6 +115,14 @@ Global
 		{EE178CAD-7CD0-41EB-96FA-B1DCC4DA4E73}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{EE178CAD-7CD0-41EB-96FA-B1DCC4DA4E73}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{EE178CAD-7CD0-41EB-96FA-B1DCC4DA4E73}.Release|Any CPU.Build.0 = Release|Any CPU
+		{8B9B13C0-DA50-4E0F-9454-6E95BE9BC9E2}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{8B9B13C0-DA50-4E0F-9454-6E95BE9BC9E2}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{8B9B13C0-DA50-4E0F-9454-6E95BE9BC9E2}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{8B9B13C0-DA50-4E0F-9454-6E95BE9BC9E2}.Release|Any CPU.Build.0 = Release|Any CPU
+		{8E9879FE-76AD-4072-89E6-5A2CDC87F6F9}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{8E9879FE-76AD-4072-89E6-5A2CDC87F6F9}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{8E9879FE-76AD-4072-89E6-5A2CDC87F6F9}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{8E9879FE-76AD-4072-89E6-5A2CDC87F6F9}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -129,6 +141,8 @@ Global
 		{4132B2C3-4380-4193-A1E5-17395311D784} = {E530561A-D74E-48FD-B16B-8ECA7EE35ED6}
 		{62EE486F-AE33-4DBB-AC4C-409A22CB04AD} = {732CB582-B44E-4EF6-9FDC-B1126309A9E0}
 		{EE178CAD-7CD0-41EB-96FA-B1DCC4DA4E73} = {604407C2-9BB1-4923-A744-DF5E1551A412}
+		{8B9B13C0-DA50-4E0F-9454-6E95BE9BC9E2} = {E530561A-D74E-48FD-B16B-8ECA7EE35ED6}
+		{8E9879FE-76AD-4072-89E6-5A2CDC87F6F9} = {604407C2-9BB1-4923-A744-DF5E1551A412}
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 		SolutionGuid = {33D4FC90-A513-4AB4-BF0A-704F0E193DCC}
