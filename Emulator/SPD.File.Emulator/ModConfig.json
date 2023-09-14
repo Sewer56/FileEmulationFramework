@@ -39,7 +39,7 @@
       }
     }
   },
-  "IsUniversalMod": true,
+  "IsUniversalMod": false,
   "ModDependencies": [
     "reloaded.universal.fileemulationframework"
   ],

@@ -2,7 +2,7 @@
 
 public struct SpdHeader
 {
-    unsafe fixed char _magic[4];
+    int magic;
     int _unk04;
     int _fileSize;
     int _unk0c;
@@ -11,4 +11,7 @@ public struct SpdHeader
     short _spriteEntryCount;
     int _textureEntryOffset;
     int _spriteEntryOffset;
+
+    public (short, int) GetTextureEntryCountAndOffset() => (_textureEntryCount, _textureEntryOffset);
+    public (short, int) GetSpriteEntryCountAndOffset() => (_spriteEntryCount, _spriteEntryOffset);
 }

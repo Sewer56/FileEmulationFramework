@@ -23,7 +23,7 @@ public static class SpdChecker
             byte[] magic = new byte[4];
             fileStream.ReadAtLeast(magic, 4);
 
-            //return false if the magic is not SPR0, otherwise return true
+            //return false if the magic is not 'SPR0', otherwise return true
             return !(magic[0] != 'S' || magic[1] != 'P' || magic[2] != 'R' || magic[3] != '0');
         }
         finally
