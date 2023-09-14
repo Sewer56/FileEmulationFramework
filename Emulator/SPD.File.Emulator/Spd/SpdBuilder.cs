@@ -1,4 +1,5 @@
-﻿using System.Reflection.Metadata;
+﻿using System.Collections.Generic;
+using System.Reflection.Metadata;
 using System.Reflection.Metadata.Ecma335;
 using System.Runtime.CompilerServices;
 using System.Text;
@@ -18,8 +19,8 @@ namespace SPD.File.Emulator.Spd;
 public class SpdBuilder
 {
     private Dictionary<string, FileSlice> _customSprFiles = new();
-    private Dictionary<string, FileSlice> _customSpdTexFiles = new();
     private Dictionary<string, FileSlice> _customDdsFiles = new();
+    private Dictionary<int, MemoryStream> _textureData = new();
     private SpdTextureDictionary _textureEntries = new();
     private SpdSpriteDictionary _spriteEntries = new();
 
@@ -36,16 +37,12 @@ public class SpdBuilder
     /// <param name="filePath">Full path to the file.</param>
     public void AddOrReplaceFile(string filePath)
     {
-        var nameIndex = filePath.IndexOf(filePath.Replace('\\', '/'), StringComparison.Ordinal);
         var file = Path.GetFileName(filePath);
 
         switch (Path.GetExtension(file).ToLower())
         {
             case Constants.SpriteExtension:
                 _customSprFiles[file] = new(filePath);
-                break;
-            case Constants.TextureEntryExtension:
-                _customSpdTexFiles[file] = new(filePath);
                 break;
             case Constants.TextureExtension:
                 _customDdsFiles[file] = new(filePath);
@@ -66,6 +63,7 @@ public class SpdBuilder
         // Get original file's entries.
         _textureEntries = GetSpdTextureEntriesFromFile(handle, baseOffset);
         _spriteEntries = GetSpdSpriteEntriesFromFile(handle, baseOffset);
+        _textureData = GetSpdTextureDataFromFile(handle, baseOffset);
 
         // Overwrite sprite entries with spr entries
         foreach ( var file in _customSprFiles.Values )
@@ -83,19 +81,38 @@ public class SpdBuilder
         int maxId = _textureEntries.Select(x => x.Key).Max();
 
         // Get DDS filenames and adjust edited sprite texture ids
-        foreach ( var file in _customDdsFiles.Values )
+        foreach ( var (key, file) in _customDdsFiles )
         {
-            // Separate Ids in the filename by '_'
-            var spriteIds = Path.GetFileNameWithoutExtension(file.FilePath).Split('_', StringSplitOptions.TrimEntries);
+            string fileName = Path.GetFileNameWithoutExtension(file.FilePath);
 
-            foreach ( var spriteIdStr in spriteIds )
+            if (fileName.StartsWith("spr_", StringComparison.OrdinalIgnoreCase))
             {
-                // Patch texture ids for each sprite id contained in the filename
-                if (int.TryParse(spriteIdStr, out int spriteId))
+                // Remove 'spr_' in the filename and Separate Ids by '_'
+                var spriteIds = fileName[4..].Split('_', StringSplitOptions.TrimEntries);
+
+                foreach (var spriteIdStr in spriteIds)
                 {
-                    var spriteEntry = _spriteEntries[spriteId];
-                    spriteEntry.SetTextureId(maxId + 1);
-                    _spriteEntries[spriteId] = spriteEntry;
+                    // Patch texture ids for each sprite id contained in the filename
+                    if (int.TryParse(spriteIdStr, out int spriteId))
+                    {
+                        var spriteEntry = _spriteEntries[spriteId];
+                        spriteEntry.SetTextureId(maxId + 1);
+                        _spriteEntries[spriteId] = spriteEntry;
+                    }
+                }
+            }
+            else if(fileName.StartsWith("tex_", StringComparison.OrdinalIgnoreCase))
+            {
+                // Get texture id to replace from filename
+                if (int.TryParse(fileName[4..].Split("_", StringSplitOptions.TrimEntries).FirstOrDefault(), out int texId))
+                {
+                    _textureEntries[texId] = CreateTextureEntry(file, texId);
+                    byte[] data = new byte[file.Length];
+                    file.GetData(data);
+                    _textureData[texId] = new MemoryStream(data);
+
+                    // Remove the texture data from _customDdsFiles since it's now in _textureData
+                    _customDdsFiles.Remove(key);
                 }
             }
 
@@ -146,11 +163,6 @@ public class SpdBuilder
             new (textureDataStream, OffsetRange.FromStartAndLength(headerStream.Length + textureEntryStream.Length + spriteStream.Length, textureDataStream.Length))
         };
 
-        // Merge the slices and add.
-        //var mergeAbleStreams = new List<StreamOffsetPair<Stream>>(); 
-        //foreach (var merged in FileSliceStreamExtensions.MergeStreams(mergeAbleStreams))
-        //    pairs.Add(merged);
-
         return new MultiStream(pairs, logger);
     }
 
@@ -164,19 +176,17 @@ public class SpdBuilder
     {
         // data stream
         MemoryStream stream = new(streamSize);
-        var spdFileStream = new FileStream(new SafeFileHandle(handle, false), FileAccess.Read);
+        var spdTextureStream = new FileStream(new SafeFileHandle(handle, false), FileAccess.Read);
 
-        foreach (var entry in _textureEntries.Values)
+        // Write original textures
+        foreach (var texture in _textureData.Values)
         {
-            var (offset, size) = entry.GetTextureOffsetAndSize();
-            spdFileStream.Seek(offset, SeekOrigin.Begin);
-
-            byte[] data = new byte[size];
-            spdFileStream.Read(data, 0, size);
-
+            byte[] data = new byte[texture.Length];
+            texture.Read(data);
             stream.Write(data);
         }
 
+        // Write new textures
         foreach (var entry in _customDdsFiles.Values)
         {
             byte[] data = new byte[entry.Length];
@@ -184,7 +194,7 @@ public class SpdBuilder
             stream.Write(data);
         }
 
-        spdFileStream.Dispose();
+        spdTextureStream.Dispose();
         return stream;
     }
 
@@ -332,5 +342,73 @@ public class SpdBuilder
             stream.Dispose();
             _ = Native.SetFilePointerEx(handle, pos, IntPtr.Zero, 0);
         }
+    }
+
+    private Dictionary<int, MemoryStream> GetSpdTextureDataFromFile(IntPtr handle, long pos)
+    {
+        // Create a dictionary to hold texture data, with the key being the texture entry's id
+        Dictionary<int, MemoryStream> textureDataDictionary = new();
+
+        var stream = new FileStream(new SafeFileHandle(handle, false), FileAccess.Read);
+        try
+        {
+            foreach (var entry in _textureEntries.Values)
+            {
+                var (offset, size) = entry.GetTextureOffsetAndSize();
+                byte[] data = new byte[size];
+                stream.Seek(offset, SeekOrigin.Begin);
+                stream.TryRead(data, out _);
+                textureDataDictionary[entry.GetTextureId()] = new MemoryStream(data);
+            }
+
+            return textureDataDictionary;
+        }
+        finally
+        {
+            stream.Dispose();
+            _ = Native.SetFilePointerEx(handle, pos, IntPtr.Zero, 0);
+        }
+    }
+
+    /// <summary>
+    /// Create an spd texture entry using information from a dds file.
+    /// <param name="texture">The data slice of the texture to be read.</param>
+    /// <param name="id">The Id of the new texture.</param>
+    /// </summary>
+    public SpdTextureEntry CreateTextureEntry(FileSlice texture, int id)
+    {
+        long fileSize = texture.Length;
+
+        var textureEntryStream = new MemoryStream(0x30);
+
+        var nameBuffer = Encoding.ASCII.GetBytes($"texture_{id}".PadRight(16, '\0').ToCharArray());
+
+        for (int i = 0; i < nameBuffer.Length; i++)
+        {
+            if (nameBuffer[i] == 0)
+                nameBuffer[i] = 0;
+        }
+
+        var ddsSlice = texture.SliceUpTo(0xc, 8);
+        ddsSlice.GetData(out byte[] ddsDimensions);
+        var ddsStream = new MemoryStream(ddsDimensions);
+
+        ddsStream.TryRead(out uint textureWidth, out _);
+        ddsStream.TryRead(out uint textureHeight, out _);
+
+        textureEntryStream.Write(id); // texture id
+        textureEntryStream.Write(0); // unk04
+        textureEntryStream.Write(0); // texture data pointer (set to 0 now, will be changed when being written to file)
+        textureEntryStream.Write((int)fileSize); // dds filesize
+        textureEntryStream.Write(textureWidth); // dds width
+        textureEntryStream.Write(textureHeight); // dds height
+        textureEntryStream.Write(0); // unk18
+        textureEntryStream.Write(0); // unk1c
+        textureEntryStream.Write(nameBuffer);
+
+        textureEntryStream.Seek(0, SeekOrigin.Begin);
+        var entry = textureEntryStream.Read<SpdTextureEntry>();
+
+        return entry;
     }
 }

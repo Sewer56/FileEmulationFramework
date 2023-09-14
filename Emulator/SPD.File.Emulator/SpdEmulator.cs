@@ -79,7 +79,6 @@ public class SpdEmulator : IEmulator
         _pathToStream[outputPath] = null; // Avoid recursion into same file.
 
         stream = builder!.Build(handle, srcDataPath, _log);
-
         _pathToStream.TryAdd(outputPath, stream);
         emulated = new EmulatedFile<MultiStream>(stream);
         _log.Info("[SpdEmulator] Created Emulated file with Path {0}", outputPath);
