@@ -161,6 +161,10 @@ public class BfEmulator : IEmulator
     }
 
     internal List<RouteGroupTuple> GetInput() => _builderFactory.RouteFileTuples;
+
+    internal void AddFromFolders(string dir) => _builderFactory.AddFromFolders(dir);
+
+    internal void AddFile(string file, string route) => _builderFactory.AddFile(Path.GetFileName(file), file, Path.GetDirectoryName(file)!, route);
 }
 
 public class AtlusLogListener : LogListener
