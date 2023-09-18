@@ -27,10 +27,6 @@ public class SpdBuilderFactory
     /// Adds all available routes from folders.
     /// </summary>
     /// <param name="redirectorFolder">Folder containing the redirector's files.</param>
-    /// <summary>
-    /// Adds all available routes from folders.
-    /// </summary>
-    /// <param name="redirectorFolder">Folder containing the redirector's files.</param>
     public void AddFromFolders(string redirectorFolder)
     {
         // Get contents.
@@ -93,4 +89,22 @@ internal struct RouteGroupTuple
     /// Files bound by this route.
     /// </summary>
     public DirectoryFilesGroup Files;
+}
+
+internal struct RouteFileTuple
+{
+    /// <summary>
+    /// Route associated with this tuple.
+    /// </summary>
+    public Route Route;
+
+    /// <summary>
+    /// Path to the file bound by this route.
+    /// </summary>
+    public string FilePath;
+
+    /// <summary>
+    /// The path the bound file will take in its pak.
+    /// </summary>
+    public string VirtualPath;
 }

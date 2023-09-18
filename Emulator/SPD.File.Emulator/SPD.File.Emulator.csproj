@@ -50,6 +50,7 @@
 
   <ItemGroup>
     <ProjectReference Include="..\..\Emulators\Interfaces\SPD.File.Emulator.Interfaces\SPD.File.Emulator.Interfaces.csproj" />
+    <ProjectReference Include="..\Interfaces\SPD.File.Emulator.Interfaces\SPD.File.Emulator.Interfaces.csproj" />
   </ItemGroup>
 
 </Project>

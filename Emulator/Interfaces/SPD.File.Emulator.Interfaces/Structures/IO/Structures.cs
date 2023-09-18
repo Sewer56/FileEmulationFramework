@@ -1,5 +1,4 @@
 ﻿using FileEmulationFramework.Lib.IO;
-
 namespace SPD.File.Emulator.Interfaces.Structures.IO;
 
 
@@ -38,7 +37,7 @@ public class DirectoryFilesGroup
 /// <summary>
 /// A tuple representing a group and a route.
 /// </summary>
-public struct RouteFileTuple
+public struct RouteGroupTuple
 {
     /// <summary>
     /// Route associated with this tuple.
@@ -48,5 +47,5 @@ public struct RouteFileTuple
     /// <summary>
     /// Files bound by this route.
     /// </summary>
-    public string File;
+    public DirectoryFilesGroup Files;
 }

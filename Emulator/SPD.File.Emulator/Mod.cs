@@ -56,6 +56,9 @@ namespace SPD.File.Emulator
 
             _modLoader.GetController<IEmulationFramework>().TryGetTarget(out var framework);
             framework!.Register(_emulator);
+
+            // Expose API
+            _modLoader.AddOrReplaceController<ISpdEmulator>(context.Owner, new SpdEmulatorApi(framework, _emulator, _log));
         }
 
         private void OnModLoaderInitialized()

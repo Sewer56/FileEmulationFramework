@@ -14,4 +14,5 @@ internal class Constants
     public const string TextureEntryExtension = ".spdtex";
     public const string DumpFolder = "FEmulator-Dumps/SPDEmulator";
     public static readonly string RedirectorFolder = $"FEmulator{Path.DirectorySeparatorChar}SPD";
+    public const int AllocationGranularity = 65536;
 }

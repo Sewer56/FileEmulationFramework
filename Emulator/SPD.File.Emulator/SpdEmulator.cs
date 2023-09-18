@@ -4,6 +4,7 @@ using FileEmulationFramework.Lib.IO;
 using FileEmulationFramework.Lib.Utilities;
 using SPD.File.Emulator.Spd;
 using SPD.File.Emulator.Utilities;
+using System.Collections.Generic;
 
 namespace SPD.File.Emulator;
 
@@ -19,7 +20,7 @@ public class SpdEmulator : IEmulator
 
     // Note: Handle->Stream exists because hashing IntPtr is easier; thus can resolve reads faster.
     private readonly SpdBuilderFactory _builderFactory;
-    private Dictionary<string, MultiStream?> _pathToStream = new(StringComparer.OrdinalIgnoreCase);
+    private Dictionary<string, Stream?> _pathToStream = new(StringComparer.OrdinalIgnoreCase);
     private Logger _log;
 
     public SpdEmulator(Logger log, bool dumpFiles)
@@ -33,13 +34,13 @@ public class SpdEmulator : IEmulator
     {
         // Check if we already made a custom SPD for this file.
         emulated = null!;
-        if (_pathToStream.TryGetValue(filepath, out var multiStream))
+        if (_pathToStream.TryGetValue(filepath, out var stream))
         {
             // Avoid recursion into same file.
-            if (multiStream == null)
+            if (stream == null)
                 return false;
 
-            emulated = new EmulatedFile<MultiStream>(multiStream);
+            emulated = new EmulatedFile<Stream>(stream);
             return true;
         }
 
@@ -109,6 +110,17 @@ public class SpdEmulator : IEmulator
         using var fileStream = new FileStream(filePath, FileMode.Create);
         stream.CopyTo(fileStream);
         _log.Info($"[SpdEmulator] Written To {filePath}");
+    }
+
+    /// <summary>
+    /// Invalidates a BF file with a specified name.
+    /// </summary>
+    /// <param name="bfPath">Full path to the file.</param>
+    public void UnregisterFile(string bfPath) => _pathToStream!.Remove(bfPath, out _);
+
+    public void RegisterFile(string destinationPath, Stream stream)
+    {
+        _pathToStream.TryAdd(destinationPath, stream);
     }
 
     internal List<RouteGroupTuple> GetInput() => _builderFactory._routeGroupTuples;
