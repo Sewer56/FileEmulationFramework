@@ -11,7 +11,7 @@ namespace SPD.File.Emulator.Spd;
 public class SpdBuilderFactory
 {
     internal List<RouteGroupTuple> _routeGroupTuples = new();
-    private Logger _log;
+    private readonly Logger _log;
 
     /// <summary>
     /// Adds all available routes from folders.
@@ -96,7 +96,9 @@ internal struct RouteFileTuple
     /// <summary>
     /// Route associated with this tuple.
     /// </summary>
+#pragma warning disable CS0649 // Field 'RouteFileTuple.Route' is never assigned to, and will always have its default value
     public Route Route;
+#pragma warning restore CS0649 // Field 'RouteFileTuple.Route' is never assigned to, and will always have its default value
 
     /// <summary>
     /// Path to the file bound by this route.

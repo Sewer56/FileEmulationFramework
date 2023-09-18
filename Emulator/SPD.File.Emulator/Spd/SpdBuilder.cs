@@ -111,6 +111,7 @@ public class SpdBuilder
                 if (!int.TryParse(fileName[4..].Split("_", StringSplitOptions.TrimEntries).FirstOrDefault(), out newId))
                     continue;
             }
+            else { continue; }
 
             // Take texture data slice and make a stream out of it
             _textureEntries[newId] = CreateTextureEntry(file, newId);
@@ -345,8 +346,8 @@ public class SpdBuilder
         ddsSlice.GetData(out byte[] ddsDimensions);
         var ddsStream = new MemoryStream(ddsDimensions);
 
-        ddsStream.TryRead(out uint textureWidth, out _);
         ddsStream.TryRead(out uint textureHeight, out _);
+        ddsStream.TryRead(out uint textureWidth, out _);
 
         textureEntryStream.Write(id); // texture id
         textureEntryStream.Write(0); // unk04

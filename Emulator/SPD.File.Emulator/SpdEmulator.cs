@@ -20,8 +20,8 @@ public class SpdEmulator : IEmulator
 
     // Note: Handle->Stream exists because hashing IntPtr is easier; thus can resolve reads faster.
     private readonly SpdBuilderFactory _builderFactory;
-    private Dictionary<string, Stream?> _pathToStream = new(StringComparer.OrdinalIgnoreCase);
-    private Logger _log;
+    private readonly Dictionary<string, Stream?> _pathToStream = new(StringComparer.OrdinalIgnoreCase);
+    private readonly Logger _log;
 
     public SpdEmulator(Logger log, bool dumpFiles)
     {

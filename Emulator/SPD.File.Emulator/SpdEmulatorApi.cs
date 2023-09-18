@@ -34,8 +34,8 @@ public class SpdEmulatorApi : ISpdEmulator
         }
 
         IEmulatedFile? emulated = null;
-        Native.SetFilePointerEx(handle, offset, IntPtr.Zero, 0);
-        if (!_spdEmulator.TryCreateEmulatedFile(handle, sourcePath, destinationPath, route, ref emulated, out var stream))
+        _ = Native.SetFilePointerEx(handle, offset, IntPtr.Zero, 0);
+        if (!_spdEmulator.TryCreateEmulatedFile(handle, sourcePath, destinationPath, route, ref emulated, out _))
         {
             _logger.Error("[SpdEmulatorApi] TryCreateFromFileSlice: Failed to Create Emulated File at Path {0}", sourcePath);
             return false;
@@ -87,7 +87,7 @@ public class SpdEmulatorApi : ISpdEmulator
             return;
         }
 
-        Native.SetFilePointerEx(handle, 0, IntPtr.Zero, 0);
+        _ = Native.SetFilePointerEx(handle, 0, IntPtr.Zero, 0);
 
         var fileStream = new FileStream(new SafeFileHandle(handle, false), FileAccess.Read);
         var stream = StreamUtils.CreateMemoryStream(fileStream.Length);
@@ -111,8 +111,8 @@ public class SpdEmulatorApi : ISpdEmulator
         }
 
         IEmulatedFile? emulated = null;
-        Native.SetFilePointerEx(handle, 0, IntPtr.Zero, 0);
-        if (!_spdEmulator.TryCreateEmulatedFile(handle, sourcePath, destinationPath, route, ref emulated, out var stream))
+        _ = Native.SetFilePointerEx(handle, 0, IntPtr.Zero, 0);
+        if (!_spdEmulator.TryCreateEmulatedFile(handle, sourcePath, destinationPath, route, ref emulated, out _))
         {
             _logger.Error("[SpdEmulatorApi] TryCreateFromSpd: Failed to Create Emulated File at Path {0}", sourcePath);
             return false;

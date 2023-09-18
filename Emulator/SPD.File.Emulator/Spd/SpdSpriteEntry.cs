@@ -6,6 +6,8 @@ namespace SPD.File.Emulator.Spd;
 
 public struct SpdSpriteEntry
 {
+#pragma warning disable IDE0044 // Add readonly modifier
+#pragma warning disable IDE0051 // Remove unused private members
     int _spriteId;
     int _spriteTextureId;
     int _unk08;
@@ -36,9 +38,11 @@ public struct SpdSpriteEntry
     int _unk6c;
     unsafe fixed byte _spriteName[48];
 
-    public int GetSpriteId() => _spriteId;
-    public int GetSpriteTextureId() => _spriteTextureId;
+    public readonly int GetSpriteId() => _spriteId;
+    public readonly int GetSpriteTextureId() => _spriteTextureId;
     public void SetTextureId(int id) => _spriteTextureId = id;
+#pragma warning restore IDE0044 // Add readonly modifier
+#pragma warning restore IDE0051 // Remove unused private members
 }
 
 public class SpdSpriteDictionary : IDictionary<int, SpdSpriteEntry>

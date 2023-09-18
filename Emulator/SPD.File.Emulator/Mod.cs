@@ -34,8 +34,8 @@ namespace SPD.File.Emulator
         /// </summary>
         private readonly IModConfig _modConfig;
 
-        private Logger _log;
-        private SpdEmulator _emulator;
+        private readonly Logger _log;
+        private readonly SpdEmulator _emulator;
         public Mod(ModContext context)
         {
             _modLoader = context.ModLoader;
