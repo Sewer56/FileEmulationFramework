@@ -8,7 +8,6 @@ using FlowFormatVersion = AtlusScriptLibrary.FlowScriptLanguage.FormatVersion;
 // Aliasing for readability, since our assembly name has priority over 'File'
 using Fiel = System.IO.File;
 using BF.File.Emulator.Utilities;
-using System.Text.Json.Serialization;
 using System.Text.Json;
 using AtlusScriptLibrary.Common.Text.Encodings;
 using static BF.File.Emulator.Utilities.CompilerArgs;
