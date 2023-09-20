@@ -92,4 +92,15 @@ public class BfEmulatorApi : IBfEmulator
         _framework.RegisterVirtualFile(destinationPath, emulated!, false);
         return true;
     }
+
+    public void AddFile(string file, string route)
+    {
+        _bfEmulator.AddFile(file, route);
+    }
+
+    public void AddDirectory(string dir)
+    {
+        _bfEmulator.AddFromFolders(dir);
+    }
+
 }

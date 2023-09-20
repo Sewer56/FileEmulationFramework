@@ -48,29 +48,33 @@ internal class BfBuilderFactory
         {
             foreach (var file in group.Files)
             {
-                if (file.EndsWith(Constants.JsonExtension, StringComparison.OrdinalIgnoreCase))
-                {
-                    if (file.Equals(Constants.FunctionsFile, StringComparison.OrdinalIgnoreCase))
-                        FunctionOverrides[group.Directory.FullPath] = $@"{group.Directory.FullPath}\{file}";
-                    else if (file.Equals(Constants.EnumsFile, StringComparison.OrdinalIgnoreCase))
-                        EnumOverrides[group.Directory.FullPath] = $@"{group.Directory.FullPath}\{file}";
-                    else if (file.Equals(Constants.ArgsFile, StringComparison.OrdinalIgnoreCase))
-                        OverrideCompilerArgs($@"{group.Directory.FullPath}\{file}");
-                }
-
-                if (!file.EndsWith(Constants.FlowExtension, StringComparison.OrdinalIgnoreCase) && !file.EndsWith(Constants.MessageExtension, StringComparison.OrdinalIgnoreCase))
-                    continue;
-
                 var filePath = $@"{group.Directory.FullPath}\{file}";
                 var route = Route.GetRoute(redirectorFolder, filePath);
-
-                RouteFileTuples.Add(new RouteGroupTuple()
-                {
-                    Route = new Route(route),
-                    File = filePath
-                });
+                AddFile(file, filePath, group.Directory.FullPath, route);
             }
         }
+    }
+
+    public void AddFile(string fileName, string filePath, string dirPath, string route)
+    {
+        if (fileName.EndsWith(Constants.JsonExtension, StringComparison.OrdinalIgnoreCase))
+        {
+            if (fileName.Equals(Constants.FunctionsFile, StringComparison.OrdinalIgnoreCase))
+                FunctionOverrides[dirPath] = filePath;
+            else if (fileName.Equals(Constants.EnumsFile, StringComparison.OrdinalIgnoreCase))
+                EnumOverrides[dirPath] = filePath;
+            else if (fileName.Equals(Constants.ArgsFile, StringComparison.OrdinalIgnoreCase))
+                OverrideCompilerArgs(filePath);
+        }
+
+        if (!fileName.EndsWith(Constants.FlowExtension, StringComparison.OrdinalIgnoreCase) && !fileName.EndsWith(Constants.MessageExtension, StringComparison.OrdinalIgnoreCase))
+            return;
+
+        RouteFileTuples.Add(new RouteGroupTuple()
+        {
+            Route = new Route(route),
+            File = filePath
+        });
     }
 
     /// <summary>
