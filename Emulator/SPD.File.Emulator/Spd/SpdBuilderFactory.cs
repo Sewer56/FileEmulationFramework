@@ -90,23 +90,3 @@ internal struct RouteGroupTuple
     /// </summary>
     public DirectoryFilesGroup Files;
 }
-
-internal struct RouteFileTuple
-{
-    /// <summary>
-    /// Route associated with this tuple.
-    /// </summary>
-#pragma warning disable CS0649 // Field 'RouteFileTuple.Route' is never assigned to, and will always have its default value
-    public Route Route;
-#pragma warning restore CS0649 // Field 'RouteFileTuple.Route' is never assigned to, and will always have its default value
-
-    /// <summary>
-    /// Path to the file bound by this route.
-    /// </summary>
-    public string FilePath;
-
-    /// <summary>
-    /// The path the bound file will take in its pak.
-    /// </summary>
-    public string VirtualPath;
-}

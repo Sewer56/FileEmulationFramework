@@ -11,6 +11,7 @@ using Microsoft.Win32.SafeHandles;
 using Reloaded.Memory;
 using Reloaded.Memory.Extensions;
 using Reloaded.Memory.Streams;
+using Reloaded.Mod.Interfaces;
 
 namespace SPD.File.Emulator.Spd;
 
@@ -90,26 +91,41 @@ public class SpdBuilder
 
             if (fileName.StartsWith("spr_", StringComparison.OrdinalIgnoreCase))
             {
-                
                 // Remove 'spr_' in the filename and Separate Ids by '_'
                 var spriteIds = fileName[4..].Split('_', StringSplitOptions.TrimEntries);
 
                 foreach (var spriteIdStr in spriteIds)
                 {
-                    // Patch texture ids for each sprite id contained in the filename
-                    if (int.TryParse(spriteIdStr, out int spriteId))
+                    // Check for sprite ranges
+                    if (spriteIdStr.Contains('-'))
                     {
-                        var spriteEntry = _spriteEntries[spriteId];
-                        spriteEntry.SetTextureId(newId);
-                        _spriteEntries[spriteId] = spriteEntry;
+                        // Parse sprite range
+                        var spriteIdRangeStr = spriteIdStr.Split("-");
+                        if (!int.TryParse(spriteIdRangeStr[0], out int spriteIdRangeLower)) break;
+                        if (!int.TryParse(spriteIdRangeStr[1], out int spriteIdRangeUpper)) break;
+
+                        for (int i = spriteIdRangeLower; i <= spriteIdRangeUpper; i++)
+                        {
+                            PatchSpriteEntry(i, newId);
+                        }
+                    }
+                    else if (int.TryParse(spriteIdStr, out int spriteId)) // Patch texture ids for each sprite id contained in the filename
+                    {
+                        PatchSpriteEntry(spriteId, newId);
                     }
                 }
+
+                nextId++;
             }
             else if(fileName.StartsWith("tex_", StringComparison.OrdinalIgnoreCase))
             {
                 // Get texture id to replace from filename
                 if (!int.TryParse(fileName[4..].Split("_", StringSplitOptions.TrimEntries).FirstOrDefault(), out newId))
                     continue;
+
+                // Only increment next id if a new texture is being added
+                if (!_textureEntries.ContainsKey(newId))
+                    nextId++;
             }
             else { continue; }
 
@@ -118,8 +134,6 @@ public class SpdBuilder
             byte[] data = new byte[file.Length];
             file.GetData(data);
             _textureData[newId] = new MemoryStream(data);
-
-            nextId++;
         }
 
         MemoryStream spriteStream = BuildSpdSpriteStream();
@@ -169,6 +183,18 @@ public class SpdBuilder
         return new MultiStream(pairs, logger);
     }
 
+    private void PatchSpriteEntry(int spriteId, int newTextureId)
+    {
+        if (!_spriteEntries.ContainsKey(spriteId))
+        {
+            _log.Info("Tried to patch non-existent SPD id {0}. Skipping...", spriteId);
+            return;
+        }
+
+        var spriteEntry = _spriteEntries[spriteId];
+        spriteEntry.SetTextureId(newTextureId);
+        _spriteEntries[spriteId] = spriteEntry;
+    }
     private SpdHeader GetSpdHeaderFromFile(nint handle, long pos)
     {
         var stream = new FileStream(new SafeFileHandle(handle, false), FileAccess.Read);
