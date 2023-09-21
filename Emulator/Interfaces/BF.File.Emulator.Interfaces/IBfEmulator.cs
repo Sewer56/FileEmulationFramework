@@ -26,8 +26,20 @@ public interface IBfEmulator
     /// <summary>
     /// Registers an already compiled BF as an emulated one
     /// </summary>
-    /// <param name="sourcePath">The path to the bf file to registeer</param>
+    /// <param name="sourcePath">The path to the bf file to register</param>
     /// <param name="destinationPath">The path where the emulated bf file should be put</param>
     public void RegisterBf(string sourcePath, string destinationPath);
 
+    /// <summary>
+    /// Adds a new file to be used when compiling bfs
+    /// </summary>
+    /// <param name="file">The path to the file to add</param>
+    /// <param name="route">The route the file is in</param>
+    public void AddFile(string file, string route);
+
+    /// <summary>
+    /// Adds a directory to BF Emulator so it's like the files were in FEmulator\BF
+    /// </summary>
+    /// <param name="dir">The directory to add the files from</param>
+    public void AddDirectory(string dir);
 }

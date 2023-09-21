@@ -3,10 +3,8 @@ using BF.File.Emulator.Interfaces.Structures.IO;
 using BF.File.Emulator.Utilities;
 using FileEmulationFramework.Interfaces;
 using FileEmulationFramework.Interfaces.Reference;
-using FileEmulationFramework.Lib.Memory;
 using FileEmulationFramework.Lib.Utilities;
 using Microsoft.Win32.SafeHandles;
-using System.Diagnostics;
 using System.Runtime.InteropServices;
 
 namespace BF.File.Emulator;
@@ -92,4 +90,15 @@ public class BfEmulatorApi : IBfEmulator
         _framework.RegisterVirtualFile(destinationPath, emulated!, false);
         return true;
     }
+
+    public void AddFile(string file, string route)
+    {
+        _bfEmulator.AddFile(file, route);
+    }
+
+    public void AddDirectory(string dir)
+    {
+        _bfEmulator.AddFromFolders(dir);
+    }
+
 }

@@ -3,7 +3,6 @@ using FileEmulationFramework.Interfaces;
 using System.Collections.Concurrent;
 using System.Text;
 using BF.File.Emulator.Bf;
-using FileEmulationFramework.Lib.Memory;
 using BF.File.Emulator.Utilities;
 using FlowFormatVersion = AtlusScriptLibrary.FlowScriptLanguage.FormatVersion;
 using static BF.File.Emulator.Mod;
@@ -11,7 +10,6 @@ using AtlusScriptLibrary.Common.Libraries;
 using AtlusScriptLibrary.Common.Text.Encodings;
 using AtlusScriptLibrary.Common.Logging;
 using Logger = FileEmulationFramework.Lib.Utilities.Logger;
-using System.Diagnostics;
 
 namespace BF.File.Emulator;
 
@@ -161,6 +159,10 @@ public class BfEmulator : IEmulator
     }
 
     internal List<RouteGroupTuple> GetInput() => _builderFactory.RouteFileTuples;
+
+    internal void AddFromFolders(string dir) => _builderFactory.AddFromFolders(dir);
+
+    internal void AddFile(string file, string route) => _builderFactory.AddFile(Path.GetFileName(file), file, Path.GetDirectoryName(file)!, route);
 }
 
 public class AtlusLogListener : LogListener
