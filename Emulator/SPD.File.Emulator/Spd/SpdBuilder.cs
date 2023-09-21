@@ -1,17 +1,9 @@
-﻿using System.Collections.Generic;
-using System.Reflection.Metadata;
-using System.Reflection.Metadata.Ecma335;
-using System.Runtime.CompilerServices;
-using System.Text;
-using FileEmulationFramework.Lib.IO;
-using FileEmulationFramework.Lib.IO.Interfaces;
+﻿using FileEmulationFramework.Lib.IO;
 using FileEmulationFramework.Lib.IO.Struct;
 using FileEmulationFramework.Lib.Utilities;
 using Microsoft.Win32.SafeHandles;
-using Reloaded.Memory;
 using Reloaded.Memory.Extensions;
-using Reloaded.Memory.Streams;
-using Reloaded.Mod.Interfaces;
+using System.Text;
 
 namespace SPD.File.Emulator.Spd;
 
@@ -67,7 +59,7 @@ public class SpdBuilder
         _spriteEntries = GetSpdSpriteEntriesFromFile(handle, baseOffset);
         _textureData = GetSpdTextureDataFromFile(handle, baseOffset);
 
-        // Write custom sprite entries from '.spr' files to sprite dictionary
+        // Write custom sprite entries from '.spdspr' files to sprite dictionary
         foreach ( var file in _customSprFiles.Values )
         {
             var stream = new FileStream(new SafeFileHandle(file.Handle, false), FileAccess.Read);
