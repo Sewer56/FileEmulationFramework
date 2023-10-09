@@ -3,13 +3,7 @@ using FileEmulationFramework.Lib.IO.Struct;
 using FileEmulationFramework.Lib.Utilities;
 using Microsoft.Win32.SafeHandles;
 using Reloaded.Memory.Extensions;
-using SPD.File.Emulator.Spr;
 using SPD.File.Emulator.Sprite;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 
 namespace SPD.File.Emulator.Spr
 {
@@ -144,19 +138,17 @@ namespace SPD.File.Emulator.Spr
             MemoryStream headerStream = new(HEADER_LENGTH);
 
             // Write Header
-            headerStream.Write(1); // Flags and userId
-            headerStream.Write(0); // Reserved1
-            headerStream.Write(0x30525053); // 'SPR0'
-            headerStream.Write(0x20); // Header size (usually 0x20)
 
             // Calculate filesize
             long newFileSize = HEADER_LENGTH + pointerStream.Length + spriteStream.Length + textureStream.Length;
 
-            headerStream.Write((int)newFileSize);
-            headerStream.Write((short)_textureData.Count); // texture count
-            headerStream.Write((short)_spriteEntries.Count); // sprite count
-            headerStream.Write(HEADER_LENGTH); // texture entry start offset
-            headerStream.Write(HEADER_LENGTH + (_textureData.Count * POINTER_ENTRY_LENGTH)); // sprite entry start offset
+            _sprHeader._fileSize = (int)newFileSize;
+            _sprHeader._textureEntryCount= (short)_textureData.Count;
+            _sprHeader._spriteEntryCount = (short)_spriteEntries.Count;
+            _sprHeader._textureEntryOffset = HEADER_LENGTH;
+            _sprHeader._spriteEntryOffset = HEADER_LENGTH + (_textureData.Count * POINTER_ENTRY_LENGTH);
+
+            headerStream.Write(_sprHeader);
 
             // Calculate
             // Make Multistream

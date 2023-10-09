@@ -9,11 +9,11 @@ public struct SprHeader
     int _reserved1;
     int magic;      // 'SPR0'
     int _headerSize;        // always 2, maybe version
-    int _fileSize;
-    short _textureEntryCount;
-    short _spriteEntryCount;
-    int _textureEntryOffset;
-    int _spriteEntryOffset;
+    internal int _fileSize;
+    internal short _textureEntryCount;
+    internal short _spriteEntryCount;
+    internal int _textureEntryOffset;
+    internal int _spriteEntryOffset;
 
     public readonly (short, int) GetTextureEntryCountAndOffset() => (_textureEntryCount, _textureEntryOffset);
     public readonly (short, int) GetSpriteEntryCountAndOffset() => (_spriteEntryCount, _spriteEntryOffset);
