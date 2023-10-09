@@ -324,7 +324,7 @@ public class SpdBuilder : SpriteBuilder
     /// <param name="texture">The data slice of the texture to be read.</param>
     /// <param name="id">The Id of the new texture.</param>
     /// </summary>
-    public SpdTextureEntry CreateTextureEntry(FileSlice texture, int id)
+    public static SpdTextureEntry CreateTextureEntry(FileSlice texture, int id)
     {
         long fileSize = texture.Length;
 
