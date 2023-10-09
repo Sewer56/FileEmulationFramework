@@ -1,4 +1,5 @@
-﻿using FileEmulationFramework.Lib.IO;
+﻿using SPD.File.Emulator.Sprite;
+using FileEmulationFramework.Lib.IO;
 using FileEmulationFramework.Lib.IO.Struct;
 using FileEmulationFramework.Lib.Utilities;
 using Microsoft.Win32.SafeHandles;
@@ -7,38 +8,26 @@ using System.Text;
 
 namespace SPD.File.Emulator.Spd;
 
-public class SpdBuilder
+public class SpdBuilder : SpriteBuilder
 {
-    private Dictionary<string, FileSlice> _customSprFiles = new();
-    private Dictionary<string, FileSlice> _customDdsFiles = new();
-    private Dictionary<int, MemoryStream> _textureData = new();
     private SpdTextureDictionary _textureEntries = new();
+    private Dictionary<int, MemoryStream> _textureData = new();
     private SpdSpriteDictionary _spriteEntries = new();
 
     private SpdHeader _spdHeader;
+    public SpdBuilder(Logger log) : base(log) { }
 
-    Logger _log;
-
-    public SpdBuilder(Logger log)
-    {
-        _log = log;
-    }
-
-    /// <summary>
-    /// Adds a file to the Virtual SPD builder.
-    /// </summary>
-    /// <param name="filePath">Full path to the file.</param>
-    public void AddOrReplaceFile(string filePath)
+    public override void AddOrReplaceFile(string filePath)
     {
         var file = Path.GetFileName(filePath);
 
         switch (Path.GetExtension(file).ToLower())
         {
-            case Constants.SpriteExtension:
+            case Constants.SpdSpriteExtension:
                 _customSprFiles[file] = new(filePath);
                 break;
-            case Constants.TextureExtension:
-                _customDdsFiles[file] = new(filePath);
+            case Constants.SpdTextureExtension:
+                _customTextureFiles[file] = new(filePath);
                 break;
         }
     }
@@ -46,7 +35,7 @@ public class SpdBuilder
     /// <summary>
     /// Builds an SPD file.
     /// </summary>
-    public unsafe MultiStream Build(IntPtr handle, string filepath, Logger? logger = null, string folder = "", long baseOffset = 0)
+    public override unsafe MultiStream Build(IntPtr handle, string filepath, Logger? logger = null, string folder = "", long baseOffset = 0)
     {
         const int HEADER_LENGTH = 0x20;
         const int TEXTURE_ENTRY_LENGTH = 0x30;
@@ -54,10 +43,10 @@ public class SpdBuilder
         logger?.Info($"[{nameof(SpdBuilder)}] Building SPD File | {{0}}", filepath);
 
         // Get original file's entries.
-        _spdHeader = GetSpdHeaderFromFile(handle, baseOffset);
-        _textureEntries = GetSpdTextureEntriesFromFile(handle, baseOffset);
-        _spriteEntries = GetSpdSpriteEntriesFromFile(handle, baseOffset);
-        _textureData = GetSpdTextureDataFromFile(handle, baseOffset);
+        _spdHeader = GetHeaderFromSpr<SpdHeader>(handle, baseOffset);
+        _textureEntries = GetTextureEntriesFromFile(handle, baseOffset);
+        _spriteEntries = GetSpriteEntriesFromFile(handle, baseOffset);
+        _textureData = GetTextureDataFromFile(handle, baseOffset);
 
         // Write custom sprite entries from '.spdspr' files to sprite dictionary
         foreach ( var file in _customSprFiles.Values )
@@ -76,7 +65,7 @@ public class SpdBuilder
         int nextId = maxId + 1;
 
         // Get DDS filenames and adjust edited sprite texture ids
-        foreach ( var (key, file) in _customDdsFiles )
+        foreach ( var (key, file) in _customTextureFiles )
         {
             int newId = nextId;
             string fileName = Path.GetFileNameWithoutExtension(file.FilePath);
@@ -187,24 +176,8 @@ public class SpdBuilder
         spriteEntry.SetTextureId(newTextureId);
         _spriteEntries[spriteId] = spriteEntry;
     }
-    private SpdHeader GetSpdHeaderFromFile(nint handle, long pos)
-    {
-        var stream = new FileStream(new SafeFileHandle(handle, false), FileAccess.Read);
 
-        stream.Seek(pos, SeekOrigin.Begin);
-
-        try
-        {
-            return stream.Read<SpdHeader>();
-        }
-        finally
-        {
-            stream.Dispose();
-            _ = Native.SetFilePointerEx(handle, pos, IntPtr.Zero, 0);
-        }
-    }
-
-    private SpdTextureDictionary GetSpdTextureEntriesFromFile(IntPtr handle, long pos)
+    private SpdTextureDictionary GetTextureEntriesFromFile(IntPtr handle, long pos)
     {
         SpdTextureDictionary textureDictionary = new();
 
@@ -231,7 +204,7 @@ public class SpdBuilder
         }
     }
 
-    private SpdSpriteDictionary GetSpdSpriteEntriesFromFile(IntPtr handle, long pos)
+    private SpdSpriteDictionary GetSpriteEntriesFromFile(IntPtr handle, long pos)
     {
         SpdSpriteDictionary spriteDictionary = new();
 
@@ -258,7 +231,7 @@ public class SpdBuilder
         }
     }
 
-    private Dictionary<int, MemoryStream> GetSpdTextureDataFromFile(IntPtr handle, long pos)
+    private Dictionary<int, MemoryStream> GetTextureDataFromFile(IntPtr handle, long pos)
     {
         // Create a dictionary to hold texture data, with the key being the texture entry's id
         Dictionary<int, MemoryStream> textureDataDictionary = new();
@@ -331,7 +304,6 @@ public class SpdBuilder
     /// <summary>
     /// Writes raw textures to a stream.
     /// </summary>
-    /// <param name="handle">Handle for the SPD file to get texture data from.</param>
     /// <param name="streamSize">The byte size of all textures combined.</param>
     private MemoryStream BuildTextureDataStream(int streamSize)
     {

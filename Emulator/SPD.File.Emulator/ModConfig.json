@@ -45,7 +45,9 @@
   ],
   "OptionalDependencies": [],
   "SupportedAppId": [
-    "p5r.exe"
+    "p5r.exe",
+    "p4g.exe",
+    "p3p.exe"
   ],
   "ProjectUrl": ""
 }

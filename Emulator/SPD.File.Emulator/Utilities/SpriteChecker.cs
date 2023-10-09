@@ -6,7 +6,7 @@ using SPD.File.Emulator.Spd;
 
 namespace SPD.File.Emulator.Utilities;
 
-public static class SpdChecker
+public static class SpriteChecker
 {
     /// <summary>
     /// Checks if a file with a given handle is an SPD file.
@@ -20,11 +20,15 @@ public static class SpdChecker
         try
         {
             //read spd magic
-            byte[] magic = new byte[4];
-            fileStream.ReadAtLeast(magic, 4);
+            byte[] spdMagic = new byte[4];
+            fileStream.ReadAtLeast(spdMagic, 4);
 
+            byte[] sprMagic = new byte[4];
+            fileStream.Seek(8, SeekOrigin.Begin);
+            fileStream.ReadAtLeast(sprMagic, 4);
             //return false if the magic is not 'SPR0', otherwise return true
-            return !(magic[0] != 'S' || magic[1] != 'P' || magic[2] != 'R' || magic[3] != '0');
+            return !(spdMagic[0] != 'S' || spdMagic[1] != 'P' || spdMagic[2] != 'R' || spdMagic[3] != '0') 
+                || !(sprMagic[0] != 'S' || sprMagic[1] != 'P' || sprMagic[2] != 'R' || sprMagic[3] != '0');
         }
         finally
         {

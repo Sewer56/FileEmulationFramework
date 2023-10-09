@@ -1,10 +1,12 @@
 ﻿using FileEmulationFramework.Lib;
 using FileEmulationFramework.Lib.IO;
 using FileEmulationFramework.Lib.Utilities;
+using SPD.File.Emulator.Spd;
+using SPD.File.Emulator.Spr;
 
-namespace SPD.File.Emulator.Spd;
+namespace SPD.File.Emulator.Sprite;
 
-public class SpdBuilderFactory
+public class SpriteBuilderFactory
 {
     internal List<RouteGroupTuple> _routeGroupTuples = new();
     private readonly Logger _log;
@@ -14,7 +16,7 @@ public class SpdBuilderFactory
     /// </summary>
     /// <param name="redirectorFolder">Folder containing the redirector's files.</param>
 
-    public SpdBuilderFactory(Logger log)
+    public SpriteBuilderFactory(Logger log)
     {
         _log = log;
     }
@@ -50,7 +52,7 @@ public class SpdBuilderFactory
     /// <param name="path">The file path/route to create SPD Builder for.</param>
     /// <param name="builder">The created builder.</param>
     /// <returns>True if a builder could be made, else false (if there are no files to modify this SPD).</returns>
-    public bool TryCreateFromPath(string path, out SpdBuilder? builder)
+    public bool TryCreateFromPath(string path, out SpriteBuilder? builder)
     {
         builder = default;
         var route = new Route(path);
@@ -59,8 +61,14 @@ public class SpdBuilderFactory
             if (!route.Matches(group.Route.FullPath))
                 continue;
 
+            string routeExtension = Path.GetExtension(route.FullPath).ToLower();
             // Make builder if not made.
-            builder ??= new SpdBuilder(_log);
+            if (routeExtension == ".spd")
+                builder ??= new SpdBuilder(_log);
+            else if (routeExtension == ".spr")
+                builder ??= new SprBuilder(_log);
+            else
+               return false;
 
             // Add files to builder.
             var dir = group.Files.Directory.FullPath;

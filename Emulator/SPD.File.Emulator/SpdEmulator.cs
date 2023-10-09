@@ -2,7 +2,7 @@
 using FileEmulationFramework.Interfaces.Reference;
 using FileEmulationFramework.Lib.IO;
 using FileEmulationFramework.Lib.Utilities;
-using SPD.File.Emulator.Spd;
+using SPD.File.Emulator.Sprite;
 using SPD.File.Emulator.Utilities;
 using System.Collections.Generic;
 
@@ -19,7 +19,7 @@ public class SpdEmulator : IEmulator
     public bool DumpFiles { get; set; }
 
     // Note: Handle->Stream exists because hashing IntPtr is easier; thus can resolve reads faster.
-    private readonly SpdBuilderFactory _builderFactory;
+    private readonly SpriteBuilderFactory _builderFactory;
     private readonly Dictionary<string, Stream?> _pathToStream = new(StringComparer.OrdinalIgnoreCase);
     private readonly Logger _log;
 
@@ -73,7 +73,7 @@ public class SpdEmulator : IEmulator
             return false;
 
         // Check file type.
-        if (!SpdChecker.IsSpdFile(handle))
+        if (!SpriteChecker.IsSpdFile(handle))
             return false;
 
         // Make the SPD file.
