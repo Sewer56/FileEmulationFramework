@@ -128,23 +128,18 @@ public class SpdBuilder : SpriteBuilder
         MemoryStream headerStream = new(HEADER_LENGTH);
 
         // Write Header
-        headerStream.Write(0x30525053); // 'SPR0'
-        headerStream.Write(2); // unk04 (usually 2)
 
         // Calculate filesize
         long newFileSize = totalTextureSize + HEADER_LENGTH + textureEntryStream.Length + spriteStream.Length;
 
-        headerStream.Write((int)newFileSize); // filesize
-        headerStream.Write(0); // unk0c (usually 0)
-        headerStream.Write(32); // unk10 (usually 32)
+        _spdHeader._fileSize = (int)newFileSize;
+        _spdHeader._textureEntryCount = (short)_textureEntries.Count;
+        _spdHeader._spriteEntryCount = (short)_spriteEntries.Count;
+        _spdHeader._textureEntryOffset = HEADER_LENGTH;
+        _spdHeader._spriteEntryOffset = HEADER_LENGTH + (_textureEntries.Count * TEXTURE_ENTRY_LENGTH);
 
-        int textureCount = _textureEntries.Count;
-        headerStream.Write((short)textureCount); // texture count
-        headerStream.Write((short)_spriteEntries.Count); // sprite count
-        headerStream.Write(HEADER_LENGTH); // texture entry start offset
-        headerStream.Write(HEADER_LENGTH + (textureCount * TEXTURE_ENTRY_LENGTH)); // sprite entry start offset
+        headerStream.Write(_spdHeader);
 
-        // Calculate
         // Make Multistream
         var pairs = new List<StreamOffsetPair<Stream>>()
         {
