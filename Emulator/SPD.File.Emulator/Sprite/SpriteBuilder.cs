@@ -50,5 +50,36 @@ namespace SPD.File.Emulator.Sprite
                 _ = Native.SetFilePointerEx(handle, pos, IntPtr.Zero, 0);
             }
         }
+
+        internal static List<int> GetSpriteIdsFromFilename(string fileName)
+        {
+            List<int> ids = new();
+
+            // Remove 'spr_' in the filename and Separate Ids by '_'
+            var spriteIds = fileName[4..].Split('_', StringSplitOptions.TrimEntries);
+
+            foreach (var spriteIdStr in spriteIds)
+            {
+                // Check for sprite ranges
+                if (spriteIdStr.Contains('-'))
+                {
+                    // Parse sprite range
+                    var spriteIdRangeStr = spriteIdStr.Split("-");
+                    if (!int.TryParse(spriteIdRangeStr[0], out int spriteIdRangeLower)) break;
+                    if (!int.TryParse(spriteIdRangeStr[1], out int spriteIdRangeUpper)) break;
+
+                    for (int i = spriteIdRangeLower; i <= spriteIdRangeUpper; i++)
+                    {
+                        ids.Add(i);
+                    }
+                }
+                else if (int.TryParse(spriteIdStr, out int spriteId)) // Patch texture ids for each sprite id contained in the filename
+                {
+                    ids.Add(spriteId);
+                }
+            }
+
+            return ids;
+        }
     }
 }

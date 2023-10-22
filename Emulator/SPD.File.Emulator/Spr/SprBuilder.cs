@@ -3,7 +3,11 @@ using FileEmulationFramework.Lib.IO.Struct;
 using FileEmulationFramework.Lib.Utilities;
 using Microsoft.Win32.SafeHandles;
 using Reloaded.Memory.Extensions;
+using SPD.File.Emulator.Spd;
 using SPD.File.Emulator.Sprite;
+using System.IO;
+using System;
+using System.Linq;
 
 namespace SPD.File.Emulator.Spr
 {
@@ -11,6 +15,7 @@ namespace SPD.File.Emulator.Spr
     {
         private List<MemoryStream> _textureData = new();
         private List<SprSpriteEntry> _spriteEntries = new();
+        private Dictionary<int, SprSpriteEntry> _newSpriteEntries = new();
 
         private SprHeader _sprHeader;
         private int _totalTextureSize= 0;
@@ -23,10 +28,10 @@ namespace SPD.File.Emulator.Spr
             switch (Path.GetExtension(file).ToLower())
             {
                 case Constants.SprSpriteExtension:
-                    _customSprFiles[file] = new(filePath);
+                    _customSprFiles[filePath] = new(filePath);
                     break;
                 case Constants.SprTextureExtension:
-                    _customTextureFiles[file] = new(filePath);
+                    _customTextureFiles[filePath] = new(filePath);
                     break;
             }
         }
@@ -55,15 +60,7 @@ namespace SPD.File.Emulator.Spr
 
                 if (int.TryParse(fileName[4..], out int index))
                 {
-                    if (index < _spriteEntries.Count)
-                        _spriteEntries[index] = stream.Read<SprSpriteEntry>();
-                    else
-                    {
-                        // Add dummy spr entries up to current spr
-                        _spriteEntries.AddRange(new SprSpriteEntry[index - _spriteEntries.Count]);
-
-                        _spriteEntries.Add(stream.Read<SprSpriteEntry>());
-                    }
+                    _newSpriteEntries[index] = stream.Read<SprSpriteEntry>();
                 }
 
                 stream.Dispose();
@@ -79,44 +76,37 @@ namespace SPD.File.Emulator.Spr
 
                 if (fileName.StartsWith("spr_", StringComparison.OrdinalIgnoreCase))
                 {
-                    // Remove 'spr_' in the filename and Separate Ids by '_'
-                    var spriteIds = fileName[4..].Split('_', StringSplitOptions.TrimEntries);
-
-                    foreach (var spriteIdStr in spriteIds)
+                    foreach (int id in GetSpriteIdsFromFilename(fileName))
                     {
-                        // Check for sprite ranges
-                        if (spriteIdStr.Contains('-'))
+                        // Check for accompanying .spdspr file
+                        _log.Info("boobs {0}", Path.GetDirectoryName(key) + $"\\spr_{id}{Constants.SprSpriteExtension}");
+                        if (!_customSprFiles.ContainsKey(Path.GetDirectoryName(key) + $"\\spr_{id}{Constants.SprSpriteExtension}"))
                         {
-                            // Parse sprite range
-                            var spriteIdRangeStr = spriteIdStr.Split("-");
-                            if (!int.TryParse(spriteIdRangeStr[0], out int spriteIdRangeLower)) break;
-                            if (!int.TryParse(spriteIdRangeStr[1], out int spriteIdRangeUpper)) break;
-
-                            for (int i = spriteIdRangeLower; i <= spriteIdRangeUpper; i++)
+                            if ( id < _spriteEntries.Count)
                             {
-                                PatchSpriteEntry(i, newId);
+                                _newSpriteEntries[id] = _spriteEntries[id].ShallowCopy();
                             }
                         }
-                        else if (int.TryParse(spriteIdStr, out int spriteId)) // Patch texture ids for each sprite id contained in the filename
-                        {
-                            PatchSpriteEntry(spriteId, newId);
-                        }
+
+                        PatchSpriteEntry(id, newId);
                     }
 
                     nextId++;
                 }
-                else if (fileName.StartsWith("tex_", StringComparison.OrdinalIgnoreCase))
+                else if (fileName.StartsWith("tex_", StringComparison.OrdinalIgnoreCase)) // Texture replacement is deprecated
                 {
                     // Get texture id to replace from filename
-                    if (!int.TryParse(fileName[4..].Split("_", StringSplitOptions.TrimEntries).FirstOrDefault(), out newId))
+                    if (!int.TryParse(fileName[4..].Split("_", StringSplitOptions.TrimEntries).FirstOrDefault(), out newId) || _textureData.Count == newId)
                         continue;
 
-                    // Only increment next id if a new texture is being added
-                    if (_textureData.Count == newId)
+                    // Revert each modified sprite that used to point to the textures
+                    for (int i = 0; i < _spriteEntries.Count; i++)
                     {
-                        nextId++;
+                        if (_spriteEntries[i].GetSpriteTextureId() == newId && _newSpriteEntries.ContainsKey(i))
+                        {
+                            _newSpriteEntries.Remove(i);
+                        }
                     }
-                    else if (_textureData.Count < newId) continue;
                 }
                 else continue;
 
@@ -128,6 +118,21 @@ namespace SPD.File.Emulator.Spr
                     _textureData.Add(new MemoryStream(data));
                 else
                     _textureData[newId] = new MemoryStream(data);
+            }
+
+
+            // Copy new sprite entries into the original sprite entry list
+            foreach (var (index, value) in _newSpriteEntries)
+            {
+                if (index < _spriteEntries.Count)
+                    _spriteEntries[index] = _newSpriteEntries[index];
+                else
+                {
+                    // Add dummy spr entries up to current spr
+                    _spriteEntries.AddRange(new SprSpriteEntry[index - _spriteEntries.Count]);
+
+                    _spriteEntries.Add(_newSpriteEntries[index]);
+                }
             }
 
             MemoryStream pointerStream = BuildPointerList();
@@ -245,15 +250,15 @@ namespace SPD.File.Emulator.Spr
 
         private void PatchSpriteEntry(int spriteId, int newTextureId)
         {
-            if (_spriteEntries.Count < spriteId)
+            if (!_newSpriteEntries.ContainsKey(spriteId))
             {
                 _log.Info("Tried to patch non-existent SPR id {0}. Skipping...", spriteId);
                 return;
             }
 
-            var spriteEntry = _spriteEntries[spriteId];
+            var spriteEntry = _newSpriteEntries[spriteId];
             spriteEntry.SetTextureId(newTextureId);
-            _spriteEntries[spriteId] = spriteEntry;
+            _newSpriteEntries[spriteId] = spriteEntry;
         }
 
         private void GetTextureDataFromSpr(IntPtr handle, long pos)
