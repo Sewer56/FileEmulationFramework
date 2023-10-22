@@ -188,6 +188,9 @@ namespace SPD.File.Emulator.Spr
             int pointerEntryListSize = (_spriteEntries.Count + _textureData.Count) * POINTER_ENTRY_SIZE;
             int spriteEntryListSize = SPRITE_ENTRY_SIZE * _spriteEntries.Count;
 
+            int paddingSize = pointerEntryListSize % 0x10;
+            pointerEntryListSize += paddingSize;
+
             MemoryStream stream = new(pointerEntryListSize);
 
             // Calculate the starting offsets of the sprite and texture listss
@@ -209,6 +212,9 @@ namespace SPD.File.Emulator.Spr
                 stream.Write(new SprPointer(spriteEntryOffset));
                 spriteEntryOffset += SPRITE_ENTRY_SIZE;
             }
+
+            byte[] paddingBytes = new byte[paddingSize];
+            stream.Write(paddingBytes);
 
             return stream;
         }
