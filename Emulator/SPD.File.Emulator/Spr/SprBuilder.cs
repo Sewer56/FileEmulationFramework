@@ -79,7 +79,6 @@ namespace SPD.File.Emulator.Spr
                     foreach (int id in GetSpriteIdsFromFilename(fileName))
                     {
                         // Check for accompanying .spdspr file
-                        _log.Info("boobs {0}", Path.GetDirectoryName(key) + $"\\spr_{id}{Constants.SprSpriteExtension}");
                         if (!_customSprFiles.ContainsKey(Path.GetDirectoryName(key) + $"\\spr_{id}{Constants.SprSpriteExtension}"))
                         {
                             if ( id < _spriteEntries.Count)
@@ -252,7 +251,7 @@ namespace SPD.File.Emulator.Spr
         {
             if (!_newSpriteEntries.ContainsKey(spriteId))
             {
-                _log.Info("Tried to patch non-existent SPR id {0}. Skipping...", spriteId);
+                _log.Error("Tried to patch non-existent SPR id {0}. Skipping...", spriteId);
                 return;
             }
 
