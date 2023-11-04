@@ -16,11 +16,23 @@ This emulator should work with any `.SPD` or `.SPR` file.
 ## Usage
 
 As currently this mod is for the PC releases of Persona games, you will need to use the extension of Persona Essentials to use with those games. The steps for using on its own are very similar to with that extension.
+
 Add a dependency on this mod in your mod configuration. (via `Edit Mod` menu dependencies section, or in `ModConfig.json` directly)
 
 ```json
 "ModDependencies": ["reloaded.universal.fileemulationframework.spd"]
 ```
+
+## Legend
+- `.SPD` or `.SPR` -- sprite container files.
+- `.spdspr` or `.sprt` -- sprite entry coordinate files.
+- `.dds` or `.tmx` -- texture files.
+
+`.SPD` will be used to refer to both `.SPD` and `.SPR` files unless stated otherwise.
+`.spdspr` will be used to refer to both `.spdspr` and `.sprt` files unless stated otherwise.
+
+Entries from the texture dictionary will be referred to as "Texture Entries" or "Textures".
+Entries from the sprite coordinate dictionary will be referred to as "Sprite Entries" or "Sprites".
 
 ## Where to put files
 
@@ -36,32 +48,23 @@ Example: FEmulator/PAK/init_free.bin/smap/i_mini_map01.spr
 
 There are 3 tools you're going to want to make use of when preparing files for the SPD Emulator:
 
-- Amicitia
-- PersonaEditor
-- AtlusSpriteTools (optional)
-
-## Legend
-`.SPD` or `.SPR`: sprite container files.
-`.spdspr` or `.sprt`: sprite entry coordinate files.
-`.dds` or `.tmx`: texture files.
-
-`.SPD` will be used to refer to both `.SPD` and `.SPR` files unless stated otherwise.
-`.spdspr` will be used to refer to both `.spdspr` and `.sprt` files unless stated otherwise.
-
-Entries from the texture dictionary will be referred to as "Texture Entries" or "Textures".
-Entries from the sprite coordinate dictionary will be referred to as "Sprite Entries" or "Sprites".
+- [Amicitia](https://github.com/tge-was-taken/Amicitia/releases)
+- [PersonaEditor](https://github.com/Secre-C/PersonaEditor/releases)
+- [PersonaSpriteTools](https://github.com/Secre-C/PersonaSpriteTools) (optional)
 
 ## Extracting textures and sprites
+
 - Amicitia can extract both textures and sprite entries.
 - PersonaEditor can only extract textures.
-- AtlusSpriteTools can extract both textures and sprite entries using `ExtractSprite.py`
+- PersonaSpriteTools can extract both textures and sprite entries using `ExtractSprite.py`
 
 ## Finding Sprite Information
 - Amicitia will display the texture id above the texture window when a texture is selected, same with sprite entry ids.
 - PersonaEditor will display the texture id and sprite id next to each sprite entry in the spd edit window.
-- AtlusSpriteTools' `ExtractSprite.py` will have each sprite id in the sprite entry's file name, and the sprite entry files will be put in a folder with the id of the texture they belong to.
+- PersonaSpriteTools' `ExtractSprite.py` will have each sprite id in the sprite entry's file name, and the sprite entry files will be put in a folder with the id of the texture they belong to.
 
 ## Editing Sprite Files
+
 `.SPD` files are made up of 3 parts. The header, the textures, and the sprite coordinates. The header will be built automatically by the emulator, and allows mod creators to patch the last two.
 
 The emulator provides 3 ways to edit `.SPD` files:
@@ -74,6 +77,7 @@ The emulator provides 3 ways to edit `.SPD` files:
 Sprite patching in this context refers to the technique of appending a provided texture to the `.SPD`s texture dictionary, and patching a sprite to point to the new texture.
 
 After editing the texture containing the sprite you want to change, change the texture's filename to reflect the sprite id, which can be found using PersonaEditor. 
+
 The filename should be `spr_x.dds` where `x` is the sprite id. You can even change multiple sprites with one texture, using underscores `_` to separate ids, and dashes `-` for ranges.
 
 Textures should be the same size as the originals, and the sprites should be in the same place, unless you're supplying an edited `.spdspr` file
@@ -81,19 +85,23 @@ Textures should be the same size as the originals, and the sprites should be in 
 If you are supplying an edited `.spdspr` file, the filename should be `spr_x.spdspr` (or `.sprt`) with `x` being the sprites id.
 
 ### Examples
-To edit sprite id 15, name the texture `spr_15.dds`.
-To edit sprites 15 and 20, name the texture `spr_15_20.dds`
-To edit sprites 15, 20, 25-30, and 45-55, name the texture `spr_15_20_25-30_45-55.dds`
+
+-To edit sprite id 15, name the texture `spr_15.dds`.
+-To edit sprites 15 and 20, name the texture `spr_15_20.dds`
+-To edit sprites 15, 20, 25-30, and 45-55, name the texture `spr_15_20_25-30_45-55.dds`
 
 ## Replacing Textures
+
 The SPD Emulator allows for replacing textures. This is not recommended unless you're editing every sprite contained in the texture.
 
 To replace a texture, simply name your edited texture `tex_x.dds` where `x` is the id of the texture.
 
 ### Example
+
 To replace texture id 4, name the texture `tex_4.dds`
 
 ## Adding New Sprites
+
 Adding a new sprite works similarly to patching sprites, but requires that an accompanying sprite entry file be present.
 
 ### Example
