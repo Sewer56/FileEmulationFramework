@@ -39,12 +39,12 @@ public struct SpdSpriteEntry
 
     public readonly int GetSpriteId() => _spriteId;
     public readonly int GetSpriteTextureId() => _spriteTextureId;
-    public void SetTextureId(int id) => _spriteTextureId = id;
-
-    public readonly SpdSpriteEntry ShallowCopy()
+    public SpdSpriteEntry SetTextureId(int id)
     {
-        return (SpdSpriteEntry)MemberwiseClone();
+        _spriteTextureId = id;
+        return this;
     }
+
 #pragma warning restore IDE0044 // Add readonly modifier
 #pragma warning restore IDE0051 // Remove unused private members
 }

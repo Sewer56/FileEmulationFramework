@@ -24,15 +24,16 @@ Add a dependency on this mod in your mod configuration. (via `Edit Mod` menu dep
 ```
 
 ## Legend
+
 - `.SPD` or `.SPR` -- sprite container files.
 - `.spdspr` or `.sprt` -- sprite entry coordinate files.
 - `.dds` or `.tmx` -- texture files.
 
-`.SPD` will be used to refer to both `.SPD` and `.SPR` files unless stated otherwise.
-`.spdspr` will be used to refer to both `.spdspr` and `.sprt` files unless stated otherwise.
+- `.SPD` will be used to refer to both `.SPD` and `.SPR` files unless stated otherwise.
+- `.spdspr` will be used to refer to both `.spdspr` and `.sprt` files unless stated otherwise.
 
-Entries from the texture dictionary will be referred to as "Texture Entries" or "Textures".
-Entries from the sprite coordinate dictionary will be referred to as "Sprite Entries" or "Sprites".
+- Entries from the texture dictionary will be referred to as "Texture Entries" or "Textures".
+- Entries from the sprite coordinate dictionary will be referred to as "Sprite Entries" or "Sprites".
 
 ## Where to put files
 
@@ -42,6 +43,7 @@ Make folders corresponding to SPD Container paths, e.g. `font/chat/chat.spd/`. A
 ### Sprites in PAK Files
 
 Recreate the directory to the SPD inside the PAK, and create a dummy file with the name of the sprite file in that directory. A dummy file can be made my making an empty .txt file and giving it the name of the sprite file.
+
 Example: FEmulator/PAK/init_free.bin/smap/i_mini_map01.spr
 
 ## Tools
@@ -59,6 +61,7 @@ There are 3 tools you're going to want to make use of when preparing files for t
 - PersonaSpriteTools can extract both textures and sprite entries using `ExtractSprite.py`
 
 ## Finding Sprite Information
+
 - Amicitia will display the texture id above the texture window when a texture is selected, same with sprite entry ids.
 - PersonaEditor will display the texture id and sprite id next to each sprite entry in the spd edit window.
 - PersonaSpriteTools' `ExtractSprite.py` will have each sprite id in the sprite entry's file name, and the sprite entry files will be put in a folder with the id of the texture they belong to.
@@ -70,10 +73,11 @@ There are 3 tools you're going to want to make use of when preparing files for t
 The emulator provides 3 ways to edit `.SPD` files:
 
 - Sprite patching
-- Texture replacement (not recommended)
+- Texture replacement
 - Adding new sprites (advanced)
 
 ## Patching Sprites
+
 Sprite patching in this context refers to the technique of appending a provided texture to the `.SPD`s texture dictionary, and patching a sprite to point to the new texture.
 
 After editing the texture containing the sprite you want to change, change the texture's filename to reflect the sprite id, which can be found using PersonaEditor. 
@@ -86,19 +90,22 @@ If you are supplying an edited `.spdspr` file, the filename should be `spr_x.spd
 
 ### Examples
 
--To edit sprite id 15, name the texture `spr_15.dds`.
--To edit sprites 15 and 20, name the texture `spr_15_20.dds`
--To edit sprites 15, 20, 25-30, and 45-55, name the texture `spr_15_20_25-30_45-55.dds`
+- To edit sprite id 15, name the texture `spr_15.dds`.
+- To edit sprites 15 and 20, name the texture `spr_15_20.dds`
+- To edit sprites 15, 20, 25-30, and 45-55, name the texture `spr_15_20_25-30_45-55.dds`
 
 ## Replacing Textures
 
-The SPD Emulator allows for replacing textures. This is not recommended unless you're editing every sprite contained in the texture.
+Under the hood, texture replacement is really just sprite patching, but affects every sprite that point to the original texture.
 
 To replace a texture, simply name your edited texture `tex_x.dds` where `x` is the id of the texture.
 
+You may also want to exclude some sprites from being affected by this method. You can do this by adding a tilda `~` at the end of the texture name, and using the same underscore `_` dash `-` system explained under the "Patching Sprites" section.
+
 ### Example
 
-To replace texture id 4, name the texture `tex_4.dds`
+- To replace all sprites in texture id 4, name the texture `tex_4.dds`
+- To replace all sprites in texture id 4 except for sprite id 15-20, and 24, name the texture `tex_4~15-20_24.dds` 
 
 ## Adding New Sprites
 

@@ -87,28 +87,34 @@ public class SpdBuilder : SpriteBuilder
                     {
                         if (_spriteEntries.TryGetValue(id, out var _newSpriteEntry))
                         {
-                            _newSpriteEntries[id] = _spriteEntries[id].ShallowCopy();
-
+                            _newSpriteEntries[id] = _spriteEntries[id];
                         }
                     }
 
                     PatchSpriteEntry(id, newId);
                 }
-
-                nextId++;
             }
             else if(fileName.StartsWith("tex_", StringComparison.OrdinalIgnoreCase))
             {
+                string[] ids = fileName[4..].Split('~');
                 // Get texture id to replace from filename
-                if (!int.TryParse(fileName[4..].Split("_", StringSplitOptions.TrimEntries).FirstOrDefault(), out newId) && _textureEntries.ContainsKey(newId))
-                    continue;
+
+                if (!int.TryParse(ids[0], out int tex_id)) continue;
+
+                // Get sprite ids to preserve
+                List<int> exclude_ids = new();
+                if (ids.Length > 1)
+                {
+                    exclude_ids = GetSpriteIdsFromFilename("tex_" + ids[1]);
+                }
 
                 // Revert each modified sprite that used to point to the textures
-                foreach(var (spriteId, sprite) in _spriteEntries)
+                foreach (var (spriteId, sprite) in _spriteEntries)
                 {
-                    if (sprite.GetSpriteTextureId() == newId && _newSpriteEntries.ContainsKey(spriteId))
+                    if (sprite.GetSpriteTextureId() == tex_id && !exclude_ids.Contains(spriteId))
                     {
-                        _newSpriteEntries.Remove(spriteId);
+                        _newSpriteEntries[spriteId] = sprite;
+                        PatchSpriteEntry(spriteId, newId);
                     }
                 }
             }
@@ -119,6 +125,8 @@ public class SpdBuilder : SpriteBuilder
             byte[] data = new byte[file.Length];
             file.GetData(data);
             _textureData[newId] = new MemoryStream(data);
+
+            nextId++;
         }
 
         // Copy new sprite entries into the original sprite entry list
@@ -177,9 +185,7 @@ public class SpdBuilder : SpriteBuilder
             return;
         }
 
-        var spriteEntry = _newSpriteEntries[spriteId];
-        spriteEntry.SetTextureId(newTextureId);
-        _newSpriteEntries[spriteId] = spriteEntry;
+        _newSpriteEntries[spriteId] = _newSpriteEntries[spriteId].SetTextureId(newTextureId);
     }
 
     private SpdTextureDictionary GetTextureEntriesFromFile(IntPtr handle, long pos)

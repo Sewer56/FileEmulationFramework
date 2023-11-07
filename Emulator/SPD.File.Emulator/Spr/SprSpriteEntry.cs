@@ -37,11 +37,10 @@ public struct SprSpriteEntry
     int _unk0x7C;   // possibly padding
 
     public readonly int GetSpriteTextureId() => _textureIndex;
-    public void SetTextureId(int id) => _textureIndex = id;
-
-    public readonly SprSpriteEntry ShallowCopy()
+    public SprSpriteEntry SetTextureId(int id)
     {
-        return (SprSpriteEntry)MemberwiseClone();
+        _textureIndex = id;
+        return this;
     }
 #pragma warning restore IDE0044 // Add readonly modifier
 #pragma warning restore IDE0051 // Remove unused private members
