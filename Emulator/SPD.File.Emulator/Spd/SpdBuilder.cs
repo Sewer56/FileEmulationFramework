@@ -39,12 +39,6 @@ public class SpdBuilder : SpriteBuilder
     /// </summary>
     public override unsafe MultiStream Build(IntPtr handle, string filepath, Logger? logger = null, string folder = "", long baseOffset = 0)
     {
-        foreach (var spr in _customSprFiles.Keys)
-        {
-            _log.Info("boobs {0}", spr);
-        }
-
-
         const int HEADER_LENGTH = 0x20;
         const int TEXTURE_ENTRY_LENGTH = 0x30;
 
