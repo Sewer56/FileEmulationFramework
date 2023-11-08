@@ -72,9 +72,9 @@ There are 3 tools you're going to want to make use of when preparing files for t
 
 The emulator provides 3 ways to edit `.SPD` files:
 
-- Sprite patching
-- Texture replacement
-- Adding new sprites (advanced)
+- [Sprite patching](patching-sprites)
+- [Texture replacement](replacing-textures)
+- [Adding new sprites](adding-new-sprites) (advanced)
 
 ## Patching Sprites
 
@@ -82,7 +82,7 @@ Sprite patching in this context refers to the technique of appending a provided 
 
 After editing the texture containing the sprite you want to change, change the texture's filename to reflect the appropriate sprite id(s), which can be found using PersonaEditor. 
 
-The filename should be `spr_x.dds` where `x` is the sprite ids, using [Id Notation](#Id Notation).
+The filename should be `spr_x.dds` where `x` is the sprite ids, using [Id Notation](#id-notation).
 
 Textures should be the same size as the originals, and the sprites should be in the same place, unless you're supplying an edited `.spdspr` file.
 
@@ -104,7 +104,7 @@ Under the hood, texture replacement is really just sprite patching, but affects 
 
 To replace a texture, simply name your edited texture `tex_x.dds` where `x` is the id of the texture.
 
-You may also want to exclude some sprites from being affected by this method. You can do this by adding a tilda `~` at the end of the texture name, followed by [Id Notation](#Id Notation).
+You may also want to exclude some sprites from being affected by this method. You can do this by adding a tilda `~` at the end of the texture name, followed by the sprite ids in [Id Notation](#id-notation).
 
 ### Example
 
@@ -118,7 +118,7 @@ Adding a new sprite works similarly to patching sprites, but requires that an ac
 ### Example
 
 To add a previously non-existent sprite id 420, create a sprite entry file named `spr_420.spdspr`, and name the texture `spr_420.dds`.
-You can add multiple new sprites by putting multiple sprite entry files, and naming the texture using the [Id Notation](#Id Notation).
+You can add multiple new sprites by putting multiple sprite entry files, and naming the texture using [Id Notation](#id-notation).
 
 ## Id Notation
 
