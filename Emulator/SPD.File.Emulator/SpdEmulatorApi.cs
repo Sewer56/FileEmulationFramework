@@ -122,4 +122,14 @@ public class SpdEmulatorApi : ISpdEmulator
         _framework.RegisterVirtualFile(destinationPath, emulated!);
         return true;
     }
+
+    public void AddFile(string file, string route)
+    {
+        _spdEmulator.AddFile(file, route);
+    }
+
+    public void AddDirectory(string dir)
+    {
+        _spdEmulator.AddFromFolders(dir);
+    }
 }

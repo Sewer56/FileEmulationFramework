@@ -34,7 +34,7 @@ public class SpriteBuilderFactory
         foreach (var group in groups)
         {
             if (group.Files.Length <= 0)
-                continue;
+                return;
 
             var route = Route.GetRoute(redirectorFolder, group.Directory.FullPath);
 

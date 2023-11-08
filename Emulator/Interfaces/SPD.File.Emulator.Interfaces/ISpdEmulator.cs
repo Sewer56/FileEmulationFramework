@@ -41,4 +41,17 @@ public interface ISpdEmulator
     /// <param name="sourcePath">The path to the spd file to registeer</param>
     /// <param name="destinationPath">The path where the emulated spd file should be put</param>
     public void RegisterSpd(string sourcePath, string destinationPath);
+
+    /// <summary>
+    /// Adds a new file to be injected into emulated spds
+    /// </summary>
+    /// <param name="file">The path to the file to add</param>
+    /// <param name="route">The route the file is in</param>
+    public void AddFile(string file, string route);
+
+    /// <summary>
+    /// Adds a directory to SPD Emulator so it's like the files were in FEmulator\SPD
+    /// </summary>
+    /// <param name="dir">The directory to add the files from</param>
+    public void AddDirectory(string dir);
 }
