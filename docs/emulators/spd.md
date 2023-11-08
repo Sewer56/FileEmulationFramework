@@ -72,9 +72,9 @@ There are 3 tools you're going to want to make use of when preparing files for t
 
 The emulator provides 3 ways to edit `.SPD` files:
 
-- [Sprite patching](patching-sprites)
-- [Texture replacement](replacing-textures)
-- [Adding new sprites](adding-new-sprites) (advanced)
+- [Sprite patching](#patching-sprites)
+- [Texture replacement](#replacing-textures)
+- [Adding new sprites](#adding-new-sprites) (advanced)
 
 ## Patching Sprites
 
