@@ -78,15 +78,19 @@ The emulator provides 3 ways to edit `.SPD` files:
 
 ## Patching Sprites
 
-Sprite patching in this context refers to the technique of appending a provided texture to the `.SPD`s texture dictionary, and patching a sprite to point to the new texture.
+Sprite patching in this context refers to the technique of appending a provided texture to the `.SPD`s texture dictionary, and patching a sprite entry to point to the new texture.
 
-After editing the texture containing the sprite you want to change, change the texture's filename to reflect the sprite id, which can be found using PersonaEditor. 
+After editing the texture containing the sprite you want to change, change the texture's filename to reflect the appropriate sprite id(s), which can be found using PersonaEditor. 
 
-The filename should be `spr_x.dds` where `x` is the sprite id. You can even change multiple sprites with one texture, using underscores `_` to separate ids, and dashes `-` for ranges.
+The filename should be `spr_x.dds` where `x` is the sprite ids, using [Id Notation](#Id Notation).
 
-Textures should be the same size as the originals, and the sprites should be in the same place, unless you're supplying an edited `.spdspr` file
+Textures should be the same size as the originals, and the sprites should be in the same place, unless you're supplying an edited `.spdspr` file.
 
 If you are supplying an edited `.spdspr` file, the filename should be `spr_x.spdspr` (or `.sprt`) with `x` being the sprites id.
+
+!!! warning
+    
+    Moving around sprite positions may occasionally break sprite positioning. This has only been observed with P5R so far, and affects sprites that appear next to button prompts as well as a lot of the pause menu animation sprites. These sprites must be put into an image with the same size as the original with the sprites in the correct positions in order to be displayed correctly.
 
 ### Examples
 
@@ -96,11 +100,11 @@ If you are supplying an edited `.spdspr` file, the filename should be `spr_x.spd
 
 ## Replacing Textures
 
-Under the hood, texture replacement is really just sprite patching, but affects every sprite that point to the original texture.
+Under the hood, texture replacement is really just sprite patching, but affects every sprite that pointed to the original texture.
 
 To replace a texture, simply name your edited texture `tex_x.dds` where `x` is the id of the texture.
 
-You may also want to exclude some sprites from being affected by this method. You can do this by adding a tilda `~` at the end of the texture name, and using the same underscore `_` dash `-` system explained under the "Patching Sprites" section.
+You may also want to exclude some sprites from being affected by this method. You can do this by adding a tilda `~` at the end of the texture name, followed by [Id Notation](#Id Notation).
 
 ### Example
 
@@ -114,4 +118,15 @@ Adding a new sprite works similarly to patching sprites, but requires that an ac
 ### Example
 
 To add a previously non-existent sprite id 420, create a sprite entry file named `spr_420.spdspr`, and name the texture `spr_420.dds`.
-You can add multiple new sprites by putting multiple sprite entry files, and naming the texture using the same conventions as patching.
+You can add multiple new sprites by putting multiple sprite entry files, and naming the texture using the [Id Notation](#Id Notation).
+
+## Id Notation
+
+Both sprite patching and texture replacement allow for multiple sprites to be patched/excluded. sprite ranges are denoted by dashes `-`, and sprite ids and ranges are separated by underscores `_`.
+
+### Examples
+
+- 1 = 1
+- 1_5 = 1 and 5
+- 1-5 = 1 through 5
+- 1-5_10 1 through 5, and 10
