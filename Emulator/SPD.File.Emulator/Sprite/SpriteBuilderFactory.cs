@@ -9,6 +9,7 @@ namespace SPD.File.Emulator.Sprite;
 public class SpriteBuilderFactory
 {
     internal List<RouteGroupTuple> _routeGroupTuples = new();
+    internal List<RouteFileTuple> _routeFileTuples = new();
     private readonly Logger _log;
 
     /// <summary>
@@ -34,7 +35,7 @@ public class SpriteBuilderFactory
         foreach (var group in groups)
         {
             if (group.Files.Length <= 0)
-                return;
+                continue;
 
             var route = Route.GetRoute(redirectorFolder, group.Directory.FullPath);
 
@@ -44,6 +45,12 @@ public class SpriteBuilderFactory
                 Files = group
             });
         }
+    }
+
+    public void AddFile(string file, string route)
+    {
+        _log.Info($"[SpdBuilderFactory] Added file {file} with route {route}");
+        _routeFileTuples.Add(new RouteFileTuple { FilePath = file, Route = new Route(route) });
     }
 
     /// <summary>
@@ -56,6 +63,7 @@ public class SpriteBuilderFactory
     {
         builder = default;
         var route = new Route(path);
+
         foreach (var group in _routeGroupTuples)
         {
             if (!route.Matches(group.Route.FullPath))
@@ -68,7 +76,7 @@ public class SpriteBuilderFactory
             else if (routeExtension == ".spr")
                 builder ??= new SprBuilder(_log);
             else
-               return false;
+                return false;
 
             // Add files to builder.
             var dir = group.Files.Directory.FullPath;
@@ -76,6 +84,23 @@ public class SpriteBuilderFactory
             {
                 builder.AddOrReplaceFile(Path.Combine(dir, file));
             }
+        }
+
+        foreach (var group in _routeFileTuples)
+        {
+            if (!route.Matches(group.Route.FullPath))
+                continue;
+
+            string routeExtension = Path.GetExtension(route.FullPath).ToLower();
+            // Make builder if not made.
+            if (routeExtension == ".spd")
+                builder ??= new SpdBuilder(_log);
+            else if (routeExtension == ".spr")
+                builder ??= new SprBuilder(_log);
+            else
+                return false;
+
+            builder.AddOrReplaceFile(group.FilePath);
         }
 
         return builder != null;
@@ -93,4 +118,17 @@ internal struct RouteGroupTuple
     /// Files bound by this route.
     /// </summary>
     public DirectoryFilesGroup Files;
+}
+
+internal struct RouteFileTuple
+{
+    /// <summary>
+    /// Route associated with this tuple.
+    /// </summary>
+    public Route Route;
+
+    /// <summary>
+    /// Path to the file bound by this route.
+    /// </summary>
+    public string FilePath;
 }
