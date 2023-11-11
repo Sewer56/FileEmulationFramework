@@ -1,8 +1,6 @@
 ﻿using FileEmulationFramework.Lib.IO;
-using FileEmulationFramework.Lib.IO.Interfaces;
 using FileEmulationFramework.Lib.IO.Struct;
 using FileEmulationFramework.Lib.Utilities;
-using Microsoft.Win32.SafeHandles;
 using Reloaded.Memory.Extensions;
 using SPD.File.Emulator.Sprite;
 using System.Runtime.InteropServices;

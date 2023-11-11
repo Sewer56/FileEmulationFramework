@@ -1,14 +1,10 @@
-﻿using SPD.File.Emulator.Interfaces;
+﻿using FileEmulationFramework.Interfaces;
+using FileEmulationFramework.Interfaces.Reference;
+using FileEmulationFramework.Lib.Utilities;
+using SPD.File.Emulator.Interfaces;
 using SPD.File.Emulator.Interfaces.Structures.IO;
 using SPD.File.Emulator.Utilities;
-using FileEmulationFramework.Interfaces;
-using FileEmulationFramework.Interfaces.Reference;
-using FileEmulationFramework.Lib.Memory;
-using FileEmulationFramework.Lib.Utilities;
-using Microsoft.Win32.SafeHandles;
-using System.Diagnostics;
 using System.Runtime.InteropServices;
-using System.IO;
 
 namespace SPD.File.Emulator;
 

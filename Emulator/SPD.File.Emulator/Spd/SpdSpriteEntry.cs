@@ -1,7 +1,4 @@
-﻿using System.Collections;
-using System.Diagnostics.CodeAnalysis;
-
-namespace SPD.File.Emulator.Spd;
+﻿namespace SPD.File.Emulator.Spd;
 
 public struct SpdSpriteEntry
 {
