@@ -1,6 +1,4 @@
-﻿using SPD.File.Emulator.Spd;
-
-namespace SPD.File.Emulator.Spr;
+﻿namespace SPD.File.Emulator.Spr;
 
 public struct SprSpriteEntry
 {
@@ -37,10 +35,9 @@ public struct SprSpriteEntry
     int _unk0x7C;   // possibly padding
 
     public readonly int GetSpriteTextureId() => _textureIndex;
-    public SprSpriteEntry SetTextureId(int id)
+    public void SetTextureId(int id)
     {
         _textureIndex = id;
-        return this;
     }
 #pragma warning restore IDE0044 // Add readonly modifier
 #pragma warning restore IDE0051 // Remove unused private members

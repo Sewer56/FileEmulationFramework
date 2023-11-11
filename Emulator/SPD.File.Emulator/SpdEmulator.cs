@@ -123,7 +123,7 @@ public class SpdEmulator : IEmulator
         _pathToStream.TryAdd(destinationPath, stream);
     }
 
-    internal List<RouteGroupTuple> GetInput() => _builderFactory._routeGroupTuples;
+    internal List<RouteGroupTuple> GetInput() => _builderFactory.RouteGroupTuples;
 
     public void AddFile(string file, string route) => _builderFactory.AddFile(file, route);
     internal void AddFromFolders(string dir) => _builderFactory.AddFromFolders(dir);

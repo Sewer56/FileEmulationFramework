@@ -28,10 +28,10 @@ Add a dependency on this mod in your mod configuration. (via `Edit Mod` menu dep
 - `.SPD` or `.SPR` -- sprite container files.
 - `.spdspr` or `.sprt` -- sprite entry coordinate files.
 - `.dds` or `.tmx` -- texture files.
-
+<!-- -->
 - `.SPD` will be used to refer to both `.SPD` and `.SPR` files unless stated otherwise.
 - `.spdspr` will be used to refer to both `.spdspr` and `.sprt` files unless stated otherwise.
-
+<!-- -->
 - Entries from the texture dictionary will be referred to as "Texture Entries" or "Textures".
 - Entries from the sprite coordinate dictionary will be referred to as "Sprite Entries" or "Sprites".
 
@@ -43,13 +43,13 @@ Make folders corresponding to SPD Container paths, e.g. `font/chat/chat.spd/`. A
 ### Sprites in PAK Files
 
 Recreate the directory to the SPD inside the PAK, and create a dummy file with the name of the sprite file in that directory. A dummy file can be made my making an empty .txt file and giving it the name of the sprite file.
-
+<!-- -->
 Example: FEmulator/PAK/init_free.bin/smap/i_mini_map01.spr
 
 ## Tools
 
 There are 3 tools you're going to want to make use of when preparing files for the SPD Emulator:
-
+<!-- -->
 - [Amicitia](https://github.com/tge-was-taken/Amicitia/releases)
 - [PersonaEditor](https://github.com/Secre-C/PersonaEditor/releases)
 - [PersonaSpriteTools](https://github.com/Secre-C/PersonaSpriteTools) (optional)
@@ -69,9 +69,9 @@ There are 3 tools you're going to want to make use of when preparing files for t
 ## Editing Sprite Files
 
 `.SPD` files are made up of 3 parts. The header, the textures, and the sprite coordinates. The header will be built automatically by the emulator, and allows mod creators to patch the last two.
-
+<!-- -->
 The emulator provides 3 ways to edit `.SPD` files:
-
+<!-- -->
 - [Sprite patching](#patching-sprites)
 - [Texture replacement](#replacing-textures)
 - [Adding new sprites](#adding-new-sprites) (advanced)
@@ -101,7 +101,7 @@ If you are supplying an edited `.spdspr` file, the filename should be `spr_x.spd
 ## Replacing Textures
 
 Under the hood, texture replacement is really just sprite patching, but affects every sprite that pointed to the original texture.
-
+<!-- -->
 To replace a texture, simply name your edited texture `tex_x.dds` where `x` is the id of the texture.
 
 You may also want to exclude some sprites from being affected by this method. You can do this by adding a tilda `~` at the end of the texture name, followed by the sprite ids in [Id Notation](#id-notation).

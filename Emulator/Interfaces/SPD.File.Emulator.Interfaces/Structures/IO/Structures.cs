@@ -1,5 +1,4 @@
-﻿using FileEmulationFramework.Lib.IO;
-namespace SPD.File.Emulator.Interfaces.Structures.IO;
+﻿namespace SPD.File.Emulator.Interfaces.Structures.IO;
 
 
 /// <summary>

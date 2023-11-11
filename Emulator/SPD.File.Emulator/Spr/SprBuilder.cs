@@ -1,87 +1,79 @@
 ﻿using FileEmulationFramework.Lib.IO;
+using FileEmulationFramework.Lib.IO.Interfaces;
 using FileEmulationFramework.Lib.IO.Struct;
 using FileEmulationFramework.Lib.Utilities;
 using Microsoft.Win32.SafeHandles;
 using Reloaded.Memory.Extensions;
-using SPD.File.Emulator.Spd;
 using SPD.File.Emulator.Sprite;
-using System.IO;
-using System;
-using System.Linq;
+using System.Runtime.InteropServices;
 
 namespace SPD.File.Emulator.Spr
 {
     public class SprBuilder : SpriteBuilder
     {
-        private List<MemoryStream> _textureData = new();
+        private List<Stream> _textureData = new();
         private List<SprSpriteEntry> _spriteEntries = new();
         private Dictionary<int, SprSpriteEntry> _newSpriteEntries = new();
 
         private SprHeader _sprHeader;
-        private int _totalTextureSize= 0;
+        private int _totalTextureSize;
         public SprBuilder(Logger log) : base(log) { }
 
         public override void AddOrReplaceFile(string filePath)
         {
-            var file = Path.GetFileName(filePath);
-
-            switch (Path.GetExtension(file).ToLower())
-            {
-                case Constants.SprSpriteExtension:
-                    _customSprFiles[filePath] = new(filePath);
-                    break;
-                case Constants.SprTextureExtension:
-                    _customTextureFiles[filePath] = new(filePath);
-                    break;
-            }
+            if (filePath.EndsWith(Constants.SprSpriteExtension, StringComparison.OrdinalIgnoreCase))
+                CustomSprFiles[filePath] = new(filePath);
+            else if (filePath.EndsWith(Constants.SprTextureExtension, StringComparison.OrdinalIgnoreCase))
+                CustomTextureFiles[filePath] = new(filePath);
         }
 
         public override MultiStream Build(nint handle, string filepath, Logger? logger = null, string folder = "", long baseOffset = 0)
         {
-            const int HEADER_LENGTH = 0x20;
-            const int POINTER_ENTRY_LENGTH = 0x8;
+            const int headerLength = 0x20;
+            const int pointerEntryLength = 0x8;
 
             logger?.Info($"[{nameof(SprBuilder)}] Building SPR File | {{0}}", filepath);
 
             // Get original file's entries.
-            _sprHeader = GetHeaderFromSpr<SprHeader>(handle, baseOffset);
-            GetTextureDataFromSpr(handle, baseOffset);
-            GetSpriteEntriesFromSpr(handle, baseOffset);
+            var sprSlice = new FileSlice(filepath);
+            var sprStream = new FileSliceStreamW32(sprSlice);
+            _sprHeader = GetHeaderFromSpr<SprHeader>(sprStream, baseOffset);
+            GetTextureDataFromSpr(sprSlice, sprStream, baseOffset);
+            GetSpriteEntriesFromSpr(sprStream, baseOffset);
+            sprStream.Dispose();
 
             // Write custom sprite entries from '.sprt' files to sprite dictionary
-            foreach (var file in _customSprFiles.Values)
+            foreach (var file in CustomSprFiles.Values)
             {
-                var stream = new FileStream(new SafeFileHandle(file.Handle, false), FileAccess.Read);
+                using var stream = new FileSliceStreamW32(file);
 
-                string fileName = Path.GetFileNameWithoutExtension(file.FilePath);
+                var fileName = Path.GetFileNameWithoutExtension(file.FilePath.AsSpan());
 
-                if (!fileName.StartsWith("spr_"))
+                if (!fileName.StartsWith("spr_", StringComparison.OrdinalIgnoreCase))
                     continue;
 
                 if (int.TryParse(fileName[4..], out int index))
                 {
                     _newSpriteEntries[index] = stream.Read<SprSpriteEntry>();
                 }
-
-                stream.Dispose();
             }
 
             int nextId = _textureData.Count;
 
             // Get DDS filenames and adjust edited sprite texture ids
-            foreach (var (key, file) in _customTextureFiles)
+            foreach (var (key, file) in CustomTextureFiles)
             {
                 int newId = nextId;
                 string fileName = Path.GetFileNameWithoutExtension(file.FilePath);
 
                 if (fileName.StartsWith("spr_", StringComparison.OrdinalIgnoreCase))
                 {
-                    foreach (int id in GetSpriteIdsFromFilename(fileName))
+                    foreach (int id in GetSpriteIdsFromFilename(fileName[4..]))
                     {
                         // Check for accompanying .spdspr file
-                        if (!_customSprFiles.ContainsKey(Path.GetDirectoryName(key) + $"\\spr_{id}{Constants.SprSpriteExtension}"))
+                        if (!CustomSprFiles.ContainsKey(Path.GetDirectoryName(key) + $"\\spr_{id}{Constants.SprSpriteExtension}"))
                         {
-                            if ( id < _spriteEntries.Count)
+                            if (id < _spriteEntries.Count)
                             {
                                 _newSpriteEntries[id] = _spriteEntries[id];
                             }
@@ -90,24 +82,24 @@ namespace SPD.File.Emulator.Spr
                         PatchSpriteEntry(id, newId);
                     }
                 }
-                else if (fileName.StartsWith("tex_", StringComparison.OrdinalIgnoreCase)) // Texture replacement is deprecated
+                else if (fileName.StartsWith("tex_", StringComparison.OrdinalIgnoreCase))
                 {
                     // Get texture id to replace from filename
                     string[] ids = fileName[4..].Split('~');
 
-                    if (!int.TryParse(ids[0], out int tex_id)) continue;
+                    if (!int.TryParse(ids[0], out int texId)) continue;
 
                     // Get sprite ids to preserve
-                    List<int> exclude_ids = new();
+                    HashSet<int> excludeIds;
                     if (ids.Length > 1)
-                    {
-                        exclude_ids = GetSpriteIdsFromFilename("tex_" + ids[1]);
-                    }
+                        excludeIds = GetSpriteIdsFromFilename(ids[1]);
+                    else
+                        excludeIds = new();
 
-                    // Revert each modified sprite that used to point to the textures
+                    // Revert each modified sprite that used to point to the textures then patch them to point to the new one
                     for (int i = 0; i < _spriteEntries.Count; i++)
                     {
-                        if (_spriteEntries[i].GetSpriteTextureId() == tex_id && !exclude_ids.Contains(i))
+                        if (_spriteEntries[i].GetSpriteTextureId() == texId && !excludeIds.Contains(i))
                         {
                             _newSpriteEntries[i] = _spriteEntries[i];
                             PatchSpriteEntry(i, newId);
@@ -116,14 +108,7 @@ namespace SPD.File.Emulator.Spr
                 }
                 else continue;
 
-                // Take texture data slice and make a stream out of it
-                byte[] data = new byte[file.Length];
-                file.GetData(data);
-
-                if (newId >= _textureData.Count)
-                    _textureData.Add(new MemoryStream(data));
-                else
-                    _textureData[newId] = new MemoryStream(data);
+                _textureData.Add(new FileSliceStreamW32(file));
 
                 nextId++;
             }
@@ -145,21 +130,20 @@ namespace SPD.File.Emulator.Spr
 
             MemoryStream pointerStream = BuildPointerList();
             MemoryStream spriteStream = BuildSpriteStream();
-            MemoryStream textureStream = BuildTextureDataStream();
 
             // Allocate Header
-            MemoryStream headerStream = new(HEADER_LENGTH);
+            MemoryStream headerStream = new(headerLength);
 
             // Write Header
 
             // Calculate filesize
-            long newFileSize = HEADER_LENGTH + pointerStream.Length + spriteStream.Length + textureStream.Length;
+            long newFileSize = headerLength + pointerStream.Length + spriteStream.Length + _totalTextureSize;
 
             _sprHeader._fileSize = (int)newFileSize;
             _sprHeader._textureEntryCount= (short)_textureData.Count;
             _sprHeader._spriteEntryCount = (short)_spriteEntries.Count;
-            _sprHeader._textureEntryOffset = HEADER_LENGTH;
-            _sprHeader._spriteEntryOffset = HEADER_LENGTH + (_textureData.Count * POINTER_ENTRY_LENGTH);
+            _sprHeader._textureEntryOffset = headerLength;
+            _sprHeader._spriteEntryOffset = headerLength + (_textureData.Count * pointerEntryLength);
 
             headerStream.Write(_sprHeader);
 
@@ -168,17 +152,22 @@ namespace SPD.File.Emulator.Spr
             var pairs = new List<StreamOffsetPair<Stream>>()
             {
                 // Add Header
-                new (headerStream, OffsetRange.FromStartAndLength(0, HEADER_LENGTH)),
+                new (headerStream, OffsetRange.FromStartAndLength(0, headerLength)),
 
                 // Add Pointer Entries
-                new (pointerStream, OffsetRange.FromStartAndLength(HEADER_LENGTH, pointerStream.Length)),
+                new (pointerStream, OffsetRange.FromStartAndLength(headerLength, pointerStream.Length)),
 
                 // Add Sprites
-                new (spriteStream, OffsetRange.FromStartAndLength(HEADER_LENGTH + pointerStream.Length, spriteStream.Length)),
-
-                // Add Textures
-                new (textureStream, OffsetRange.FromStartAndLength(HEADER_LENGTH + pointerStream.Length + spriteStream.Length, textureStream.Length))
+                new (spriteStream, OffsetRange.FromStartAndLength(headerLength + pointerStream.Length, spriteStream.Length)),
             };
+
+            // Add Textures
+            long currentMultiStreamLength = headerLength + pointerStream.Length + spriteStream.Length;
+            foreach (var texture in _textureData)
+            {
+                pairs.Add(new StreamOffsetPair<Stream>(texture, OffsetRange.FromStartAndLength(currentMultiStreamLength, texture.Length)));
+                currentMultiStreamLength += texture.Length;
+            }
 
             return new MultiStream(pairs, logger);
         }
@@ -189,13 +178,13 @@ namespace SPD.File.Emulator.Spr
         private MemoryStream BuildPointerList()
         {
             // Constants
-            const int HEADER_SIZE = 0x20;
-            const int POINTER_ENTRY_SIZE = 0x8;
-            const int SPRITE_ENTRY_SIZE = 0x80;
+            const int headerSize = 0x20;
+            const int pointerEntrySize = 0x8;
+            const int spriteEntrySize = 0x80;
 
             // Calculate pointer list sizes
-            int pointerEntryListSize = (_spriteEntries.Count + _textureData.Count) * POINTER_ENTRY_SIZE;
-            int spriteEntryListSize = SPRITE_ENTRY_SIZE * _spriteEntries.Count;
+            int pointerEntryListSize = (_spriteEntries.Count + _textureData.Count) * pointerEntrySize;
+            int spriteEntryListSize = spriteEntrySize * _spriteEntries.Count;
 
             int paddingSize = pointerEntryListSize % 0x10;
             pointerEntryListSize += paddingSize;
@@ -203,7 +192,7 @@ namespace SPD.File.Emulator.Spr
             MemoryStream stream = new(pointerEntryListSize);
 
             // Calculate the starting offsets of the sprite and texture listss
-            int spriteEntryOffset = HEADER_SIZE + pointerEntryListSize;
+            int spriteEntryOffset = headerSize + pointerEntryListSize;
             int textureEntryOffset = spriteEntryOffset + spriteEntryListSize;
 
             // Write texture pointers
@@ -219,10 +208,10 @@ namespace SPD.File.Emulator.Spr
             for (int i = 0; i < _spriteEntries.Count; i++)
             {
                 stream.Write(new SprPointer(spriteEntryOffset));
-                spriteEntryOffset += SPRITE_ENTRY_SIZE;
+                spriteEntryOffset += spriteEntrySize;
             }
 
-            byte[] paddingBytes = new byte[paddingSize];
+            var paddingBytes = new byte[paddingSize];
             stream.Write(paddingBytes);
 
             return stream;
@@ -233,9 +222,9 @@ namespace SPD.File.Emulator.Spr
         /// </summary>
         private MemoryStream BuildSpriteStream()
         {
-            const int SPRITE_ENTRY_SIZE = 0x80;
+            const int spriteEntrySize = 0x80;
 
-            MemoryStream stream = new(_spriteEntries.Count * SPRITE_ENTRY_SIZE);
+            MemoryStream stream = new(_spriteEntries.Count * spriteEntrySize);
 
             foreach (var sprite in _spriteEntries)
             {
@@ -248,7 +237,7 @@ namespace SPD.File.Emulator.Spr
         /// <summary>
         /// Writes raw textures to a stream.
         /// </summary>
-        private MemoryStream BuildTextureDataStream()
+        private Stream BuildTextureDataStream()
         {
             // data stream
             MemoryStream stream = new(_totalTextureSize);
@@ -256,7 +245,7 @@ namespace SPD.File.Emulator.Spr
             // Write original textures
             foreach (var texture in _textureData)
             {
-                texture.WriteTo(stream);
+                texture.CopyTo(stream);
             }
 
             return stream;
@@ -270,54 +259,34 @@ namespace SPD.File.Emulator.Spr
                 return;
             }
 
-            _newSpriteEntries[spriteId] = _newSpriteEntries[spriteId].SetTextureId(newTextureId);
+            CollectionsMarshal.GetValueRefOrNullRef(_newSpriteEntries, spriteId).SetTextureId(newTextureId);
         }
 
-        private void GetTextureDataFromSpr(IntPtr handle, long pos)
+        private void GetTextureDataFromSpr(FileSlice sprSlice, FileSliceStreamW32 stream, long pos)
         {
-            var stream = new FileStream(new SafeFileHandle(handle, false), FileAccess.Read);
+            var (count, offset) = _sprHeader.GetTextureEntryCountAndOffset();
+            stream.Seek(offset, SeekOrigin.Begin);
 
-            try
+            for (int i = 0; i < count; i++)
             {
-                var (count, offset) = _sprHeader.GetTextureEntryCountAndOffset();
-                stream.Seek(offset, SeekOrigin.Begin);
-
-                for (int i = 0; i < count; i++)
-                {
-                    var pointer = stream.Read<SprPointer>();
-                    _textureData.Add(ReadTmx(stream, pointer.GetOffset()));
-                }
-            }
-            finally
-            {
-                stream.Dispose();
-                _ = Native.SetFilePointerEx(handle, pos, IntPtr.Zero, 0);
+                var pointer = stream.Read<SprPointer>();
+                _textureData.Add(ReadTmxFromSpr(sprSlice, stream, pointer.GetOffset()));
             }
         }
 
-        private void GetSpriteEntriesFromSpr(IntPtr handle, long pos)
+        private void GetSpriteEntriesFromSpr(Stream stream, long pos)
         {
-            var stream = new FileStream(new SafeFileHandle(handle, false), FileAccess.Read);
+            var (count, offset) = _sprHeader.GetSpriteEntryCountAndOffset();
+            stream.Seek(offset, SeekOrigin.Begin);
 
-            try
+            for (int i = 0; i < count; i++)
             {
-                var (count, offset) = _sprHeader.GetSpriteEntryCountAndOffset();
-                stream.Seek(offset, SeekOrigin.Begin);
-
-                for (int i = 0; i < count; i++)
-                {
-                    var pointer = stream.Read<SprPointer>();
-                    _spriteEntries.Add(ReadSprite(stream, pointer.GetOffset()));
-                }
-            }
-            finally
-            {
-                stream.Dispose();
-                _ = Native.SetFilePointerEx(handle, pos, IntPtr.Zero, 0);
+                var pointer = stream.Read<SprPointer>();
+                _spriteEntries.Add(ReadSprite(stream, pointer.GetOffset()));
             }
         }
 
-        private MemoryStream ReadTmx(Stream stream, long tmxOffset)
+        private Stream ReadTmxFromSpr(FileSlice sprSlice, FileSliceStreamW32 stream,long tmxOffset)
         {
             // Hold current stream position
             long pos = stream.Position;
@@ -329,17 +298,10 @@ namespace SPD.File.Emulator.Spr
             stream.Read<int>();
             var tmxSize = stream.Read<int>();
 
-            // Go back to the beginning of the tmx
-            stream.Seek(tmxOffset, SeekOrigin.Begin);
-            
-            // Read tmx bytes into the buffer
-            var tmxBytes = new byte[tmxSize];
-            stream.Read(tmxBytes);
-
             // Return stream to the original position
             stream.Seek(pos, SeekOrigin.Begin);
 
-            return new MemoryStream(tmxBytes);
+            return new FileSliceStreamW32(sprSlice.Slice(tmxOffset, tmxSize));
         }
 
         private SprSpriteEntry ReadSprite(Stream stream, long spriteOffset)
