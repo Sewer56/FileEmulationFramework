@@ -2,6 +2,7 @@
 using FileEmulationFramework.Lib.IO.Struct;
 using FileEmulationFramework.Lib.Utilities;
 using Reloaded.Memory.Extensions;
+using SPD.File.Emulator.Spr;
 using SPD.File.Emulator.Sprite;
 using System.Runtime.InteropServices;
 using System.Text;
@@ -40,15 +41,15 @@ public class SpdBuilder : SpriteBuilder
         var spdFileSlice = new FileSlice(filepath);
         var spdStream = new FileSliceStreamW32(spdFileSlice);
         _spdHeader = GetHeaderFromSpr<SpdHeader>(spdStream, baseOffset);
-        _textureEntries = GetTextureEntriesFromFile(spdStream, baseOffset);
-        _spriteEntries = GetSpriteEntriesFromFile(spdStream, baseOffset);
-        _textureData = GetTextureDataFromFile(spdFileSlice, baseOffset);
+        _textureEntries = GetTextureEntriesFromFile(spdStream);
+        _spriteEntries = GetSpriteEntriesFromFile(spdStream);
+        _textureData = GetTextureDataFromFile(spdFileSlice);
         spdStream.Dispose();
 
         // Write custom sprite entries from '.spdspr' files to sprite dictionary
         foreach ( var file in CustomSprFiles.Values )
         {
-            using var stream = new FileSliceStreamFs(file);
+            using var stream = new FileSliceStreamW32(file);
             stream.TryRead(out int spriteId, out _);
             stream.Seek(0, SeekOrigin.Begin);
 
@@ -56,11 +57,12 @@ public class SpdBuilder : SpriteBuilder
         }
 
         // Get highest id texture entry
-        int maxId = _textureEntries.Select(x => x.Key).Max();
-        int nextId = maxId + 1;
+        int nextId = _textureEntries.Select(x => x.Key).Max() + 1;
 
         // Create empty HashSet to use for texture names with no exclude separator '~' to reduce allocations
         HashSet<int> emptyHashSet = new();
+
+        var TextureSeparatedSpriteDict = CreateTextureSeparatedSpriteDict();
 
         // Get DDS filenames and adjust edited sprite texture ids
         foreach ( var (key, file) in CustomTextureFiles )
@@ -92,17 +94,21 @@ public class SpdBuilder : SpriteBuilder
                 if (!int.TryParse(ids[0], out int texId)) continue;
 
                 // Get sprite ids to preserve
-                HashSet<int> excludeIds = emptyHashSet;
+                HashSet<int> excludeIds;
                 if (ids.Length > 1)
                     excludeIds = GetSpriteIdsFromFilename(ids[1]);
+                else
+                    excludeIds = emptyHashSet;
 
-                // Revert each modified sprite that used to point to the texture, then patch them to point to the new one
-                foreach (var (spriteId, sprite) in _spriteEntries)
+                // Revert each modified sprite that used to point to the textures then patch them to point to the new one
+                if (TextureSeparatedSpriteDict.TryGetValue(texId, out var sprites))
                 {
-                    if (sprite.GetSpriteTextureId() == texId && !excludeIds.Contains(spriteId))
+                    foreach (var (index, sprite) in sprites)
                     {
-                        _newSpriteEntries[spriteId] = sprite;
-                        PatchSpriteEntry(spriteId, newId);
+                        if (excludeIds.Contains(index)) continue;
+
+                        _newSpriteEntries[index] = sprite;
+                        PatchSpriteEntry(index, newId);
                     }
                 }
             }
@@ -134,11 +140,11 @@ public class SpdBuilder : SpriteBuilder
         // Calculate filesize
         long newFileSize = totalTextureSize + headerLength + textureEntryStream.Length + spriteStream.Length;
 
-        _spdHeader._fileSize = (int)newFileSize;
-        _spdHeader._textureEntryCount = (short)_textureEntries.Count;
-        _spdHeader._spriteEntryCount = (short)_spriteEntries.Count;
-        _spdHeader._textureEntryOffset = headerLength;
-        _spdHeader._spriteEntryOffset = headerLength + (_textureEntries.Count * textureEntryLength);
+        _spdHeader.fileSize = (int)newFileSize;
+        _spdHeader.textureEntryCount = (short)_textureEntries.Count;
+        _spdHeader.spriteEntryCount = (short)_spriteEntries.Count;
+        _spdHeader.textureEntryOffset = headerLength;
+        _spdHeader.spriteEntryOffset = headerLength + (_textureEntries.Count * textureEntryLength);
 
         headerStream.Write(_spdHeader);
 
@@ -177,7 +183,7 @@ public class SpdBuilder : SpriteBuilder
         CollectionsMarshal.GetValueRefOrNullRef(_newSpriteEntries, spriteId).SetTextureId(newTextureId);
     }
 
-    private Dictionary<int, SpdTextureEntry> GetTextureEntriesFromFile(Stream stream, long pos)
+    private Dictionary<int, SpdTextureEntry> GetTextureEntriesFromFile(Stream stream)
     {
         Dictionary<int, SpdTextureEntry> textureDictionary = new();
 
@@ -194,7 +200,7 @@ public class SpdBuilder : SpriteBuilder
         return textureDictionary;
     }
 
-    private Dictionary<int, SpdSpriteEntry> GetSpriteEntriesFromFile(Stream stream, long pos)
+    private Dictionary<int, SpdSpriteEntry> GetSpriteEntriesFromFile(Stream stream)
     {
         Dictionary<int, SpdSpriteEntry> spriteDictionary = new();
 
@@ -211,7 +217,7 @@ public class SpdBuilder : SpriteBuilder
         return spriteDictionary;
     }
 
-    private Dictionary<int, Stream> GetTextureDataFromFile(FileSlice spdSlice, long pos)
+    private Dictionary<int, Stream> GetTextureDataFromFile(FileSlice spdSlice)
     {
         // Create a dictionary to hold texture data, with the key being the texture entry's id
         Dictionary<int, Stream> textureDataDictionary = new();
@@ -320,5 +326,33 @@ public class SpdBuilder : SpriteBuilder
         var entry = textureEntryStream.Read<SpdTextureEntry>();
 
         return entry;
+    }
+    
+    /// <summary>
+    /// Returns a dictionary with the sprite ids separated by texture id.
+    /// </summary>
+    private Dictionary<int, Dictionary<int, SpdSpriteEntry>> CreateTextureSeparatedSpriteDict()
+    {
+        var resultDict = new Dictionary<int, Dictionary<int, SpdSpriteEntry>>();
+
+        foreach (var (id, sprite) in _spriteEntries)
+        {
+
+            int textureId = sprite.GetSpriteTextureId();
+
+            if (resultDict.TryGetValue(textureId, out var sprites))
+            {
+                sprites[id] = sprite;
+            }
+            else
+            {
+                resultDict[id] = new Dictionary<int, SpdSpriteEntry>
+                {
+                    { id, sprite }
+                };
+            }
+        }
+
+        return resultDict;
     }
 }
