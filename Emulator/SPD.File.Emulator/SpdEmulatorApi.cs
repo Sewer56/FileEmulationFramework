@@ -1,6 +1,7 @@
 ﻿using FileEmulationFramework.Interfaces;
 using FileEmulationFramework.Interfaces.Reference;
 using FileEmulationFramework.Lib.Utilities;
+using Microsoft.Win32.SafeHandles;
 using SPD.File.Emulator.Interfaces;
 using SPD.File.Emulator.Interfaces.Structures.IO;
 using SPD.File.Emulator.Utilities;
@@ -85,12 +86,19 @@ public class SpdEmulatorApi : ISpdEmulator
 
     public void RegisterSpd(string sourcePath, string destinationPath)
     {
-        var fileStream = new FileStream(sourcePath, FileMode.Open);
-        var stream = StreamUtils.CreateMemoryStream(fileStream.Length);
-        fileStream.CopyTo(stream);
+        var handle = Native.CreateFileW(sourcePath, FileAccess.Read, FileShare.ReadWrite, IntPtr.Zero, FileMode.Open, FileAttributes.Normal, IntPtr.Zero);
+        if (handle == new IntPtr(-1))
+        {
+            _logger.Error("[SpdEmulatorApi] RegisterSpd: Failed to open spd file with Win32 Error: {0}, Path {1}", Marshal.GetLastWin32Error(), sourcePath);
+            return;
+        }
 
-        var emulated = new EmulatedFile<Stream>(stream);
-        _spdEmulator.RegisterFile(destinationPath, stream);
+        _ = Native.SetFilePointerEx(handle, 0, IntPtr.Zero, 0);
+
+        var fileStream = new FileStream(new SafeFileHandle(handle, false), FileAccess.Read);
+
+        var emulated = new EmulatedFile<Stream>(fileStream);
+        _spdEmulator.RegisterFile(destinationPath, fileStream);
         _framework.RegisterVirtualFile(destinationPath, emulated);
 
         _logger.Info("[SpdEmulatorApi] Registered spd {0} at {1}", sourcePath, destinationPath);
