@@ -346,7 +346,7 @@ public class SpdBuilder : SpriteBuilder
             }
             else
             {
-                resultDict[id] = new Dictionary<int, SpdSpriteEntry>
+                resultDict[textureId] = new Dictionary<int, SpdSpriteEntry>
                 {
                     { id, sprite }
                 };

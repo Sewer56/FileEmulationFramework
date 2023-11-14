@@ -353,7 +353,7 @@ public class SprBuilder : SpriteBuilder
             }
             else
             {
-                resultDict[i] = new Dictionary<int, SprSpriteEntry>
+                resultDict[textureId] = new Dictionary<int, SprSpriteEntry>
                 {
                     { i, sprite }
                 };
