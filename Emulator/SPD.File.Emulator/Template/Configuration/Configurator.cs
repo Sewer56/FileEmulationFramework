@@ -35,7 +35,7 @@ namespace SPD.File.Emulator.Template.Configuration
             // Add self-updating to configurations.
             for (int x = 0; x < Configurations.Length; x++)
             {
-                var xCopy = x;
+                int xCopy = x;
                 Configurations[x].ConfigurationUpdated += configurable =>
                 {
                     Configurations[xCopy] = configurable;

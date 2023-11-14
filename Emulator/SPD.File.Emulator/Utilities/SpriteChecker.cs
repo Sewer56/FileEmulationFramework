@@ -12,7 +12,7 @@ public static class SpriteChecker
     public static bool IsSpdFile(IntPtr handle)
     {
         var fileStream = new FileStream(new SafeFileHandle(handle, false), FileAccess.Read);
-        var pos = fileStream.Position;
+        long pos = fileStream.Position;
 
         try
         {

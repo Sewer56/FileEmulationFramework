@@ -66,7 +66,7 @@ public class SprBuilder : SpriteBuilder
         var TextureSeparatedSpriteDict = CreateTextureSeparatedSpriteDict();
 
         // Get DDS filenames and adjust edited sprite texture ids
-        foreach (var (key, file) in CustomTextureFiles)
+        foreach ((string key, var file) in CustomTextureFiles)
         {
             int newId = nextId;
             string fileName = Path.GetFileNameWithoutExtension(file.FilePath);
@@ -106,7 +106,7 @@ public class SprBuilder : SpriteBuilder
                 // Revert each modified sprite that used to point to the textures then patch them to point to the new one
                 if (TextureSeparatedSpriteDict.TryGetValue(texId, out var sprites))
                 {
-                    foreach (var (index, sprite) in sprites)
+                    foreach ((int index, var sprite) in sprites)
                     {
                         if (!excludeIds.Contains(index))
                         {
@@ -125,7 +125,7 @@ public class SprBuilder : SpriteBuilder
 
 
         // Copy new sprite entries into the original sprite entry list
-        foreach (var (index, value) in _newSpriteEntries)
+        foreach ((int index, var value) in _newSpriteEntries)
         {
             if (index < _spriteEntries.Count)
                 _spriteEntries[index] = _newSpriteEntries[index];
@@ -138,8 +138,8 @@ public class SprBuilder : SpriteBuilder
             }
         }
 
-        MemoryStream pointerStream = BuildPointerList();
-        MemoryStream spriteStream = BuildSpriteStream();
+        var pointerStream = BuildPointerList();
+        var spriteStream = BuildSpriteStream();
 
         // Allocate Header
         MemoryStream headerStream = new(headerLength);
@@ -150,7 +150,7 @@ public class SprBuilder : SpriteBuilder
         long newFileSize = headerLength + pointerStream.Length + spriteStream.Length + _totalTextureSize;
 
         _sprHeader._fileSize = (int)newFileSize;
-        _sprHeader._textureEntryCount= (short)_textureData.Count;
+        _sprHeader._textureEntryCount = (short)_textureData.Count;
         _sprHeader._spriteEntryCount = (short)_spriteEntries.Count;
         _sprHeader._textureEntryOffset = headerLength;
         _sprHeader._spriteEntryOffset = headerLength + (_textureData.Count * pointerEntryLength);
@@ -221,7 +221,7 @@ public class SprBuilder : SpriteBuilder
             spriteEntryOffset += spriteEntrySize;
         }
 
-        var paddingBytes = new byte[paddingSize];
+        byte[] paddingBytes = new byte[paddingSize];
         stream.Write(paddingBytes);
 
         return stream;
@@ -277,7 +277,7 @@ public class SprBuilder : SpriteBuilder
 
     private void GetTextureDataFromSpr(FileSlice sprSlice, FileSliceStreamW32 stream)
     {
-        var (count, offset) = _sprHeader.GetTextureEntryCountAndOffset();
+        (short count, int offset) = _sprHeader.GetTextureEntryCountAndOffset();
         stream.Seek(offset, SeekOrigin.Begin);
 
         for (int i = 0; i < count; i++)
@@ -289,7 +289,7 @@ public class SprBuilder : SpriteBuilder
 
     private void GetSpriteEntriesFromSpr(Stream stream)
     {
-        var (count, offset) = _sprHeader.GetSpriteEntryCountAndOffset();
+        (short count, int offset) = _sprHeader.GetSpriteEntryCountAndOffset();
         stream.Seek(offset, SeekOrigin.Begin);
 
         for (int i = 0; i < count; i++)
@@ -302,7 +302,7 @@ public class SprBuilder : SpriteBuilder
     /// <summary>
     /// Changes the texture Id a sprite points to.
     /// </summary>
-    private static Stream ReadTmxFromSpr(FileSlice sprSlice, FileSliceStreamW32 stream,long tmxOffset)
+    private static Stream ReadTmxFromSpr(FileSlice sprSlice, FileSliceStreamW32 stream, long tmxOffset)
     {
         // Hold current stream position
         long pos = stream.Position;
@@ -312,7 +312,7 @@ public class SprBuilder : SpriteBuilder
 
         // Read tmx size from tmx
         stream.Read<int>();
-        var tmxSize = stream.Read<int>();
+        int tmxSize = stream.Read<int>();
 
         // Return stream to the original position
         stream.Seek(pos, SeekOrigin.Begin);

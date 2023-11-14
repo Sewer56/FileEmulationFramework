@@ -4,7 +4,6 @@ using FileEmulationFramework.Lib.IO;
 using FileEmulationFramework.Lib.Utilities;
 using SPD.File.Emulator.Sprite;
 using SPD.File.Emulator.Utilities;
-using System.Collections.Generic;
 
 namespace SPD.File.Emulator;
 
@@ -96,7 +95,7 @@ public class SpdEmulator : IEmulator
     /// <param name="modFolder">Folder where the mod is contained.</param>
     public void OnModLoading(string modFolder)
     {
-        var redirectorFolder = $"{modFolder}/{Constants.RedirectorFolder}";
+        string redirectorFolder = $"{modFolder}/{Constants.RedirectorFolder}";
 
         if (Directory.Exists(redirectorFolder))
             _builderFactory.AddFromFolders(redirectorFolder);
@@ -104,7 +103,7 @@ public class SpdEmulator : IEmulator
 
     private void DumpFile(string filepath, MultiStream stream)
     {
-        var filePath = Path.GetFullPath($"{Constants.DumpFolder}/{Path.GetFileName(filepath)}");
+        string filePath = Path.GetFullPath($"{Constants.DumpFolder}/{Path.GetFileName(filepath)}");
         Directory.CreateDirectory(Constants.DumpFolder);
         _log.Info($"[SpdEmulator] Dumping {filepath}");
         using var fileStream = new FileStream(filePath, FileMode.Create);

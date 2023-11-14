@@ -39,15 +39,15 @@ public abstract class SpriteBuilder
         HashSet<int> ids = new();
 
         // Remove 'spr_' in the filename and Separate Ids by '_'
-        var spriteIds = fileName.Split('_', StringSplitOptions.TrimEntries);
+        string[] spriteIds = fileName.Split('_', StringSplitOptions.TrimEntries);
 
-        foreach (var spriteIdStr in spriteIds)
+        foreach (string spriteIdStr in spriteIds)
         {
             // Check for sprite ranges
             if (spriteIdStr.Contains('-'))
             {
                 // Parse sprite range
-                var spriteIdRangeStr = spriteIdStr.Split("-");
+                string[] spriteIdRangeStr = spriteIdStr.Split("-");
                 if (!int.TryParse(spriteIdRangeStr[0], out int spriteIdRangeLower)) break;
                 if (!int.TryParse(spriteIdRangeStr[1], out int spriteIdRangeUpper)) break;
 

@@ -4,7 +4,6 @@ using FileEmulationFramework.Lib.Utilities;
 using Microsoft.Win32.SafeHandles;
 using SPD.File.Emulator.Interfaces;
 using SPD.File.Emulator.Interfaces.Structures.IO;
-using SPD.File.Emulator.Utilities;
 using System.Runtime.InteropServices;
 
 namespace SPD.File.Emulator;
@@ -25,7 +24,7 @@ public class SpdEmulatorApi : ISpdEmulator
     {
         _logger.Info("[SpdEmulatorApi] TryCreateFromFileSlice: {0}, Ofs {1}, Route {2}", sourcePath, offset, route);
 
-        var handle = Native.CreateFileW(sourcePath, FileAccess.Read, FileShare.ReadWrite, IntPtr.Zero, FileMode.Open, FileAttributes.Normal, IntPtr.Zero);
+        nint handle = Native.CreateFileW(sourcePath, FileAccess.Read, FileShare.ReadWrite, IntPtr.Zero, FileMode.Open, FileAttributes.Normal, IntPtr.Zero);
         try
         {
             if (handle == new IntPtr(-1))
@@ -86,7 +85,7 @@ public class SpdEmulatorApi : ISpdEmulator
 
     public void RegisterSpd(string sourcePath, string destinationPath)
     {
-        var handle = Native.CreateFileW(sourcePath, FileAccess.Read, FileShare.ReadWrite, IntPtr.Zero, FileMode.Open, FileAttributes.Normal, IntPtr.Zero);
+        nint handle = Native.CreateFileW(sourcePath, FileAccess.Read, FileShare.ReadWrite, IntPtr.Zero, FileMode.Open, FileAttributes.Normal, IntPtr.Zero);
         try
         {
             if (handle == new IntPtr(-1))
@@ -114,8 +113,8 @@ public class SpdEmulatorApi : ISpdEmulator
     public bool TryCreateFromSpd(string sourcePath, string route, string destinationPath)
     {
         _logger.Info("[SpdEmulatorApi] TryCreateFromSpd: {0}, Route {1}", sourcePath, route);
-        var handle = Native.CreateFileW(sourcePath, FileAccess.Read, FileShare.ReadWrite, IntPtr.Zero, FileMode.Open, FileAttributes.Normal, IntPtr.Zero);
-        
+        nint handle = Native.CreateFileW(sourcePath, FileAccess.Read, FileShare.ReadWrite, IntPtr.Zero, FileMode.Open, FileAttributes.Normal, IntPtr.Zero);
+
         try
         {
             if (handle == new IntPtr(-1))
@@ -137,8 +136,8 @@ public class SpdEmulatorApi : ISpdEmulator
             return true;
         }
         finally
-        { 
-            Native.CloseHandle(handle); 
+        {
+            Native.CloseHandle(handle);
         }
     }
 

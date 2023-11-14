@@ -11,10 +11,10 @@ namespace SPD.File.Emulator.Template.Configuration
         /// <exception cref="Exception">Timeout expired.</exception>
         public static T TryGetValue<T>(Func<T> getValue, int timeout, int sleepTime, CancellationToken token = default) where T : new()
         {
-            Stopwatch watch = new Stopwatch();
+            var watch = new Stopwatch();
             watch.Start();
             bool valueSet = false;
-            T value = new T();
+            var value = new T();
 
             while (watch.ElapsedMilliseconds < timeout)
             {

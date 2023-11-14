@@ -32,7 +32,7 @@ public class SpriteBuilderFactory
             if (group.Files.Length <= 0)
                 continue;
 
-            var route = Route.GetRoute(redirectorFolder, group.Directory.FullPath);
+            string route = Route.GetRoute(redirectorFolder, group.Directory.FullPath);
 
             RouteGroupTuples.Add(new RouteGroupTuple()
             {
@@ -85,8 +85,8 @@ public class SpriteBuilderFactory
                     return false;
 
             // Add files to builder.
-            var dir = group.Files.Directory.FullPath;
-            foreach (var file in group.Files.Files)
+            string dir = group.Files.Directory.FullPath;
+            foreach (string file in group.Files.Files)
             {
                 builder?.AddOrReplaceFile(Path.Combine(dir, file));
             }
