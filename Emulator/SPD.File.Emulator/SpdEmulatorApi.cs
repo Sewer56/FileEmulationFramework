@@ -87,44 +87,59 @@ public class SpdEmulatorApi : ISpdEmulator
     public void RegisterSpd(string sourcePath, string destinationPath)
     {
         var handle = Native.CreateFileW(sourcePath, FileAccess.Read, FileShare.ReadWrite, IntPtr.Zero, FileMode.Open, FileAttributes.Normal, IntPtr.Zero);
-        if (handle == new IntPtr(-1))
+        try
         {
-            _logger.Error("[SpdEmulatorApi] RegisterSpd: Failed to open spd file with Win32 Error: {0}, Path {1}", Marshal.GetLastWin32Error(), sourcePath);
-            return;
+            if (handle == new IntPtr(-1))
+            {
+                _logger.Error("[SpdEmulatorApi] RegisterSpd: Failed to open spd file with Win32 Error: {0}, Path {1}", Marshal.GetLastWin32Error(), sourcePath);
+                return;
+            }
+
+            _ = Native.SetFilePointerEx(handle, 0, IntPtr.Zero, 0);
+
+            var fileStream = new FileStream(new SafeFileHandle(handle, false), FileAccess.Read);
+
+            var emulated = new EmulatedFile<Stream>(fileStream);
+            _spdEmulator.RegisterFile(destinationPath, fileStream);
+            _framework.RegisterVirtualFile(destinationPath, emulated);
+
+            _logger.Info("[SpdEmulatorApi] Registered spd {0} at {1}", sourcePath, destinationPath);
         }
-
-        _ = Native.SetFilePointerEx(handle, 0, IntPtr.Zero, 0);
-
-        var fileStream = new FileStream(new SafeFileHandle(handle, false), FileAccess.Read);
-
-        var emulated = new EmulatedFile<Stream>(fileStream);
-        _spdEmulator.RegisterFile(destinationPath, fileStream);
-        _framework.RegisterVirtualFile(destinationPath, emulated);
-
-        _logger.Info("[SpdEmulatorApi] Registered spd {0} at {1}", sourcePath, destinationPath);
+        finally
+        {
+            Native.CloseHandle(handle);
+        }
     }
 
     public bool TryCreateFromSpd(string sourcePath, string route, string destinationPath)
     {
         _logger.Info("[SpdEmulatorApi] TryCreateFromSpd: {0}, Route {1}", sourcePath, route);
         var handle = Native.CreateFileW(sourcePath, FileAccess.Read, FileShare.ReadWrite, IntPtr.Zero, FileMode.Open, FileAttributes.Normal, IntPtr.Zero);
-        if (handle == new IntPtr(-1))
+        
+        try
         {
-            _logger.Error("[SpdEmulatorApi] TryCreateFromSpd: Failed to open base file with Win32 Error: {0}, Path {1}", Marshal.GetLastWin32Error(), sourcePath);
-            return false;
-        }
+            if (handle == new IntPtr(-1))
+            {
+                _logger.Error("[SpdEmulatorApi] TryCreateFromSpd: Failed to open base file with Win32 Error: {0}, Path {1}", Marshal.GetLastWin32Error(), sourcePath);
+                return false;
+            }
 
-        IEmulatedFile? emulated = null;
-        _ = Native.SetFilePointerEx(handle, 0, IntPtr.Zero, 0);
-        if (!_spdEmulator.TryCreateEmulatedFile(handle, sourcePath, destinationPath, route, ref emulated, out _))
-        {
-            _logger.Error("[SpdEmulatorApi] TryCreateFromSpd: Failed to Create Emulated File at Path {0}", sourcePath);
-            return false;
-        }
+            IEmulatedFile? emulated = null;
+            _ = Native.SetFilePointerEx(handle, 0, IntPtr.Zero, 0);
+            if (!_spdEmulator.TryCreateEmulatedFile(handle, sourcePath, destinationPath, route, ref emulated, out _))
+            {
+                _logger.Error("[SpdEmulatorApi] TryCreateFromSpd: Failed to Create Emulated File at Path {0}", sourcePath);
+                return false;
+            }
 
-        _logger.Info("[SpdEmulatorApi] TryCreateFromSpd: Registering {0}", destinationPath);
-        _framework.RegisterVirtualFile(destinationPath, emulated!);
-        return true;
+            _logger.Info("[SpdEmulatorApi] TryCreateFromSpd: Registering {0}", destinationPath);
+            _framework.RegisterVirtualFile(destinationPath, emulated!);
+            return true;
+        }
+        finally
+        { 
+            Native.CloseHandle(handle); 
+        }
     }
 
     public void AddFile(string file, string route)
