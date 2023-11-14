@@ -80,9 +80,9 @@ public class SpdBuilder : SpriteBuilder
                     // Use original sprite entry if no accompanying sprite entry file is found
                     if (!CustomSprFiles.ContainsKey(spriteEntryPath))
                     {
-                        if (_spriteEntries.ContainsKey(id))
+                        if (_spriteEntries.TryGetValue(id, out SpdSpriteEntry value))
                         {
-                            _newSpriteEntries[id] = _spriteEntries[id];
+                            _newSpriteEntries[id] = value;
                         }
                     }
 
