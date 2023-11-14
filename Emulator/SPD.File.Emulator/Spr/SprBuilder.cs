@@ -15,6 +15,8 @@ public class SprBuilder : SpriteBuilder
 
     private SprHeader _sprHeader;
     private int _totalTextureSize;
+
+    public SprBuilder() { }
     public SprBuilder(Logger log) : base(log) { }
 
     public override void AddOrReplaceFile(string filePath)
@@ -73,8 +75,10 @@ public class SprBuilder : SpriteBuilder
             {
                 foreach (int id in GetSpriteIdsFromFilename(fileName[4..]))
                 {
-                    // Check for accompanying .spdspr file
-                    if (!CustomSprFiles.ContainsKey(Path.GetDirectoryName(key) + $"\\spr_{id}{Constants.SprSpriteExtension}"))
+                    string spriteEntryPath = Path.Combine(Path.GetDirectoryName(key), $"spr_{id}{Constants.SprSpriteExtension}");
+
+                    // Use original sprite entry if no accompanying sprite entry file is found
+                    if (!CustomSprFiles.ContainsKey(spriteEntryPath))
                     {
                         if (id < _spriteEntries.Count)
                         {
@@ -104,21 +108,13 @@ public class SprBuilder : SpriteBuilder
                 {
                     foreach (var (index, sprite) in sprites)
                     {
-                        if (excludeIds.Contains(index)) continue;
-
-                        _newSpriteEntries[index] = sprite;
-                        PatchSpriteEntry(index, newId);
+                        if (!excludeIds.Contains(index))
+                        {
+                            _newSpriteEntries[index] = sprite;
+                            PatchSpriteEntry(index, newId);
+                        }
                     }
                 }
-
-                //for (int i = 0; i < _spriteEntries.Count; i++)
-                //{
-                //    if (_spriteEntries[i].GetSpriteTextureId() == texId && !excludeIds.Contains(i))
-                //    {
-                //        _newSpriteEntries[i] = _spriteEntries[i];
-                //        PatchSpriteEntry(i, newId);
-                //    }
-                //}
             }
             else continue;
 
@@ -272,7 +268,7 @@ public class SprBuilder : SpriteBuilder
     {
         if (!_newSpriteEntries.ContainsKey(spriteId))
         {
-            _log.Error("Tried to patch non-existent SPR id {0}. Skipping...", spriteId);
+            _log?.Error("Tried to patch non-existent SPR id {0}. Skipping...", spriteId);
             return;
         }
 

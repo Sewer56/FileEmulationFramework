@@ -8,8 +8,9 @@ public abstract class SpriteBuilder
     protected Dictionary<string, FileSlice> CustomSprFiles = new();
     protected Dictionary<string, FileSlice> CustomTextureFiles = new();
 
-    protected Logger _log;
+    protected Logger? _log = null;
 
+    public SpriteBuilder() { }
     public SpriteBuilder(Logger log)
     {
         _log = log;

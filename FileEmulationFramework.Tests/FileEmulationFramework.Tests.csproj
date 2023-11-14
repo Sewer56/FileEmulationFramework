@@ -66,4 +66,85 @@
     </None>
   </ItemGroup>
 
+  <ItemGroup>
+    <None Update="Emulators\SPD\Assets\CHAT.SPD">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
+    <None Update="Emulators\SPD\Assets\patch_sprite.spd">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
+    <None Update="Emulators\SPD\Assets\replace_sprite.SPD">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
+    <None Update="Emulators\SPD\Assets\replace_tex.SPD">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
+    <None Update="Emulators\SPD\Assets\replace_texture.SPD">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
+    <None Update="Emulators\SPD\Assets\SPD\CHAT.SPD">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
+    <None Update="Emulators\SPD\Assets\SPD\patch_sprite.spd">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
+    <None Update="Emulators\SPD\Assets\SPD\replace_sprite.SPD">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
+    <None Update="Emulators\SPD\Assets\SPD\replace_tex.SPD">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
+    <None Update="Emulators\SPD\Assets\SPD\spr_38.dds">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
+    <None Update="Emulators\SPD\Assets\SPD\spr_5.dds">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
+    <None Update="Emulators\SPD\Assets\SPD\spr_5.spdspr">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
+    <None Update="Emulators\SPD\Assets\SPD\tex_2~66-69.dds">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
+    <None Update="Emulators\SPD\Assets\SPR\menu.spr">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
+    <None Update="Emulators\SPD\Assets\SPR\patch_sprite.spr">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
+    <None Update="Emulators\SPD\Assets\SPR\replace_sprite.spr">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
+    <None Update="Emulators\SPD\Assets\SPR\replace_tex.spr">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
+    <None Update="Emulators\SPD\Assets\SPR\spr_12.png">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
+    <None Update="Emulators\SPD\Assets\SPR\spr_12.sprt">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
+    <None Update="Emulators\SPD\Assets\SPR\spr_12.tmx">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
+    <None Update="Emulators\SPD\Assets\SPR\spr_15.tmx">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
+    <None Update="Emulators\SPD\Assets\SPR\tex_0~3-5.tmx">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
+    <None Update="Emulators\SPD\Assets\spr_38.dds">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
+    <None Update="Emulators\SPD\Assets\spr_5.dds">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
+    <None Update="Emulators\SPD\Assets\spr_5.spdspr">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
+    <None Update="Emulators\SPD\Assets\tex_2~66-69.dds">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
+  </ItemGroup>
+
 </Project>

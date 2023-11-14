@@ -44,7 +44,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <PackageReference Include="Reloaded.Memory" Version="9.1.0" />
+    <PackageReference Include="Reloaded.Memory" Version="9.2.0" />
     <PackageReference Include="Reloaded.SharedLib.Hooks" Version="1.9.0" />
   </ItemGroup>
 

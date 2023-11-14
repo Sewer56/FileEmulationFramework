@@ -2,7 +2,6 @@
 using FileEmulationFramework.Lib.IO.Struct;
 using FileEmulationFramework.Lib.Utilities;
 using Reloaded.Memory.Extensions;
-using SPD.File.Emulator.Spr;
 using SPD.File.Emulator.Sprite;
 using System.Runtime.InteropServices;
 using System.Text;
@@ -17,6 +16,8 @@ public class SpdBuilder : SpriteBuilder
     private Dictionary<int, SpdSpriteEntry> _newSpriteEntries = new();
 
     private SpdHeader _spdHeader;
+
+    public SpdBuilder() { }
     public SpdBuilder(Logger log) : base(log) { }
 
     public override void AddOrReplaceFile(string filePath)
@@ -74,10 +75,12 @@ public class SpdBuilder : SpriteBuilder
             {
                 foreach(int id in GetSpriteIdsFromFilename(fileName[4..]))
                 {
-                    // Check for accompanying .spdspr file
-                    if (!CustomSprFiles.ContainsKey(Path.GetDirectoryName(key) + $"\\spr_{id}{Constants.SpdSpriteExtension}"))
+                    string spriteEntryPath = Path.Combine(Path.GetDirectoryName(key), $"spr_{id}{Constants.SpdSpriteExtension}");
+
+                    // Use original sprite entry if no accompanying sprite entry file is found
+                    if (!CustomSprFiles.ContainsKey(spriteEntryPath))
                     {
-                        if (_spriteEntries.TryGetValue(id, out var _newSpriteEntry))
+                        if (_spriteEntries.ContainsKey(id))
                         {
                             _newSpriteEntries[id] = _spriteEntries[id];
                         }
@@ -89,8 +92,8 @@ public class SpdBuilder : SpriteBuilder
             else if(fileName.StartsWith("tex_", StringComparison.OrdinalIgnoreCase))
             {
                 string[] ids = fileName[4..].Split('~');
-                // Get texture id to replace from filename
 
+                // Get texture id to replace from filename
                 if (!int.TryParse(ids[0], out int texId)) continue;
 
                 // Get sprite ids to preserve
@@ -105,10 +108,11 @@ public class SpdBuilder : SpriteBuilder
                 {
                     foreach (var (index, sprite) in sprites)
                     {
-                        if (excludeIds.Contains(index)) continue;
-
-                        _newSpriteEntries[index] = sprite;
-                        PatchSpriteEntry(index, newId);
+                        if (!excludeIds.Contains(index))
+                        {
+                            _newSpriteEntries[index] = sprite;
+                            PatchSpriteEntry(index, newId);
+                        }
                     }
                 }
             }
@@ -176,7 +180,7 @@ public class SpdBuilder : SpriteBuilder
     {
         if (!_newSpriteEntries.ContainsKey(spriteId))
         {
-            _log.Error("Tried to patch non-existent SPD id {0}. Skipping...", spriteId);
+            _log?.Error("Tried to patch non-existent SPD id {0}. Skipping...", spriteId);
             return;
         }
 
