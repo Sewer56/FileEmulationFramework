@@ -56,7 +56,7 @@ public class BfEmulator : IEmulator
             case Game.P5R:
                 _flowFormat = FlowFormatVersion.Version3BigEndian;
                 _library = LibraryLookup.GetLibrary("P5R");
-                _encoding = AtlusEncoding.GetByName("P5");
+                _encoding = AtlusEncoding.GetByName("P5R");
                 break;
         }
     }
