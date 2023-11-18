@@ -54,6 +54,7 @@
     <ProjectReference Include="..\Emulator\AWB.Stream.Emulator\AWB.Stream.Emulator.csproj" />
     <ProjectReference Include="..\Emulator\AFS.Stream.Emulator\AFS.Stream.Emulator.csproj" />
     <ProjectReference Include="..\Emulator\BF.File.Emulator\BF.File.Emulator.csproj" />
+    <ProjectReference Include="..\Emulator\BMD.File.Emulator\BMD.File.Emulator.csproj" />
     <ProjectReference Include="..\Emulator\ONE.Heroes.Stream.Emulator\ONE.Heroes.Stream.Emulator.csproj" />
     <ProjectReference Include="..\Emulator\PAK.Stream.Emulator\PAK.Stream.Emulator.csproj" />
     <ProjectReference Include="..\FileEmulationFramework.Lib\FileEmulationFramework.Lib.csproj" />
@@ -62,6 +63,33 @@
 
   <ItemGroup>
     <None Update="Assets\**">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+  </ItemGroup>
+
+  <ItemGroup>
+    <Compile Update="Emulators\BMD\Assets.cs">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Compile>
+    <Compile Update="Emulators\BMD\BmdEmulatorTests.cs">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Compile>
+  </ItemGroup>
+
+  <ItemGroup>
+    <None Update="Emulators\BMD\Assets\E722_103.BMD">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <None Update="Emulators\BMD\Assets\mergeTest.bmd">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <None Update="Emulators\BMD\Assets\test.bmd">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <None Update="Emulators\BMD\Assets\test1.msg">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+    <None Update="Emulators\BMD\Assets\test2.msg">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </None>
   </ItemGroup>
