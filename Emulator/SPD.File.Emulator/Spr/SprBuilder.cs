@@ -43,20 +43,20 @@ public class SprBuilder : SpriteBuilder
         sprStream.Dispose();
 
         // Write custom sprite entries from '.sprt' files to sprite dictionary
-        foreach (var file in CustomSprFiles.Values)
-        {
-            using var stream = new FileSliceStreamW32(file);
-
-            var fileName = Path.GetFileNameWithoutExtension(file.FilePath.AsSpan());
-
-            if (!fileName.StartsWith("spr_", StringComparison.OrdinalIgnoreCase))
-                continue;
-
-            if (int.TryParse(fileName[4..], out int index))
-            {
-                _newSpriteEntries[index] = stream.Read<SprSpriteEntry>();
-            }
-        }
+        //foreach (var file in CustomSprFiles.Values)
+        //{
+        //    using var stream = new FileSliceStreamW32(file);
+        //
+        //    var fileName = Path.GetFileNameWithoutExtension(file.FilePath.AsSpan());
+        //
+        //    if (!fileName.StartsWith("spr_", StringComparison.OrdinalIgnoreCase))
+        //        continue;
+        //
+        //    if (int.TryParse(fileName[4..], out int index))
+        //    {
+        //        _newSpriteEntries[index] = stream.Read<SprSpriteEntry>();
+        //    }
+        //}
 
         int nextId = _textureData.Count;
 
@@ -77,8 +77,13 @@ public class SprBuilder : SpriteBuilder
                 {
                     string spriteEntryPath = Path.Combine(Path.GetDirectoryName(key), $"spr_{id}{Constants.SprSpriteExtension}");
 
-                    // Use original sprite entry if no accompanying sprite entry file is found
-                    if (!CustomSprFiles.ContainsKey(spriteEntryPath))
+                    // Get accompanying sprite entry if it exists. if not, use original sprite entry data
+                    if (CustomSprFiles.TryGetValue(spriteEntryPath, out var customSprFile))
+                    {
+                        using var stream = new FileSliceStreamW32(customSprFile);
+                        _newSpriteEntries[id] = stream.Read<SprSpriteEntry>();
+                    }
+                    else
                     {
                         if (id < _spriteEntries.Count)
                         {

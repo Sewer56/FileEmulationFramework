@@ -47,16 +47,6 @@ public class SpdBuilder : SpriteBuilder
         _textureData = GetTextureDataFromFile(spdFileSlice);
         spdStream.Dispose();
 
-        // Write custom sprite entries from '.spdspr' files to sprite dictionary
-        foreach (var file in CustomSprFiles.Values)
-        {
-            using var stream = new FileSliceStreamW32(file);
-            stream.TryRead(out int spriteId, out _);
-            stream.Seek(0, SeekOrigin.Begin);
-
-            _newSpriteEntries[spriteId] = stream.Read<SpdSpriteEntry>();
-        }
-
         // Get highest id texture entry
         int nextId = _textureEntries.Select(x => x.Key).Max() + 1;
 
@@ -77,8 +67,13 @@ public class SpdBuilder : SpriteBuilder
                 {
                     string spriteEntryPath = Path.Combine(Path.GetDirectoryName(key), $"spr_{id}{Constants.SpdSpriteExtension}");
 
-                    // Use original sprite entry if no accompanying sprite entry file is found
-                    if (!CustomSprFiles.ContainsKey(spriteEntryPath))
+                    // Get accompanying sprite entry if it exists. if not, use original sprite entry data
+                    if (CustomSprFiles.TryGetValue(spriteEntryPath, out var customSprFile))
+                    {
+                        using var stream = new FileSliceStreamW32(customSprFile);
+                        _newSpriteEntries[id] = stream.Read<SpdSpriteEntry>();
+                    }
+                    else
                     {
                         if (_spriteEntries.TryGetValue(id, out var value))
                         {
