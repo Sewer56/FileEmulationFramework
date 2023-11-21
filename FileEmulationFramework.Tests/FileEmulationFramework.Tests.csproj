@@ -85,6 +85,9 @@
     <None Update="Emulators\SPD\Assets\SPD\CHAT.SPD">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>
+    <None Update="Emulators\SPD\Assets\SPD\combine.spd">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
     <None Update="Emulators\SPD\Assets\SPD\patch_sprite.spd">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>
@@ -104,6 +107,9 @@
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>
     <None Update="Emulators\SPD\Assets\SPD\tex_2~66-69.dds">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
+    <None Update="Emulators\SPD\Assets\SPR\combine.spr">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>
     <None Update="Emulators\SPD\Assets\SPR\menu.spr">

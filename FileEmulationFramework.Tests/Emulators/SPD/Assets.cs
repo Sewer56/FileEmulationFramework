@@ -16,6 +16,7 @@ internal static class SpdAssets
     internal const string ReplaceSpriteResult = @"Emulators\SPD\Assets\SPD\replace_sprite.spd";
     internal const string PatchSprite = @"Emulators\SPD\Assets\SPD\spr_38.dds";
     internal const string PatchSpriteResult = @"Emulators\SPD\Assets\SPD\patch_sprite.spd";
+    internal const string CombineAllResult = @"Emulators\SPD\Assets\SPD\combine.spd";
     internal const string Result = @"chat.spd";
 }
 
@@ -29,5 +30,6 @@ internal static class SprAssets
     internal const string ReplaceSpriteResult = @"Emulators\SPD\Assets\SPR\replace_sprite.spr";
     internal const string PatchSprite = @"Emulators\SPD\Assets\SPR\spr_15.tmx";
     internal const string PatchSpriteResult = @"Emulators\SPD\Assets\SPR\patch_sprite.spr";
+    internal const string CombineAllResult = @"Emulators\SPD\Assets\SPR\combine.spr";
     internal const string Result = @"menu.spr";
 }
