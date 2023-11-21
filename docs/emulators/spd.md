@@ -78,7 +78,7 @@ The emulator provides 3 ways to edit `.SPD` files:
 
 !!! warning
 
-    Custom texture dimensions must conform to 2<sup>n</sup> or (2<sup>n</sup> + 2<sup>n-1</sup>) to prevent crashes. (ex: 384x192, 1024x512, 768x1536)
+    Custom texture dimensions must conform to 2^n or (2^n + 2^n-1) to prevent crashes. (ex: 384x192, 1024x512, 768x1536)
 
 ## Patching Sprites
 
