@@ -76,6 +76,10 @@ The emulator provides 3 ways to edit `.SPD` files:
 - [Texture replacement](#replacing-textures)
 - [Adding new sprites](#adding-new-sprites) (advanced)
 
+!!! warning
+
+    Custom texture dimensions must conform to 2<sup>n</sup> or (2<sup>n</sup> + 2<sup>n-1</sup>) to prevent crashes. (ex: 384x192, 1024x512, 768x1536)
+
 ## Patching Sprites
 
 Sprite patching in this context refers to the technique of appending a provided texture to the `.SPD`s texture dictionary, and patching a sprite entry to point to the new texture.
