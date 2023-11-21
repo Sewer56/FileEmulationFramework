@@ -1,6 +1,4 @@
-﻿using FileEmulationFramework.Lib.IO;
-
-namespace BF.File.Emulator.Interfaces.Structures.IO;
+﻿namespace BF.File.Emulator.Interfaces.Structures.IO;
 
 
 /// <summary>
