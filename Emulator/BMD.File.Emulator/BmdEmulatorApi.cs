@@ -92,4 +92,14 @@ public class BmdEmulatorApi : IBmdEmulator
         _framework.RegisterVirtualFile(destinationPath, emulated!, false);
         return true;
     }
+
+    public void AddFile(string file, string route)
+    {
+        _bmdEmulator.AddFile(file, route);
+    }
+
+    public void AddDirectory(string dir)
+    {
+        _bmdEmulator.AddFromFolders(dir);
+    }
 }

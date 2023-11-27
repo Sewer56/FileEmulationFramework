@@ -62,6 +62,21 @@ internal class BmdBuilderFactory
         }
     }
 
+    public void AddFile(string fileName, string filePath, string dirPath, string route)
+    {
+        if (fileName.Equals(Constants.ArgsFile, StringComparison.OrdinalIgnoreCase))
+            OverrideCompilerArgs(filePath);
+
+        if (!fileName.EndsWith(Constants.MessageExtension, StringComparison.OrdinalIgnoreCase))
+            return;
+
+        RouteFileTuples.Add(new RouteGroupTuple()
+        {
+            Route = new Route(route),
+            File = filePath
+        });
+    }
+
     /// <summary>
     /// Tries to create a BMD from a given route.
     /// </summary>

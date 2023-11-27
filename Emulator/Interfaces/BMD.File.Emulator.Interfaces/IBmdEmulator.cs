@@ -30,4 +30,16 @@ public interface IBmdEmulator
     /// <param name="destinationPath">The path where the emulated bmd file should be put</param>
     public void RegisterBmd(string sourcePath, string destinationPath);
 
+    /// <summary>
+    /// Adds a new file to be used when compiling bmds
+    /// </summary>
+    /// <param name="file">The path to the file to add</param>
+    /// <param name="route">The route the file is in</param>
+    public void AddFile(string file, string route);
+
+    /// <summary>
+    /// Adds a directory to BMD Emulator so it's like the files were in FEmulator\BMD
+    /// </summary>
+    /// <param name="dir">The directory to add the files from</param>
+    public void AddDirectory(string dir);
 }
