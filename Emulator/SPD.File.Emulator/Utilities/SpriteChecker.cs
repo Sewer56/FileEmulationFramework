@@ -12,16 +12,16 @@ public static class SpriteChecker
     public static bool IsSpdFile(IntPtr handle)
     {
         var fileStream = new FileStream(new SafeFileHandle(handle, false), FileAccess.Read);
-        long pos = fileStream.Position;
+        var pos = fileStream.Position;
 
         try
         {
             //read spd magic at offset 0x0
-            int spdMagic = fileStream.Read<int>();
+            var spdMagic = fileStream.Read<int>();
 
             //read magic at 0x8 for sprs
             fileStream.Seek(8, SeekOrigin.Begin);
-            int sprMagic = fileStream.Read<int>();
+            var sprMagic = fileStream.Read<int>();
 
             //return false if the magic is not 'SPR0', otherwise return true
             return spdMagic == 810700883 || sprMagic == 810700883;
