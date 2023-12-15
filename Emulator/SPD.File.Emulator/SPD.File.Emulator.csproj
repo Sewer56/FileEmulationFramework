@@ -14,13 +14,15 @@
     <!-- IL Trimming Support for Framework Dependent Apps. Unofficial.
          If you set this to true, trimming will be enabled when you publish the mod.
          Test trimming with: `BuildLinked.ps1` in PowerShell. -->
-    <ReloadedILLink>false</ReloadedILLink>
+    <ReloadedILLink>true</ReloadedILLink>
   </PropertyGroup>
 
   <ItemGroup>
     <ReloadedLinkRoots Include="SPD.File.Emulator" />
     <!-- Add assemblies to be trimmed. You might need to add their dependencies too!  -->
-    <!-- <ReloadedLinkAssemblies Include="Reloaded.Memory" /> -->
+    <ReloadedLinkAssemblies Include="Reloaded.Memory" />
+    <ReloadedLinkAssemblies Include="Reloaded.Hooks.Definitions" />
+    <ReloadedLinkAssemblies Include="Reloaded.Hooks.ReloadedII.Interfaces" />
   </ItemGroup>
 
   <Import Project="Reloaded.Trimming.targets" />
@@ -45,6 +47,7 @@
 
   <ItemGroup>
     <PackageReference Include="Reloaded.Memory" Version="9.3.2" />
+    <PackageReference Include="Reloaded.Mod.Interfaces" Version="2.3.0" ExcludeAssets="runtime" />
     <PackageReference Include="Reloaded.SharedLib.Hooks" Version="1.9.0" />
   </ItemGroup>
 
