@@ -66,7 +66,7 @@ public class Mod : ModBase, IExports // <= Do not Remove.
         var fileName = Path.GetFileName(mainModule.FileName);
         if (fileName.StartsWith("p5r", StringComparison.OrdinalIgnoreCase))
             _game = Game.P5R;
-        else if (fileName.StartsWith("p4g", StringComparison.OrdinalIgnoreCase))
+        else if (fileName.StartsWith("p4g", StringComparison.OrdinalIgnoreCase) || fileName.StartsWith("p4pc_DT_mc", StringComparison.OrdinalIgnoreCase))
             _game = Game.P4G;
         else if (fileName.StartsWith("p3p", StringComparison.OrdinalIgnoreCase))
             _game = Game.P3P;
