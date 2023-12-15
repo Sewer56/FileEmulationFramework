@@ -8,7 +8,7 @@ namespace SPD.File.Emulator.Template.Configuration
     public class Configurable<TParentType> : IUpdatableConfigurable where TParentType : Configurable<TParentType>, new()
     {
         // Default Serialization Options
-        public static JsonSerializerOptions SerializerOptions { get; } = new JsonSerializerOptions()
+        public static JsonSerializerOptions SerializerOptions { get; } = new()
         {
             Converters = { new JsonStringEnumConverter() },
             WriteIndented = true

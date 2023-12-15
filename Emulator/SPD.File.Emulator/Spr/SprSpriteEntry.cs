@@ -1,9 +1,12 @@
 ﻿namespace SPD.File.Emulator.Spr;
 
-public struct SprSpriteEntry
-{
 #pragma warning disable IDE0044 // Add readonly modifier
 #pragma warning disable IDE0051 // Remove unused private members
+#pragma warning disable CS0169 // Field is never used
+// ReSharper disable InconsistentNaming
+
+public struct SprSpriteEntry
+{
     int _unk0x00;
     unsafe fixed byte _comment[16];
     int _textureIndex;

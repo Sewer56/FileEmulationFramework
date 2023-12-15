@@ -6,7 +6,6 @@
 using Reloaded.Hooks.ReloadedII.Interfaces;
 using Reloaded.Mod.Interfaces;
 using Reloaded.Mod.Interfaces.Internal;
-using SPD.File.Emulator.Configuration;
 using SPD.File.Emulator.Template.Configuration;
 
 namespace SPD.File.Emulator.Template

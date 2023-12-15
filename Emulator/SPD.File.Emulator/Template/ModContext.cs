@@ -1,5 +1,4 @@
 ﻿using Reloaded.Mod.Interfaces;
-using SPD.File.Emulator.Configuration;
 using IReloadedHooks = Reloaded.Hooks.ReloadedII.Interfaces.IReloadedHooks;
 
 namespace SPD.File.Emulator.Template

@@ -27,7 +27,7 @@ public class SprBuilder : SpriteBuilder
             CustomTextureFiles[filePath] = new(filePath);
     }
 
-    public override MultiStream Build(nint handle, string filepath, Logger? logger = null, string folder = "", long baseOffset = 0)
+    public override MultiStream Build(string filepath, Logger? logger = null, long baseOffset = 0)
     {
         const int headerLength = 0x20;
         const int pointerEntryLength = 0x8;
@@ -62,8 +62,7 @@ public class SprBuilder : SpriteBuilder
 
         // Create empty HashSet to use for texture names with no exclude separator '~' to reduce allocations
         HashSet<int> emptyHashSet = new();
-
-        var TextureSeparatedSpriteDict = CreateTextureSeparatedSpriteDict();
+        var textureSeparatedSpriteDict = CreateTextureSeparatedSpriteDict();
 
         // Get DDS filenames and adjust edited sprite texture ids
         foreach ((string key, var file) in CustomTextureFiles)
@@ -75,7 +74,7 @@ public class SprBuilder : SpriteBuilder
             {
                 foreach (int id in GetSpriteIdsFromFilename(fileName[4..]))
                 {
-                    string spriteEntryPath = Path.Combine(Path.GetDirectoryName(key), $"spr_{id}{Constants.SprSpriteExtension}");
+                    string spriteEntryPath = Path.Combine(Path.GetDirectoryName(key)!, $"spr_{id}{Constants.SprSpriteExtension}");
 
                     // Get accompanying sprite entry if it exists. if not, use original sprite entry data
                     if (CustomSprFiles.TryGetValue(spriteEntryPath, out var customSprFile))
@@ -109,7 +108,7 @@ public class SprBuilder : SpriteBuilder
                     excludeIds = emptyHashSet;
 
                 // Revert each modified sprite that used to point to the textures then patch them to point to the new one
-                if (TextureSeparatedSpriteDict.TryGetValue(texId, out var sprites))
+                if (textureSeparatedSpriteDict.TryGetValue(texId, out var sprites))
                 {
                     foreach ((int index, var sprite) in sprites)
                     {
@@ -130,7 +129,7 @@ public class SprBuilder : SpriteBuilder
 
 
         // Copy new sprite entries into the original sprite entry list
-        foreach ((int index, var value) in _newSpriteEntries)
+        foreach ((int index, _) in _newSpriteEntries)
         {
             if (index < _spriteEntries.Count)
                 _spriteEntries[index] = _newSpriteEntries[index];
@@ -154,11 +153,11 @@ public class SprBuilder : SpriteBuilder
         // Calculate filesize
         long newFileSize = headerLength + pointerStream.Length + spriteStream.Length + _totalTextureSize;
 
-        _sprHeader._fileSize = (int)newFileSize;
-        _sprHeader._textureEntryCount = (short)_textureData.Count;
-        _sprHeader._spriteEntryCount = (short)_spriteEntries.Count;
-        _sprHeader._textureEntryOffset = headerLength;
-        _sprHeader._spriteEntryOffset = headerLength + (_textureData.Count * pointerEntryLength);
+        _sprHeader.FileSize = (int)newFileSize;
+        _sprHeader.TextureEntryCount = (short)_textureData.Count;
+        _sprHeader.SpriteEntryCount = (short)_spriteEntries.Count;
+        _sprHeader.TextureEntryOffset = headerLength;
+        _sprHeader.SpriteEntryOffset = headerLength + (_textureData.Count * pointerEntryLength);
 
         headerStream.Write(_sprHeader);
 
@@ -250,30 +249,13 @@ public class SprBuilder : SpriteBuilder
     }
 
     /// <summary>
-    /// Writes raw textures to a stream.
-    /// </summary>
-    private Stream BuildTextureDataStream()
-    {
-        // data stream
-        MemoryStream stream = new(_totalTextureSize);
-
-        // Write original textures
-        foreach (var texture in _textureData)
-        {
-            texture.CopyTo(stream);
-        }
-
-        return stream;
-    }
-
-    /// <summary>
     /// Changes the texture Id a sprite points to.
     /// </summary>
     private void PatchSpriteEntry(int spriteId, int newTextureId)
     {
         if (!_newSpriteEntries.ContainsKey(spriteId))
         {
-            _log?.Error("Tried to patch non-existent SPR id {0}. Skipping...", spriteId);
+            Log?.Error("Tried to patch non-existent SPR id {0}. Skipping...", spriteId);
             return;
         }
 

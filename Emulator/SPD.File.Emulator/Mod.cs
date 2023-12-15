@@ -2,7 +2,6 @@
 using FileEmulationFramework.Lib.Utilities;
 using Reloaded.Mod.Interfaces;
 using Reloaded.Mod.Interfaces.Internal;
-using SPD.File.Emulator.Configuration;
 using SPD.File.Emulator.Interfaces;
 using SPD.File.Emulator.Template;
 
@@ -33,7 +32,6 @@ public class Mod : ModBase, IExports // <= Do not Remove.
     /// </summary>
     private readonly IModConfig _modConfig;
 
-    private readonly Logger _log;
     private readonly SpdEmulator _emulator;
     public Mod(ModContext context)
     {
@@ -49,15 +47,15 @@ public class Mod : ModBase, IExports // <= Do not Remove.
         // and some other neat features, override the methods in ModBase.
         _modLoader.ModLoading += OnModLoading;
         _modLoader.OnModLoaderInitialized += OnModLoaderInitialized;
-        _log = new Logger(_logger, _configuration.LogLevel);
-        _log.Info("Starting SPD.File.Emulator");
-        _emulator = new SpdEmulator(_log, _configuration.DumpSpd);
+        var log = new Logger(_logger, _configuration.LogLevel);
+        log.Info("Starting SPD.File.Emulator");
+        _emulator = new SpdEmulator(log, _configuration.DumpSpd);
 
         _modLoader.GetController<IEmulationFramework>().TryGetTarget(out var framework);
         framework!.Register(_emulator);
 
         // Expose API
-        _modLoader.AddOrReplaceController<ISpdEmulator>(context.Owner, new SpdEmulatorApi(framework, _emulator, _log));
+        _modLoader.AddOrReplaceController<ISpdEmulator>(context.Owner, new SpdEmulatorApi(framework, _emulator, log));
     }
 
     private void OnModLoaderInitialized()

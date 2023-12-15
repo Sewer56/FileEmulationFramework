@@ -1,6 +1,4 @@
-﻿using SPD.File.Emulator.Configuration;
-
-namespace SPD.File.Emulator.Template
+﻿namespace SPD.File.Emulator.Template
 {
     /// <summary>
     /// Base class for implementing mod functionality.

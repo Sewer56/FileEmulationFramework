@@ -78,7 +78,7 @@ public class SpdEmulator : IEmulator
         // Make the SPD file.
         _pathToStream[outputPath] = null; // Avoid recursion into same file.
 
-        stream = builder!.Build(handle, srcDataPath, _log);
+        stream = builder!.Build(srcDataPath, _log);
         _pathToStream.TryAdd(outputPath, stream);
         emulated = new EmulatedFile<MultiStream>(stream);
         _log.Info("[SpdEmulator] Created Emulated file with Path {0}", outputPath);
@@ -115,7 +115,7 @@ public class SpdEmulator : IEmulator
     /// Invalidates a BF file with a specified name.
     /// </summary>
     /// <param name="bfPath">Full path to the file.</param>
-    public void UnregisterFile(string bfPath) => _pathToStream!.Remove(bfPath, out _);
+    public void UnregisterFile(string bfPath) => _pathToStream.Remove(bfPath, out _);
 
     public void RegisterFile(string destinationPath, Stream stream)
     {

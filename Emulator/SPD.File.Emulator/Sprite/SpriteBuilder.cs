@@ -7,13 +7,12 @@ public abstract class SpriteBuilder
 {
     protected Dictionary<string, FileSlice> CustomSprFiles = new();
     protected Dictionary<string, FileSlice> CustomTextureFiles = new();
-
-    protected Logger? _log = null;
+    protected readonly Logger? Log;
 
     public SpriteBuilder() { }
     public SpriteBuilder(Logger log)
     {
-        _log = log;
+        Log = log;
     }
 
     /// <summary>
@@ -25,7 +24,7 @@ public abstract class SpriteBuilder
     /// <summary>
     /// Builds a Sprite file.
     /// </summary>
-    public abstract unsafe MultiStream Build(IntPtr handle, string filepath, Logger? logger = null, string folder = "", long baseOffset = 0);
+    public abstract MultiStream Build(string filepath, Logger? logger = null, long baseOffset = 0);
 
     internal static T GetHeaderFromSpr<T>(Stream stream, long pos) where T : unmanaged
     {

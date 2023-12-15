@@ -1,9 +1,13 @@
 ﻿namespace SPD.File.Emulator.Spd;
 
-public struct SpdTextureEntry
-{
 #pragma warning disable IDE0044 // Add readonly modifier
 #pragma warning disable IDE0051 // Remove unused private members
+#pragma warning disable CS0169 // Field is never used
+#pragma warning disable CS0649 // Field is never assigned to, and will always have its default value
+// ReSharper disable InconsistentNaming
+
+public struct SpdTextureEntry
+{
     int _textureId;
     int _unk04;
     int _textureDataOffset;
@@ -17,7 +21,4 @@ public struct SpdTextureEntry
     public readonly int GetTextureId() => _textureId;
     public readonly (int, int) GetTextureOffsetAndSize() => (_textureDataOffset, _textureDataSize);
     public void SetTextureOffset(int newOffset) => _textureDataOffset = newOffset;
-    public void SetTextureId(int id) => _textureId = id;
-#pragma warning restore IDE0044 // Add readonly modifier
-#pragma warning restore IDE0051 // Remove unused private members
 }

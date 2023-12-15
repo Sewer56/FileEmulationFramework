@@ -1,5 +1,4 @@
 ﻿using Reloaded.Mod.Interfaces;
-using SPD.File.Emulator.Configuration;
 
 namespace SPD.File.Emulator.Template.Configuration
 {

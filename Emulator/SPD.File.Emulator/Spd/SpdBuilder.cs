@@ -31,7 +31,7 @@ public class SpdBuilder : SpriteBuilder
     /// <summary>
     /// Builds an SPD file.
     /// </summary>
-    public override unsafe MultiStream Build(IntPtr handle, string filepath, Logger? logger = null, string folder = "", long baseOffset = 0)
+    public override MultiStream Build(string filepath, Logger? logger = null, long baseOffset = 0)
     {
         const int headerLength = 0x20;
         const int textureEntryLength = 0x30;
@@ -52,8 +52,7 @@ public class SpdBuilder : SpriteBuilder
 
         // Create empty HashSet to use for texture names with no exclude separator '~' to reduce allocations
         HashSet<int> emptyHashSet = new();
-
-        var TextureSeparatedSpriteDict = CreateTextureSeparatedSpriteDict();
+        var textureSeparatedSpriteDict = CreateTextureSeparatedSpriteDict();
 
         // Get DDS filenames and adjust edited sprite texture ids
         foreach ((string key, var file) in CustomTextureFiles)
@@ -65,7 +64,7 @@ public class SpdBuilder : SpriteBuilder
             {
                 foreach (int id in GetSpriteIdsFromFilename(fileName[4..]))
                 {
-                    string spriteEntryPath = Path.Combine(Path.GetDirectoryName(key), $"spr_{id}{Constants.SpdSpriteExtension}");
+                    string spriteEntryPath = Path.Combine(Path.GetDirectoryName(key)!, $"spr_{id}{Constants.SpdSpriteExtension}");
 
                     // Get accompanying sprite entry if it exists. if not, use original sprite entry data
                     if (CustomSprFiles.TryGetValue(spriteEntryPath, out var customSprFile))
@@ -99,7 +98,7 @@ public class SpdBuilder : SpriteBuilder
                     excludeIds = emptyHashSet;
 
                 // Revert each modified sprite that used to point to the textures then patch them to point to the new one
-                if (TextureSeparatedSpriteDict.TryGetValue(texId, out var sprites))
+                if (textureSeparatedSpriteDict.TryGetValue(texId, out var sprites))
                 {
                     foreach ((int index, var sprite) in sprites)
                     {
@@ -139,11 +138,11 @@ public class SpdBuilder : SpriteBuilder
         // Calculate filesize
         long newFileSize = totalTextureSize + headerLength + textureEntryStream.Length + spriteStream.Length;
 
-        _spdHeader.fileSize = (int)newFileSize;
-        _spdHeader.textureEntryCount = (short)_textureEntries.Count;
-        _spdHeader.spriteEntryCount = (short)_spriteEntries.Count;
-        _spdHeader.textureEntryOffset = headerLength;
-        _spdHeader.spriteEntryOffset = headerLength + (_textureEntries.Count * textureEntryLength);
+        _spdHeader.FileSize = (int)newFileSize;
+        _spdHeader.TextureEntryCount = (short)_textureEntries.Count;
+        _spdHeader.SpriteEntryCount = (short)_spriteEntries.Count;
+        _spdHeader.TextureEntryOffset = headerLength;
+        _spdHeader.SpriteEntryOffset = headerLength + (_textureEntries.Count * textureEntryLength);
 
         headerStream.Write(_spdHeader);
 
@@ -175,7 +174,7 @@ public class SpdBuilder : SpriteBuilder
     {
         if (!_newSpriteEntries.ContainsKey(spriteId))
         {
-            _log?.Error("Tried to patch non-existent SPD id {0}. Skipping...", spriteId);
+            Log?.Error("Tried to patch non-existent SPD id {0}. Skipping...", spriteId);
             return;
         }
 
@@ -247,7 +246,7 @@ public class SpdBuilder : SpriteBuilder
         {
             texture.SetTextureOffset((int)textureDataOffset);
             stream.Write(texture); // Write texture entry
-            (int offset, int size) = texture.GetTextureOffsetAndSize();
+            (_, int size) = texture.GetTextureOffsetAndSize();
             textureDataOffset += size; // move new offset to end of previous texture
             totalTextureSize += size;
         }
@@ -268,24 +267,6 @@ public class SpdBuilder : SpriteBuilder
         foreach (var sprite in _spriteEntries.Values)
         {
             stream.Write(sprite);
-        }
-
-        return stream;
-    }
-
-    /// <summary>
-    /// Writes raw textures to a stream.
-    /// </summary>
-    /// <param name="streamSize">The byte size of all textures combined.</param>
-    private MemoryStream BuildTextureDataStream(int streamSize)
-    {
-        // data stream
-        MemoryStream stream = new(streamSize);
-
-        // Write original textures
-        foreach (var texture in _textureData.Values)
-        {
-            texture.CopyTo(stream);
         }
 
         return stream;
