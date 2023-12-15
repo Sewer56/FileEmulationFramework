@@ -1,4 +1,5 @@
-﻿using Reloaded.Memory.Streams;
+﻿using Reloaded.Memory.Extensions;
+using Reloaded.Memory.Streams;
 // ReSharper disable RedundantTypeArgumentsOfMethod
 
 namespace AWB.Stream.Emulator.Awb.Utilities;
@@ -19,16 +20,16 @@ public static class ValueWriters
         switch (size)
         {
             case 1:
-                stream.Write<byte>((byte)value);
+                stream.Write((byte)value);
                 break;
             case 2:                
-                stream.Write<short>((short)value);
+                stream.Write((short)value);
                 break;
             case 4:
-                stream.Write<int>((int)value);
+                stream.Write((int)value);
                 break;
             case 8:
-                stream.Write<long>(value);
+                stream.Write(value);
                 break;
             default:
                 ThrowHelpers.ThrowBadFieldSizeException();

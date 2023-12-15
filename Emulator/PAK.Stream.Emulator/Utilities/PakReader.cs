@@ -5,6 +5,7 @@ using System;
 using System.ComponentModel;
 using System.IO;
 using System.Reflection;
+using Reloaded.Memory.Utilities;
 
 // Aliasing for readability, since our assembly name has priority over 'stream'
 using Strim = System.IO.Stream;
