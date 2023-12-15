@@ -44,7 +44,7 @@ Make folders corresponding to SPD Container paths, e.g. `font/chat/chat.spd/`. A
 
 Recreate the directory to the SPD inside the PAK, and create a dummy file with the name of the sprite file in that directory. A dummy file can be made my making an empty .txt file and giving it the name of the sprite file.
 <!-- -->
-Example: FEmulator/PAK/init_free.bin/smap/i_mini_map01.spr
+Example: `FEmulator/PAK/init_free.bin/smap/i_mini_map01.spr`
 
 ## Tools
 
