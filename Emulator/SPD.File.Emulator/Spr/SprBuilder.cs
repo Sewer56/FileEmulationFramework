@@ -42,22 +42,6 @@ public class SprBuilder : SpriteBuilder
         GetSpriteEntriesFromSpr(sprStream);
         sprStream.Dispose();
 
-        // Write custom sprite entries from '.sprt' files to sprite dictionary
-        //foreach (var file in CustomSprFiles.Values)
-        //{
-        //    using var stream = new FileSliceStreamW32(file);
-        //
-        //    var fileName = Path.GetFileNameWithoutExtension(file.FilePath.AsSpan());
-        //
-        //    if (!fileName.StartsWith("spr_", StringComparison.OrdinalIgnoreCase))
-        //        continue;
-        //
-        //    if (int.TryParse(fileName[4..], out int index))
-        //    {
-        //        _newSpriteEntries[index] = stream.Read<SprSpriteEntry>();
-        //    }
-        //}
-
         int nextId = _textureData.Count;
 
         // Create empty HashSet to use for texture names with no exclude separator '~' to reduce allocations
