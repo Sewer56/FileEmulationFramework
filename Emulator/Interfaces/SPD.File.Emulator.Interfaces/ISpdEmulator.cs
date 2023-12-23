@@ -17,7 +17,7 @@ public interface ISpdEmulator
     public bool TryCreateFromFileSlice(string sourcePath, long offset, string route, string destinationPath);
 
     /// <summary>
-    /// Tries to create an emulated SPD file by compiling any applicable flow files using the input as the basee
+    /// Tries to create an emulated SPD file by merging any applicable sprite or texture files, using the input as the base
     /// </summary>
     /// <param name="sourcePath">Path to the SPD file to use as a base.</param>
     /// <param name="route">The route of the emulated SPD file.</param>

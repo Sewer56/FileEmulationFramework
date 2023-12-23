@@ -112,10 +112,10 @@ public class SpdEmulator : IEmulator
     }
 
     /// <summary>
-    /// Invalidates a BF file with a specified name.
+    /// Invalidates a SPD file with a specified name.
     /// </summary>
-    /// <param name="bfPath">Full path to the file.</param>
-    public void UnregisterFile(string bfPath) => _pathToStream.Remove(bfPath, out _);
+    /// <param name="spdPath">Full path to the file.</param>
+    public void UnregisterFile(string spdPath) => _pathToStream.Remove(spdPath, out _);
 
     public void RegisterFile(string destinationPath, Stream stream)
     {
