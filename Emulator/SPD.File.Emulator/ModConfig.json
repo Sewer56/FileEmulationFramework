@@ -16,6 +16,18 @@
   "IsLibrary": true,
   "ReleaseMetadataFileName": "SPD.File.Emulator.ReleaseMetadata.json",
   "PluginData": {
+    "NuGet": {
+      "AllowUpdateFromAnyRepository": false,
+      "DefaultRepositoryUrls": [
+        "http://packages.sewer56.moe:5000/v3/index.json"
+      ]
+    },
+    "GitHubRelease": {
+      "UserName": "Sewer56",
+      "RepositoryName": "FileEmulationFramework",
+      "UseReleaseTag": false,
+      "AssetFileName": "Mod.zip"
+    },
     "GitHubDependencies": {
       "IdToConfigMap": {
         "reloaded.universal.fileemulationframework": {
