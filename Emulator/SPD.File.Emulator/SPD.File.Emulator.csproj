@@ -7,7 +7,7 @@
     <LangVersion>10.0</LangVersion>
     <Nullable>enable</Nullable>
     <AllowUnsafeBlocks>True</AllowUnsafeBlocks>
-    <OutputPath>$(RELOADEDIIMODS)/SPD.File.Emulator</OutputPath>
+    <OutputPath>$(RELOADEDIIMODS)/reloaded.universal.fileemulationframework.spd</OutputPath>
     <Deterministic>true</Deterministic>
     <ImplicitUsings>enable</ImplicitUsings>
 
@@ -26,7 +26,6 @@
   </ItemGroup>
 
   <Import Project="Reloaded.Trimming.targets" />
-  <Import Project="Reloaded.Checks.targets" />
 
   <ItemGroup>
     <None Remove="ModConfig.json" />
