@@ -5,6 +5,7 @@ using FileEmulationFramework.Lib.Utilities;
 using Heroes.SDK.Definitions.Structures.Archive.OneFile;
 using Heroes.SDK.Definitions.Structures.RenderWare;
 using Microsoft.Win32.SafeHandles;
+using Reloaded.Memory.Extensions;
 using Reloaded.Memory.Streams;
 
 // Aliasing for readability, since our assembly name has priority over 'stream'
@@ -145,7 +146,7 @@ public class OneBuilder
     {
         var fileStream = new FileStream(new SafeFileHandle(hFile, false), FileAccess.Read);
         var originalPos = fileStream.Position;
-        using var reader = new BufferedStreamReader(fileStream, 4096); // common cluster size on Windows
+        using var reader = new BufferedStreamReader<FileStream>(fileStream, 4096); // common cluster size on Windows
         var result = new Dictionary<string, OneBuilderItem>();
 
         // Read headers.
@@ -163,13 +164,13 @@ public class OneBuilder
         // Note: Heroes leaves 2 blank name slots that are unused at runtime, so file count is that and 2 less.
         for (int x = 0; x < fileNameCount - 2; x++)
         {
-            var stillMoreData = reader.Position() < fileStream.Length;
+            var stillMoreData = reader.Position < fileStream.Length;
             if (!stillMoreData)
                 break;
 
             reader.Read<OneFileEntry>(out var currentEntry);
             var fileName    = fileNames[currentEntry.FileNameIndex].ToString();
-            var fileDataPos = reader.Position();
+            var fileDataPos = reader.Position;
             var fileSize    = currentEntry.FileSize;
 #if DEBUG
             if (fileSize == 0)

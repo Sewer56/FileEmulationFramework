@@ -5,6 +5,7 @@ using FileEmulationFramework.Lib.IO.Interfaces;
 using FileEmulationFramework.Lib.IO.Struct;
 using FileEmulationFramework.Lib.Utilities;
 using Microsoft.Win32.SafeHandles;
+using Reloaded.Memory.Extensions;
 using Reloaded.Memory.Streams;
 
 // Aliasing for readability, since our assembly name has priority over 'stream'
@@ -73,14 +74,14 @@ public class AwbBuilder
         headerStream.SetLength(headerLength);
 
         // Write header magic and file count
-        headerStream.Write<int>(Afs2Header.ExpectedMagic); // 'AFS2'
-        headerStream.Write<byte>((byte)(subKey != 0 ? 2 : 1)); // 'Type'
-        headerStream.Write<byte>(posFieldSize); // 'PosLength'
-        headerStream.Write<byte>(idFieldSize); // 'IdLength'
-        headerStream.Write<byte>(0); // 'Pad'
-        headerStream.Write<int>(numFiles); // 'Entry Count'
-        headerStream.Write<short>(AwbAlignment); // 'Alignment'
-        headerStream.Write<short>(subKey); // 'Encryption Key'
+        headerStream.Write(Afs2Header.ExpectedMagic); // 'AFS2'
+        headerStream.Write((byte)(subKey != 0 ? 2 : 1)); // 'Type'
+        headerStream.Write(posFieldSize); // 'PosLength'
+        headerStream.Write(idFieldSize); // 'IdLength'
+        headerStream.Write((byte)0); // 'Pad'
+        headerStream.Write(numFiles); // 'Entry Count'
+        headerStream.Write((short)AwbAlignment); // 'Alignment'
+        headerStream.Write((short)subKey); // 'Encryption Key'
 
         // Make MultiStream
         var pairs = new List<StreamOffsetPair<Strim>>()
