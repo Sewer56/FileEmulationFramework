@@ -141,7 +141,11 @@ public class BfEmulator : IEmulator
     /// Invalidates a BF file with a specified name.
     /// </summary>
     /// <param name="bfPath">Full path to the file.</param>
-    public void UnregisterFile(string bfPath) => _pathToStream!.Remove(bfPath, out _);
+    public void UnregisterFile(string bfPath)
+    {
+        _pathToStream!.Remove(bfPath, out var stream);
+        stream?.Dispose();
+    }
 
     public void RegisterFile(string destinationPath, Stream stream)
     {

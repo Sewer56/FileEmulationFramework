@@ -56,13 +56,9 @@ public class BfEmulatorApi : IBfEmulator
         }
 
         Native.SetFilePointerEx(handle, 0, IntPtr.Zero, 0);
-
-        var fileStream = new FileStream(new SafeFileHandle(handle, false), FileAccess.Read);
-        var stream = StreamUtils.CreateMemoryStream(fileStream.Length);
-        fileStream.CopyTo(stream);
-
-        var emulated = new EmulatedFile<Stream>(stream);
-        _bfEmulator.RegisterFile(destinationPath, stream);
+        var fileStream = new FileStream(new SafeFileHandle(handle, true), FileAccess.Read);
+        var emulated = new EmulatedFile<FileStream>(fileStream);
+        _bfEmulator.RegisterFile(destinationPath, fileStream);
         _framework.RegisterVirtualFile(destinationPath, emulated, false);
 
         _logger.Info("[BfEmulatorApi] Registered bf {0} at {1}", sourcePath, destinationPath);
