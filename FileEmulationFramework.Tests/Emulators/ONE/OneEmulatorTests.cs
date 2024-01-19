@@ -54,7 +54,7 @@ public class OneEmulatorTests
         var finalStream = oneBuilder.Build(handle, Assets.OneEmulatorSampleFile);
 
         var newArchiveData = new byte[finalStream.Length];
-        finalStream.TryReadSafe(newArchiveData);
+        finalStream.ReadExactly(newArchiveData);
         var newArchive = new OneArchive(newArchiveData);
         var newFile = newArchive.GetFiles().FirstOrDefault(file => file.Name == fileName);
 
@@ -80,7 +80,7 @@ public class OneEmulatorTests
         var finalStream = oneBuilder.Build(handle, Assets.OneEmulatorSampleFile);
 
         var newArchiveData = new byte[finalStream.Length];
-        finalStream.TryReadSafe(newArchiveData);
+        finalStream.ReadExactly(newArchiveData);
         var newArchive = new OneArchive(newArchiveData);
         var newFile = newArchive.GetFiles().FirstOrDefault(file => file.Name == fileName);
 

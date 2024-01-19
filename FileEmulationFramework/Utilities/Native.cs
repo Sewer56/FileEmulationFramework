@@ -25,11 +25,11 @@ public class Native
     public struct NtCreateFileFn
     {
         public FuncPtr<
-            BlittablePointer<IntPtr>, // handle 
+            Ptr<IntPtr>, // handle 
             FileAccess, // access
-            BlittablePointer<OBJECT_ATTRIBUTES>, // objectAttributes
-            BlittablePointer<IO_STATUS_BLOCK>, // ioStatus
-            BlittablePointer<long>, // allocSize
+            Ptr<OBJECT_ATTRIBUTES>, // objectAttributes
+            Ptr<IO_STATUS_BLOCK>, // ioStatus
+            Ptr<long>, // allocSize
             uint, // fileAttributes
             FileShare, // share
             uint, // createDisposition
@@ -47,12 +47,12 @@ public class Native
         public FuncPtr<
             IntPtr, // handle 
             IntPtr, // hEvent
-            BlittablePointer<IntPtr>, // apcRoutine
-            BlittablePointer<IntPtr>, // apcContext
-            BlittablePointer<IO_STATUS_BLOCK>, // ioStatus
-            BlittablePointer<byte>, // buffer
+            Ptr<IntPtr>, // apcRoutine
+            Ptr<IntPtr>, // apcContext
+            Ptr<IO_STATUS_BLOCK>, // ioStatus
+            Ptr<byte>, // buffer
             uint, // length
-            BlittablePointer<long>, // byteOffset
+            Ptr<long>, // byteOffset
             IntPtr, // key
             int // status
         > Value;
@@ -64,8 +64,8 @@ public class Native
     {
         public FuncPtr<
             IntPtr, // hFile 
-            BlittablePointer<IO_STATUS_BLOCK>, // ioStatus
-            BlittablePointer<byte>,   // fileInformation
+            Ptr<IO_STATUS_BLOCK>, // ioStatus
+            Ptr<byte>,   // fileInformation
             uint, // length
             FileInformationClass, // fileInformationClass
             int // status
@@ -78,8 +78,8 @@ public class Native
     {
         public FuncPtr<
             IntPtr, // hFile 
-            BlittablePointer<IO_STATUS_BLOCK>, // ioStatus
-            BlittablePointer<byte>,   // fileInformation
+            Ptr<IO_STATUS_BLOCK>, // ioStatus
+            Ptr<byte>,   // fileInformation
             uint, // length
             FileInformationClass, // fileInformationClass
             int // status
@@ -91,8 +91,8 @@ public class Native
     public struct NtQueryFullAttributesFileFn
     {
         public FuncPtr<
-            BlittablePointer<OBJECT_ATTRIBUTES>, // attributes
-            BlittablePointer<FILE_NETWORK_OPEN_INFORMATION>, // information
+            Ptr<OBJECT_ATTRIBUTES>, // attributes
+            Ptr<FILE_NETWORK_OPEN_INFORMATION>, // information
             int // status
         > Value;
     }

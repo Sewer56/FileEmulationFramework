@@ -7,19 +7,25 @@ Split-Path $MyInvocation.MyCommand.Path | Push-Location
               -PublishOutputDir "Publish/ToUpload/ARC" `
 			  -ReadmePath "docs/emulators/arc.md" `
 			  -ChangelogPath "Emulator/ARC.Stream.Emulator/CHANGELOG.MD" `
-			  
+
 ./Publish.ps1 -ProjectPath "Emulator/PAK.Stream.Emulator/PAK.Stream.Emulator.csproj" `
               -PackageName "PAK.Stream.Emulator" `
               -PublishOutputDir "Publish/ToUpload/PAK" `
 			  -ReadmePath "docs/emulators/pak.md" `
 			  -ChangelogPath "Emulator/PAK.Stream.Emulator/CHANGELOG.MD" `
-			  
+
 ./Publish.ps1 -ProjectPath "Emulator/BF.File.Emulator/BF.File.Emulator.csproj" `
               -PackageName "BF.File.Emulator" `
               -PublishOutputDir "Publish/ToUpload/bf" `
 			  -ReadmePath "docs/emulators/bf.md" `
 			  -ChangelogPath "Emulator/BF.File.Emulator/CHANGELOG.MD" `
               -IncludeRegexes ("ModConfig\.json", "\.deps\.json", "\.runtimeconfig\.json", "Libraries") `
+
+./Publish.ps1 -ProjectPath "Emulator/SPD.File.Emulator/SPD.File.Emulator.csproj" `
+              -PackageName "SPD.File.Emulator" `
+              -PublishOutputDir "Publish/ToUpload/spd" `
+			  -ReadmePath "docs/emulators/spd.md" `
+			  -ChangelogPath "Emulator/SPD.File.Emulator/CHANGELOG.MD" `
 
 ./Publish.ps1 -ProjectPath "Emulator/AFS.Stream.Emulator/AFS.Stream.Emulator.csproj" `
               -PackageName "AFS.Stream.Emulator" `
