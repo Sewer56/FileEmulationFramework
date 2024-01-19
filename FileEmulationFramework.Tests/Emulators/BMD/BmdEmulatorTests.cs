@@ -39,6 +39,7 @@ public class BmdEmulatorTests
         // Parse file and check.
         var expected = File.ReadAllBytes(Assets.SingleMsgCompiled);
         var actual = File.ReadAllBytes("e722_103.bmd");
+        // TODO: assert failure. this appears to have no effect in actual-ingame use
         Assert.Equal(expected, actual);
 
     }
@@ -62,6 +63,7 @@ public class BmdEmulatorTests
         fileStream.Close();
 
         // Parse file and check.
+        // TODO: assert failure. this appears to have no effect in actual-ingame use
         Assert.Equal(File.ReadAllBytes(Assets.MultipleMsgsCompiled), File.ReadAllBytes("e722_103.bmd"));
     }
 

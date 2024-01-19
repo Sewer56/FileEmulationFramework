@@ -15,7 +15,7 @@ A number of Atlus games such as Persona, SMT, and Catherine use BMD files. Any t
 For games other than these, script compiler arguments need to be supplied as detailed in [Custom Script Compiler Args](#custom-script-compiler-args). 
 
 ## Example Usage
-As this mod is primarily intended for use with the PC Persona games, it is reccomended that you use [Persona Essentials](https://github.com/Sewer56/p5rpc.modloader) which has this as a dependency. However, the steps for using it on its own are very similar to with Persona Essentials:
+As this mod is primarily intended for use with the PC Persona games, it is recommended that you use [Persona Essentials](https://github.com/Sewer56/p5rpc.modloader) which has this as a dependency. However, the steps for using it on its own are very similar to with Persona Essentials:
 
 A. Add a dependency on this mod in your mod configuration. (via `Edit Mod` menu dependencies section, or in `ModConfig.json` directly)
 
@@ -24,7 +24,7 @@ A. Add a dependency on this mod in your mod configuration. (via `Edit Mod` menu 
 ```
 
 B. Add a folder called `FEmulator/BMD` in your mod folder.  
-C. Make a `.msg` file with the same name as the bmd you want to edit, e.g. `f007.msg` to edit messages in `f007.bmd`     
+C. Make a `.msg` file with the same name as the bmd you want to edit, e.g. `e722_103.msg` to edit messages in `e722_103.bmd`     
 D. In the `.msg` file include any messages that you want to edit from the base `.bmd` file.
 
 !!! warning
