@@ -142,7 +142,11 @@ public class BmdEmulator : IEmulator
     /// Invalidates a BMD file with a specified name.
     /// </summary>
     /// <param name="bmdPath">Full path to the file.</param>
-    public void UnregisterFile(string bmdPath) => _pathToStream!.Remove(bmdPath, out _);
+    public void UnregisterFile(string bmdPath)
+    {
+        _pathToStream!.Remove(bmdPath, out var stream);
+        stream?.Dispose();
+    }
 
     public void RegisterFile(string destinationPath, Stream stream)
     {
