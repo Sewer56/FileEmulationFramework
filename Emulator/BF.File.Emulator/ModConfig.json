@@ -2,7 +2,7 @@
   "ModId": "reloaded.universal.fileemulationframework.bf",
   "ModName": "BF Emulator for File Emulation Framework",
   "ModAuthor": "AnimatedSwine37",
-  "ModVersion": "1.1.0",
+  "ModVersion": "1.1.2",
   "ModDescription": "Simulates Atlus BF files. Allows mods to add or replace existing files using files on disk.",
   "ModDll": "BF.File.Emulator.dll",
   "ModIcon": "Preview.png",

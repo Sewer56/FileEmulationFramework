@@ -10,7 +10,7 @@
   "ModR2RManagedDll64": "x64/AWB.Stream.Emulator.dll",
   "ModNativeDll32": "",
   "ModNativeDll64": "",
-  "IsLibrary": false,
+  "IsLibrary": true,
   "ReleaseMetadataFileName": "AWB.Stream.Emulator.ReleaseMetadata.json",
   "PluginData": {
     "GitHubDependencies": {
