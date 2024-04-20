@@ -210,6 +210,17 @@ public class PakBuilder
         // Merge the slices and add.
         foreach (var merged in FileSliceStreamExtensions.MergeStreams(mergeAbleStreams))
             pairs.Add(merged);
+
+        // Add an extra empty entry header (the game might try to read it)
+        MemoryStream dummyHeader = new MemoryStream(sizeof(V1FileEntry));
+        byte[] dummyBuffer = new byte[sizeof(V1FileEntry)];
+        for (int f = 0; i < dummyBuffer.Length; i++)
+        {
+            dummyBuffer[f] = 0x00;
+        }
+        dummyHeader.Write(dummyBuffer, 0, dummyBuffer.Length); 
+        pairs.Add(new(dummyHeader, OffsetRange.FromStartAndLength(currentOffset, sizeof(V1FileEntry))));
+
         // Return MultiStream
         return new MultiStream(pairs, logger);
     }
@@ -366,6 +377,17 @@ public class PakBuilder
         // Merge the slices and add.
         foreach (var merged in FileSliceStreamExtensions.MergeStreams(mergeAbleStreams))
             pairs.Add(merged);
+
+        // Add an extra empty entry header (the game might try to read it)
+        MemoryStream dummyHeader = new MemoryStream(sizeof(V2FileEntry));
+        byte[] dummyBuffer = new byte[sizeof(V2FileEntry)];
+        for (int f = 0; i < dummyBuffer.Length; i++)
+        {
+            dummyBuffer[f] = 0x00;
+        }
+        dummyHeader.Write(dummyBuffer, 0, dummyBuffer.Length);
+        pairs.Add(new(dummyHeader, OffsetRange.FromStartAndLength(currentOffset, sizeof(V2FileEntry))));
+
         // Return MultiStream
         return new MultiStream(pairs, logger);
     }
@@ -518,6 +540,17 @@ public class PakBuilder
         // Merge the slices and add.
         foreach (var merged in FileSliceStreamExtensions.MergeStreams(mergeAbleStreams))
             pairs.Add(merged);
+
+        // Add an extra empty entry header (the game might try to read it)
+        MemoryStream dummyHeader = new MemoryStream(sizeof(V3FileEntry));
+        byte[] dummyBuffer = new byte[sizeof(V3FileEntry)];
+        for (int f = 0; i < dummyBuffer.Length; i++)
+        {
+            dummyBuffer[f] = 0x00;
+        }
+        dummyHeader.Write(dummyBuffer, 0, dummyBuffer.Length);
+        pairs.Add(new(dummyHeader, OffsetRange.FromStartAndLength(currentOffset, sizeof(V3FileEntry))));
+
         // Return MultiStream
         return new MultiStream(pairs, logger);
     }
