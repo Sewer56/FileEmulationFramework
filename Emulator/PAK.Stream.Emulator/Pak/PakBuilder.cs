@@ -138,13 +138,8 @@ public class PakBuilder
                 pairs.Add(new(new FileSliceStreamW32(overwrittenFile, logger), OffsetRange.FromStartAndLength(currentOffset + sizeofentry, overwrittenFile.Length)));
                 if (length > overwrittenFile.Length)
                 {
-                    var overstream = new MemoryStream();
                     byte[] buffer = new byte[length - overwrittenFile.Length];
-                    for (int f = 0; i < buffer.Length; i++)
-                    {
-                        buffer[f] = 0x00;
-                    }
-                    overstream.Write(buffer, 0, buffer.Length);
+                    var overstream = new MemoryStream(buffer);
                     pairs.Add(new(overstream, OffsetRange.FromStartAndLength(currentOffset + sizeofentry + overwrittenFile.Length, buffer.Length)));
                 }
             }
@@ -177,10 +172,6 @@ public class PakBuilder
                     {
                         entryStream.Seek((int)entryStream.Length, SeekOrigin.Begin);
                         byte[] buffer = new byte[length - (int)entryStream.Length];
-                        for (int f = 0; i < buffer.Length; i++)
-                        {
-                            buffer[f] = 0x00;
-                        }
                         entryStream.Write(buffer, 0, buffer.Length);
                     }
                     pairs.Add(new(entryStream, OffsetRange.FromStartAndLength(currentOffset + sizeofentry, length)));
@@ -212,13 +203,8 @@ public class PakBuilder
             pairs.Add(merged);
 
         // Add an extra empty entry header (the game might try to read it)
-        MemoryStream dummyHeader = new MemoryStream(sizeof(V1FileEntry));
         byte[] dummyBuffer = new byte[sizeof(V1FileEntry)];
-        for (int f = 0; i < dummyBuffer.Length; i++)
-        {
-            dummyBuffer[f] = 0x00;
-        }
-        dummyHeader.Write(dummyBuffer, 0, dummyBuffer.Length); 
+        MemoryStream dummyHeader = new MemoryStream(dummyBuffer);
         pairs.Add(new(dummyHeader, OffsetRange.FromStartAndLength(currentOffset, sizeof(V1FileEntry))));
 
         // Return MultiStream
@@ -303,13 +289,8 @@ public class PakBuilder
                 pairs.Add(new(new FileSliceStreamW32(overwrittenFile, logger), OffsetRange.FromStartAndLength(currentOffset + sizeofentry, overwrittenFile.Length)));
                 if (length > overwrittenFile.Length)
                 {
-                    var overstream = new MemoryStream();
                     byte[] buffer = new byte[length - overwrittenFile.Length];
-                    for (int f = 0; i < buffer.Length; i++)
-                    {
-                        buffer[f] = 0x00;
-                    }
-                    overstream.Write(buffer, 0, buffer.Length);
+                    var overstream = new MemoryStream(buffer);
                     pairs.Add(new(overstream, OffsetRange.FromStartAndLength(currentOffset + sizeofentry + overwrittenFile.Length, buffer.Length)));
                 }
             }
@@ -343,10 +324,6 @@ public class PakBuilder
                     {
                         entryStream.Seek((int)entryStream.Length, SeekOrigin.Begin);
                         byte[] buffer = new byte[length - (int)entryStream.Length];
-                        for (int f = 0; i < buffer.Length; i++)
-                        {
-                            buffer[f] = 0x00;
-                        }
                         entryStream.Write(buffer, 0, buffer.Length);
                     }
                     pairs.Add(new(entryStream, OffsetRange.FromStartAndLength(currentOffset + sizeofentry, length)));
@@ -379,12 +356,8 @@ public class PakBuilder
             pairs.Add(merged);
 
         // Add an extra empty entry header (the game might try to read it)
-        MemoryStream dummyHeader = new MemoryStream(sizeof(V2FileEntry));
         byte[] dummyBuffer = new byte[sizeof(V2FileEntry)];
-        for (int f = 0; i < dummyBuffer.Length; i++)
-        {
-            dummyBuffer[f] = 0x00;
-        }
+        MemoryStream dummyHeader = new MemoryStream(dummyBuffer);
         dummyHeader.Write(dummyBuffer, 0, dummyBuffer.Length);
         pairs.Add(new(dummyHeader, OffsetRange.FromStartAndLength(currentOffset, sizeof(V2FileEntry))));
 
@@ -470,13 +443,8 @@ public class PakBuilder
                 pairs.Add(new(new FileSliceStreamW32(overwrittenFile, logger), OffsetRange.FromStartAndLength(currentOffset + sizeofentry, overwrittenFile.Length)));
                 if (length > overwrittenFile.Length)
                 {
-                    var overstream = new MemoryStream();
                     byte[] buffer = new byte[length - overwrittenFile.Length];
-                    for (int f = 0; i < buffer.Length; i++)
-                    {
-                        buffer[f] = 0x00;
-                    }
-                    overstream.Write(buffer, 0, buffer.Length);
+                    var overstream = new MemoryStream(buffer);
                     pairs.Add(new(overstream, OffsetRange.FromStartAndLength(currentOffset + sizeofentry + overwrittenFile.Length, buffer.Length)));
                 }
             }
@@ -509,10 +477,6 @@ public class PakBuilder
                     {
                         entryStream.Seek((int)entryStream.Length, SeekOrigin.Begin);
                         byte[] buffer = new byte[length - (int)entryStream.Length];
-                        for (int f = 0; i < buffer.Length; i++)
-                        {
-                            buffer[f] = 0x00;
-                        }
                         entryStream.Write(buffer, 0, buffer.Length);
                     }
                     pairs.Add(new(entryStream, OffsetRange.FromStartAndLength(currentOffset + sizeofentry, length)));
@@ -542,12 +506,8 @@ public class PakBuilder
             pairs.Add(merged);
 
         // Add an extra empty entry header (the game might try to read it)
-        MemoryStream dummyHeader = new MemoryStream(sizeof(V3FileEntry));
         byte[] dummyBuffer = new byte[sizeof(V3FileEntry)];
-        for (int f = 0; i < dummyBuffer.Length; i++)
-        {
-            dummyBuffer[f] = 0x00;
-        }
+        MemoryStream dummyHeader = new MemoryStream(dummyBuffer);
         dummyHeader.Write(dummyBuffer, 0, dummyBuffer.Length);
         pairs.Add(new(dummyHeader, OffsetRange.FromStartAndLength(currentOffset, sizeof(V3FileEntry))));
 
