@@ -9,11 +9,10 @@ using FileEmulationFramework.Interfaces;
 using FileEmulationFramework.Lib;
 using FileEmulationFramework.Structs;
 using Reloaded.Hooks.Definitions.Enums;
-using Reloaded.Memory.Interop;
 using IReloadedHooks = Reloaded.Hooks.ReloadedII.Interfaces.IReloadedHooks;
 using Native = FileEmulationFramework.Lib.Utilities.Native;
 using System.Collections.Concurrent;
-using System.Diagnostics;
+using Reloaded.Memory.Utilities;
 
 // ReSharper disable RedundantArgumentDefaultValue
 

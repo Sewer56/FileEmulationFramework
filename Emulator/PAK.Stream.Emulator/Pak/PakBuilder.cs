@@ -6,7 +6,9 @@ using FileEmulationFramework.Lib.IO.Struct;
 using FileEmulationFramework.Lib.Utilities;
 using Microsoft.Win32.SafeHandles;
 using Reloaded.Memory;
+using Reloaded.Memory.Extensions;
 using Reloaded.Memory.Streams;
+using Reloaded.Memory.Utilities;
 
 // Aliasing for readability, since our assembly name has priority over 'stream'
 using Strim = System.IO.Stream;
@@ -129,7 +131,7 @@ public class PakBuilder
 
                 MemoryStream entrystream = new MemoryStream(sizeof(V1FileEntry));
                 entrystream.Write(Encoding.ASCII.GetBytes(filename.PadRight(252, '\0')));
-                entrystream.Write<int>(length);
+                entrystream.Write(length);
                 pairs.Add(new(entrystream, OffsetRange.FromStartAndLength(currentOffset, sizeof(V1FileEntry))));
 
                 length = (int)Align(length, 64);
@@ -158,7 +160,7 @@ public class PakBuilder
                     length = (int)entryStream.Length;
 
                     var headerStream2 = new MemoryStream(4);
-                    headerStream2.Write<int>(length);
+                    headerStream2.Write(length);
                     pairs.Add(new(headerStream, OffsetRange.FromStartAndLength(currentOffset, sizeofentry - 4)));
                     pairs.Add(new(headerStream2, OffsetRange.FromStartAndLength(currentOffset + sizeofentry - 4, 4)));
                     length = (int)Align(length, 64);
@@ -260,7 +262,7 @@ public class PakBuilder
         var headerLength = 4;
         Strim headerStream = new MemoryStream(headerLength);
         var writeNum = bigEndian ? Endian.Reverse(numFiles) : numFiles;
-        headerStream.Write<int>(writeNum);
+        headerStream.Write(writeNum);
 
         currentOffset = headerLength;
         // Add Header
@@ -283,7 +285,7 @@ public class PakBuilder
                 MemoryStream entrystream = new MemoryStream(sizeof(V2FileEntry));
                 var writelength = bigEndian ? Endian.Reverse(length) : length;
                 entrystream.Write(Encoding.ASCII.GetBytes(filename.PadRight(32, '\0')));
-                entrystream.Write<int>(writelength);
+                entrystream.Write(writelength);
                 pairs.Add(new(entrystream, OffsetRange.FromStartAndLength(currentOffset, sizeof(V2FileEntry))));
 
                 pairs.Add(new(new FileSliceStreamW32(overwrittenFile, logger), OffsetRange.FromStartAndLength(currentOffset + sizeofentry, overwrittenFile.Length)));
@@ -311,7 +313,7 @@ public class PakBuilder
 
                     var headerStream2 = new MemoryStream(4);
                     //headerStream.Dispose();
-                    headerStream2.Write<int>(bigEndian ? Endian.Reverse(length) : length);
+                    headerStream2.Write(bigEndian ? Endian.Reverse(length) : length);
                     pairs.Add(new(headerStream, OffsetRange.FromStartAndLength(currentOffset, sizeofentry - 4)));
                     pairs.Add(new(headerStream2, OffsetRange.FromStartAndLength(currentOffset + sizeofentry - 4, 4)));
 
@@ -414,7 +416,7 @@ public class PakBuilder
         var headerLength = 4;
         Strim headerStream = new MemoryStream(headerLength);
         var writeNum = bigEndian ? Endian.Reverse(numFiles) : numFiles;
-        headerStream.Write<int>(writeNum);
+        headerStream.Write(writeNum);
 
         currentOffset = headerLength;
         // Add Header
@@ -437,7 +439,7 @@ public class PakBuilder
                 MemoryStream entrystream = new MemoryStream(sizeof(V3FileEntry));
                 var writelength = bigEndian ? Endian.Reverse(length) : length;
                 entrystream.Write(Encoding.ASCII.GetBytes(filename.PadRight(24, '\0')));
-                entrystream.Write<int>(writelength);
+                entrystream.Write(writelength);
                 pairs.Add(new(entrystream, OffsetRange.FromStartAndLength(currentOffset, sizeof(V3FileEntry))));
 
                 pairs.Add(new(new FileSliceStreamW32(overwrittenFile, logger), OffsetRange.FromStartAndLength(currentOffset + sizeofentry, overwrittenFile.Length)));
@@ -464,7 +466,7 @@ public class PakBuilder
                     length = (int)entryStream.Length;
 
                     var headerStream2 = new MemoryStream(4);
-                    headerStream2.Write<int>(bigEndian ? Endian.Reverse(length) : length);
+                    headerStream2.Write(bigEndian ? Endian.Reverse(length) : length);
                     pairs.Add(new(headerStream, OffsetRange.FromStartAndLength(currentOffset, sizeofentry - 4)));
                     pairs.Add(new(headerStream2, OffsetRange.FromStartAndLength(currentOffset + sizeofentry - 4, 4)));
 

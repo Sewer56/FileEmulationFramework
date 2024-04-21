@@ -5,6 +5,7 @@ using FileEmulationFramework.Lib.IO.Interfaces;
 using FileEmulationFramework.Lib.IO.Struct;
 using FileEmulationFramework.Lib.Utilities;
 using Microsoft.Win32.SafeHandles;
+using Reloaded.Memory.Extensions;
 using Reloaded.Memory.Streams;
 
 // Aliasing for readability, since our assembly name has priority over 'stream'
@@ -42,7 +43,7 @@ public class ArcBuilder
         MemoryStream headerStream = new MemoryStream(headerLength);
 
         // Write header magic and file count
-        headerStream.Write( 0x4C435241 ); // 'ARCL'
+        headerStream.Write(0x4C435241); // 'ARCL'
         headerStream.Write(numFiles);
 
         // Make MultiStream
@@ -70,7 +71,6 @@ public class ArcBuilder
             }
             else if (x < entries.Length)
             {
-                
                 length = (int)entries[x].Length;
                
                 var originalEntry = new FileSlice(entries[x].Offset, length, filepath);

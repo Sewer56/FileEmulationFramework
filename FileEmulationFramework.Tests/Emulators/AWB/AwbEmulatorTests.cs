@@ -19,17 +19,24 @@ public class AwbEmulatorTests
         // Create Builder & Inject Single File
         var builder = new AwbBuilder();
         var handle = Native.CreateFileW(Assets.AwbEmulatorSampleFile, FileAccess.Read, FileShare.Read, IntPtr.Zero, FileMode.Open, FileAttributes.Normal, IntPtr.Zero);
-        builder.AddOrReplaceFile(0, Assets.AssetArgSiren);
-        var stream = builder.Build(handle, Assets.AwbEmulatorSampleFile);
+        try
+        {
+            builder.AddOrReplaceFile(0, Assets.AssetArgSiren);
+            var stream = builder.Build(handle, Assets.AwbEmulatorSampleFile);
 
-        // Write to file for checking.
-        using var fileStream = new FileStream("output.awb", FileMode.Create);
-        stream.CopyTo(fileStream);
+            // Write to file for checking.
+            using var fileStream = new FileStream("output.awb", FileMode.Create);
+            stream.CopyTo(fileStream);
 
-        // Parse file and check.
-        var fromStream = ReadFileFromAwb(fileStream, 0);
-        var original = File.ReadAllBytes(Assets.AssetArgSiren);
-        Assert.Equal(original, fromStream.AsSpan(0, original.Length).ToArray()); // trim padding
+            // Parse file and check.
+            var fromStream = ReadFileFromAwb(fileStream, 0);
+            var original = File.ReadAllBytes(Assets.AssetArgSiren);
+            Assert.Equal(original, fromStream.AsSpan(0, original.Length).ToArray()); // trim padding
+        }
+        finally
+        {
+            Native.CloseHandle(handle);
+        }
     }
 
     [Fact]
@@ -38,17 +45,24 @@ public class AwbEmulatorTests
         // Create Builder & Inject Single File
         var builder = new AwbBuilder();
         var handle = Native.CreateFileW(Assets.AwbEmulatorSampleFile, FileAccess.Read, FileShare.Read, IntPtr.Zero, FileMode.Open, FileAttributes.Normal, IntPtr.Zero);
-        builder.AddOrReplaceFile(6, Assets.AssetArgSiren);
-        var stream = builder.Build(handle, Assets.AwbEmulatorSampleFile);
+        try
+        {
+            builder.AddOrReplaceFile(6, Assets.AssetArgSiren);
+            var stream = builder.Build(handle, Assets.AwbEmulatorSampleFile);
 
-        // Write to file for checking.
-        using var fileStream = new FileStream("output.awb", FileMode.Create);
-        stream.CopyTo(fileStream);
+            // Write to file for checking.
+            using var fileStream = new FileStream("output.awb", FileMode.Create);
+            stream.CopyTo(fileStream);
 
-        // Parse file and check.
-        var fromStream = ReadFileFromAwb(fileStream, 6);
-        var original = File.ReadAllBytes(Assets.AssetArgSiren);
-        Assert.Equal(original, fromStream.AsSpan(0, original.Length).ToArray());
+            // Parse file and check.
+            var fromStream = ReadFileFromAwb(fileStream, 6);
+            var original = File.ReadAllBytes(Assets.AssetArgSiren);
+            Assert.Equal(original, fromStream.AsSpan(0, original.Length).ToArray());
+        }
+        finally
+        {
+            Native.CloseHandle(handle);
+        }
     }
 
     private unsafe byte[] ReadFileFromAwb(Stream fileStream, int index)
@@ -64,7 +78,7 @@ public class AwbEmulatorTests
             var entry = entries[index];
             var result = GC.AllocateUninitializedArray<byte>((int)entry.Length);
             fileStream.Seek(entry.Position, SeekOrigin.Begin);
-            fileStream.TryReadSafe(result);
+            fileStream.ReadExactly(result);
             return result;
         }
     }

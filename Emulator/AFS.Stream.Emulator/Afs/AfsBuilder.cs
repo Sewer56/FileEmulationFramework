@@ -5,6 +5,7 @@ using FileEmulationFramework.Lib.IO.Interfaces;
 using FileEmulationFramework.Lib.IO.Struct;
 using FileEmulationFramework.Lib.Utilities;
 using Microsoft.Win32.SafeHandles;
+using Reloaded.Memory.Extensions;
 using Reloaded.Memory.Streams;
 
 // Aliasing for readability, since our assembly name has priority over 'stream'
@@ -75,8 +76,8 @@ public class AfsBuilder
         headerStream.SetLength(headerLength);
 
         // Write header magic and file count
-        headerStream.Write<int>(0x00534641); // 'AFS '
-        headerStream.Write<int>(numFiles);
+        headerStream.Write(0x00534641); // 'AFS '
+        headerStream.Write(numFiles);
 
         // Make MultiStream
         var pairs = new List<StreamOffsetPair<Strim>>()
