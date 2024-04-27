@@ -41,9 +41,9 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "AtlusScriptLibrary", "Submo
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "BF.File.Emulator.Interfaces", "Emulator\Interfaces\BF.File.Emulator.Interfaces\BF.File.Emulator.Interfaces.csproj", "{EE178CAD-7CD0-41EB-96FA-B1DCC4DA4E73}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "BMD.File.Emulator", "Emulator\Bmd.File.Emulator\BMD.File.Emulator.csproj", "{E053BEE9-B765-462E-A80D-B25949348835}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "BMD.File.Emulator", "Emulator\BMD.File.Emulator\BMD.File.Emulator.csproj", "{E053BEE9-B765-462E-A80D-B25949348835}"
 EndProject
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "BMD.File.Emulator.Interfaces", "Emulator\Interfaces\Bmd.File.Emulator.Interfaces\BMD.File.Emulator.Interfaces.csproj", "{C527D538-F3A4-4FC4-A641-B7359691815F}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "BMD.File.Emulator.Interfaces", "Emulator\Interfaces\BMD.File.Emulator.Interfaces\BMD.File.Emulator.Interfaces.csproj", "{C527D538-F3A4-4FC4-A641-B7359691815F}"
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "SPD.File.Emulator", "Emulator\SPD.File.Emulator\SPD.File.Emulator.csproj", "{8B9B13C0-DA50-4E0F-9454-6E95BE9BC9E2}"
 	ProjectSection(ProjectDependencies) = postProject
