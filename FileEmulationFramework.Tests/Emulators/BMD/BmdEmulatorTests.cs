@@ -1,7 +1,5 @@
 ﻿using AtlusScriptLibrary.Common.Libraries;
 using AtlusScriptLibrary.Common.Text.Encodings;
-using AtlusScriptLibrary.MessageScriptLanguage;
-using BMD.File.Emulator.Bmd;
 using FileEmulationFramework.Lib.Utilities;
 using System;
 using System.IO;
