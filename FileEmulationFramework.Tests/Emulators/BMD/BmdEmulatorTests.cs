@@ -4,6 +4,7 @@ using FileEmulationFramework.Lib.Utilities;
 using System;
 using System.IO;
 using System.Text;
+using BMD.File.Emulator.Bmd;
 using Xunit;
 using MessageFormatVersion = AtlusScriptLibrary.MessageScriptLanguage.FormatVersion;
 
