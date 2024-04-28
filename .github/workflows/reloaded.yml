@@ -49,6 +49,10 @@ env:
   PUBLISH_GITHUB_BF_PATH: ./Publish/ToUpload/BF/Generic
   PUBLISH_NUGET_BF_PATH: ./Publish/ToUpload/BF/NuGet
 
+  PUBLISH_GAMEBANANA_BMD_PATH: ./Publish/ToUpload/BMD/GameBanana
+  PUBLISH_GITHUB_BMD_PATH: ./Publish/ToUpload/BMD/Generic
+  PUBLISH_NUGET_BMD_PATH: ./Publish/ToUpload/BMD/NuGet
+
   PUBLISH_GAMEBANANA_SPD_PATH: ./Publish/ToUpload/SPD/GameBanana
   PUBLISH_GITHUB_SPD_PATH: ./Publish/ToUpload/SPD/Generic
   PUBLISH_NUGET_SPD_PATH: ./Publish/ToUpload/SPD/NuGet
@@ -123,6 +127,7 @@ jobs:
           ${{ env.PUBLISH_GITHUB_ARC_PATH }}/*
           ${{ env.PUBLISH_GITHUB_PAK_PATH }}/*
           ${{ env.PUBLISH_GITHUB_BF_PATH }}/*
+          ${{ env.PUBLISH_GITHUB_BMD_PATH }}/*
           ${{ env.PUBLISH_GITHUB_SPD_PATH }}/*
           ${{ env.PUBLISH_GITHUB_FRAMEWORK_PATH }}/*
           
@@ -139,6 +144,7 @@ jobs:
           ${{ env.PUBLISH_GAMEBANANA_ARC_PATH }}/*
           ${{ env.PUBLISH_GAMEBANANA_PAK_PATH }}/*
           ${{ env.PUBLISH_GAMEBANANA_BF_PATH }}/*
+          ${{ env.PUBLISH_GAMEBANANA_BMD_PATH }}/*
           ${{ env.PUBLISH_GAMEBANANA_SPD_PATH }}/*
           ${{ env.PUBLISH_GAMEBANANA_FRAMEWORK_PATH }}/*
         
@@ -155,6 +161,7 @@ jobs:
           ${{ env.PUBLISH_NUGET_ARC_PATH }}/*
           ${{ env.PUBLISH_NUGET_PAK_PATH }}/*
           ${{ env.PUBLISH_NUGET_BF_PATH }}/*
+          ${{ env.PUBLISH_NUGET_BMD_PATH }}/*
           ${{ env.PUBLISH_NUGET_SPD_PATH }}/*
           ${{ env.PUBLISH_NUGET_FRAMEWORK_PATH }}/*
         
@@ -181,6 +188,7 @@ jobs:
           ${{ env.PUBLISH_GITHUB_ARC_PATH }}/*
           ${{ env.PUBLISH_GITHUB_PAK_PATH }}/*
           ${{ env.PUBLISH_GITHUB_BF_PATH }}/*
+          ${{ env.PUBLISH_GITHUB_BMD_PATH }}/*
           ${{ env.PUBLISH_GITHUB_SPD_PATH }}/*
           ${{ env.PUBLISH_GITHUB_FRAMEWORK_PATH }}/*
         
