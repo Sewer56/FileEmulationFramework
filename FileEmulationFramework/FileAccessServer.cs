@@ -154,11 +154,11 @@ public static unsafe class FileAccessServer
 
     private static int SetInformationFileImpl(IntPtr hfile, IO_STATUS_BLOCK* ioStatusBlock, byte* fileInformation, uint length, FileInformationClass fileInformationClass)
     {
-        if (fileInformationClass != FileInformationClass.FilePositionInformation || !HandleToInfoMap.ContainsKey(hfile))
+        if (fileInformationClass != FileInformationClass.FilePositionInformation || !HandleToInfoMap.TryGetValue(hfile, out var info))
             return _setFilePointerHook.OriginalFunction.Value.Invoke(hfile, ioStatusBlock, fileInformation, length, fileInformationClass);
 
         var pointer = *(long*)fileInformation;
-        HandleToInfoMap[hfile].FileOffset = pointer;
+        info.FileOffset = pointer;
         return _setFilePointerHook.OriginalFunction.Value.Invoke(hfile, ioStatusBlock, fileInformation, length, fileInformationClass);
     }
 
@@ -174,7 +174,7 @@ public static unsafe class FileAccessServer
             // If it is, prepare to hook it.
             long requestedOffset = byteOffset != (void*)0 ? *byteOffset : FileUseFilePointerPosition; // -1 means use current location
             if (requestedOffset == FileUseFilePointerPosition)
-                requestedOffset = HandleToInfoMap[handle].FileOffset;
+                requestedOffset = info.FileOffset;
 
             if (_logger.IsEnabled(LogSeverity.Debug))
                 _logger.Debug($"[FileAccessServer] Read Request, Buffer: {(long)buffer:X}, Length: {length}, Offset: {requestedOffset}");
