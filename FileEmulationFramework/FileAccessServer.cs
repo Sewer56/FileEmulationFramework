@@ -43,6 +43,7 @@ public static unsafe class FileAccessServer
     private static IAsmHook _closeHandleHook = null!;
     private static NtQueryInformationFileFn _ntQueryInformationFile;
 
+    [ThreadStatic]
     private static Route _currentRoute;
     private static Pinnable<NativeIntList> _closedHandleList = new(new NativeIntList());
 
@@ -104,96 +105,93 @@ public static unsafe class FileAccessServer
     [UnmanagedCallersOnly(CallConvs = new[] { typeof(CallConvStdcall) })]
     private static int QueryInformationFileImpl(IntPtr hfile, IO_STATUS_BLOCK* ioStatusBlock, byte* fileInformation, uint length, FileInformationClass fileInformationClass)
     {
-        lock (ThreadLock)
-        {
-            var result = _getFileSizeHook.OriginalFunction.Value.Invoke(hfile, ioStatusBlock, fileInformation, length, fileInformationClass);
-            if (fileInformationClass != FileInformationClass.FileStandardInformation || !HandleToInfoMap.TryGetValue(hfile, out var info))
-                return result;
-
-            var information = (FILE_STANDARD_INFORMATION*)fileInformation;
-            var oldSize = information->EndOfFile;
-            var newSize = info.File.GetFileSize(hfile, info);
-            if (newSize != -1)
-                information->EndOfFile = newSize;
-
-            _logger.Info("[FileAccessServer] File Size Override | Old: {0}, New: {1} | {2}", oldSize, newSize, info.FilePath);
+        var result = _getFileSizeHook.OriginalFunction.Value.Invoke(hfile, ioStatusBlock, fileInformation, length, fileInformationClass);
+        if (fileInformationClass != FileInformationClass.FileStandardInformation || !HandleToInfoMap.TryGetValue(hfile, out var info))
             return result;
-        }
+
+        var information = (FILE_STANDARD_INFORMATION*)fileInformation;
+        var oldSize = information->EndOfFile;
+        var newSize = info.File.GetFileSize(hfile, info);
+        if (newSize != -1)
+            information->EndOfFile = newSize;
+
+        _logger.Info("[FileAccessServer] File Size Override | Old: {0}, New: {1} | {2}", oldSize, newSize, info.FilePath);
+        return result;
     }
 
     [UnmanagedCallersOnly(CallConvs = new[] { typeof(CallConvStdcall) })]
     private static int QueryAttributesFileImpl(OBJECT_ATTRIBUTES* attributes, FILE_NETWORK_OPEN_INFORMATION* information)
     {
-        lock (ThreadLock)
-        {
-            var result = _getFileAttributesHook.OriginalFunction.Value.Invoke(attributes, information);
-            var path = Strings.TrimWindowsPrefixes(attributes->ObjectName);
+        var result = _getFileAttributesHook.OriginalFunction.Value.Invoke(attributes, information);
+        var path = Strings.TrimWindowsPrefixes(attributes->ObjectName);
 
-            if (!PathToHandleMap.TryGetValue(path, out var hfile) || !HandleToInfoMap.TryGetValue(hfile, out var info))
-                return result;
-
-            var oldSize = information->EndOfFile;
-            var newSize = info.File.GetFileSize(hfile, info);
-            if (newSize != -1)
-                information->EndOfFile = newSize;
-
-            _logger.Info("[FileAccessServer] File Size Override | Old: {0}, New: {1} | {2}", oldSize, newSize, path);
-
+        if (!PathToHandleMap.TryGetValue(path, out var hfile) || !HandleToInfoMap.TryGetValue(hfile, out var info))
             return result;
-        }
+
+        var oldSize = information->EndOfFile;
+        var newSize = info.File.GetFileSize(hfile, info);
+        if (newSize != -1)
+            information->EndOfFile = newSize;
+
+        _logger.Info("[FileAccessServer] File Size Override | Old: {0}, New: {1} | {2}", oldSize, newSize, path);
+
+        return result;
     }
 
     [UnmanagedCallersOnly(CallConvs = new[] { typeof(CallConvStdcall) })]
     private static int SetInformationFileHook(IntPtr hfile, IO_STATUS_BLOCK* ioStatusBlock, byte* fileInformation, uint length, FileInformationClass fileInformationClass)
     {
-        lock (ThreadLock)
-        {
-            return SetInformationFileImpl(hfile, ioStatusBlock, fileInformation, length, fileInformationClass);
-        }
+        return SetInformationFileImpl(hfile, ioStatusBlock, fileInformation, length, fileInformationClass);
     }
 
     private static int SetInformationFileImpl(IntPtr hfile, IO_STATUS_BLOCK* ioStatusBlock, byte* fileInformation, uint length, FileInformationClass fileInformationClass)
     {
         if (fileInformationClass != FileInformationClass.FilePositionInformation || !HandleToInfoMap.TryGetValue(hfile, out var info))
             return _setFilePointerHook.OriginalFunction.Value.Invoke(hfile, ioStatusBlock, fileInformation, length, fileInformationClass);
-
-        var pointer = *(long*)fileInformation;
-        info.FileOffset = pointer;
+        
+        lock (ThreadLock)
+        {
+            var pointer = *(long*)fileInformation;
+            info.FileOffset = pointer;
+        }
+        
         return _setFilePointerHook.OriginalFunction.Value.Invoke(hfile, ioStatusBlock, fileInformation, length, fileInformationClass);
     }
 
     [UnmanagedCallersOnly(CallConvs = new[] { typeof(CallConvStdcall) })]
-    private static int NtReadFileImpl(IntPtr handle, IntPtr hEvent, IntPtr* apcRoutine, IntPtr* apcContext, IO_STATUS_BLOCK* ioStatus, byte* buffer, uint length, long* byteOffset, IntPtr key)
+    private static int NtReadFileImpl(IntPtr handle, IntPtr hEvent, IntPtr* apcRoutine, IntPtr* apcContext,
+        IO_STATUS_BLOCK* ioStatus, byte* buffer, uint length, long* byteOffset, IntPtr key)
     {
-        lock (ThreadLock)
+        // Check if this is one of our files.
+        if (!HandleToInfoMap.TryGetValue(handle, out var info))
+            return _readFileHook.OriginalFunction.Value.Invoke(handle, hEvent, apcRoutine, apcContext, ioStatus, buffer,
+                length, byteOffset, key);
+
+        // If it is, prepare to hook it.
+        long requestedOffset =
+            byteOffset != (void*)0 ? *byteOffset : FileUseFilePointerPosition; // -1 means use current location
+        if (requestedOffset == FileUseFilePointerPosition)
+            requestedOffset = info.FileOffset;
+
+        if (_logger.IsEnabled(LogSeverity.Debug))
+            _logger.Debug(
+                $"[FileAccessServer] Read Request, Buffer: {(long)buffer:X}, Length: {length}, Offset: {requestedOffset}");
+
+        var result = info.File.ReadData(handle, buffer, length, requestedOffset, info, out var numReadBytes);
+        if (result)
         {
-            // Check if this is one of our files.
-            if (!HandleToInfoMap.TryGetValue(handle, out var info))
-                return _readFileHook.OriginalFunction.Value.Invoke(handle, hEvent, apcRoutine, apcContext, ioStatus, buffer, length, byteOffset, key);
+            _logger.Debug("[FileAccessServer] Read Success, Length: {0}, Offset: {1}", numReadBytes, requestedOffset);
+            requestedOffset += numReadBytes;
+            SetInformationFileImpl(handle, ioStatus, (byte*)&requestedOffset, sizeof(long), FileInformationClass.FilePositionInformation);
 
-            // If it is, prepare to hook it.
-            long requestedOffset = byteOffset != (void*)0 ? *byteOffset : FileUseFilePointerPosition; // -1 means use current location
-            if (requestedOffset == FileUseFilePointerPosition)
-                requestedOffset = info.FileOffset;
-
-            if (_logger.IsEnabled(LogSeverity.Debug))
-                _logger.Debug($"[FileAccessServer] Read Request, Buffer: {(long)buffer:X}, Length: {length}, Offset: {requestedOffset}");
-
-            bool result = info.File.ReadData(handle, buffer, length, requestedOffset, info, out var numReadBytes);
-            if (result)
-            {
-                _logger.Debug("[FileAccessServer] Read Success, Length: {0}, Offset: {1}", numReadBytes, requestedOffset);
-                requestedOffset += numReadBytes;
-                SetInformationFileImpl(handle, ioStatus, (byte*)&requestedOffset, sizeof(long), FileInformationClass.FilePositionInformation);
-
-                // Set number of read bytes.
-                ioStatus->Status = 0;
-                ioStatus->Information = new(numReadBytes);
-                return 0;
-            }
-
-            return _readFileHook.OriginalFunction.Value.Invoke(handle, hEvent, apcRoutine, apcContext, ioStatus, buffer, length, byteOffset, key);
+            // Set number of read bytes.
+            ioStatus->Status = 0;
+            ioStatus->Information = new(numReadBytes);
+            return 0;
         }
+
+        return _readFileHook.OriginalFunction.Value.Invoke(handle, hEvent, apcRoutine, apcContext, ioStatus, buffer,
+            length, byteOffset, key);
     }
 
     [UnmanagedCallersOnly(CallConvs = new[] { typeof(CallConvStdcall) })]
@@ -202,64 +200,72 @@ public static unsafe class FileAccessServer
         lock (ThreadLock)
         {
             DequeueHandles();
-            var currentRoute = _currentRoute;
-            try
+        }
+
+        var currentRoute = _currentRoute;
+        try
+        {
+            // Open the handle.
+            var ntStatus = _createFileHook.OriginalFunction.Value.Invoke(handle, access, objectAttributes, ioStatus,
+                allocSize, fileAttributes, share, createDisposition, createOptions, eaBuffer, eaLength);
+
+            // We get the file path by asking the OS; as to not clash with redirector.
+            var hndl = *handle;
+            if (!FilePathResolver.TryGetFinalPathName(hndl, out var newFilePath))
             {
-                // Open the handle.
-                var ntStatus = _createFileHook.OriginalFunction.Value.Invoke(handle, access, objectAttributes, ioStatus, allocSize, fileAttributes, share, createDisposition, createOptions, eaBuffer, eaLength);
-
-                // We get the file path by asking the OS; as to not clash with redirector.
-                var hndl = *handle;
-                if (!FilePathResolver.TryGetFinalPathName(hndl, out var newFilePath))
-                {
-                    _logger.Debug("[FileAccessServer] Can't get final file name.");
-                    return ntStatus;
-                }
-
-                // Blacklist DLLs to prevent JIT from locking when new assemblies used by this method are loaded.
-                // Might want to disable some other extensions in the future; but this is just a temporary bugfix.
-                if (newFilePath.EndsWith(".dll", StringComparison.OrdinalIgnoreCase))
-                    return ntStatus;
-
-                // We don't support directory emulation, yet.
-                if (IsDirectory(hndl))
-                    return ntStatus;
-
-                // Append to route.
-                if (_currentRoute.IsEmpty())
-                    _currentRoute = new Route(newFilePath);
-                else
-                    _currentRoute = _currentRoute.Merge(newFilePath);
-
-                _logger.Debug("[FileAccessServer] Accessing: {0}, {1}, Route: {2}", hndl, newFilePath, _currentRoute.FullPath);
-
-                // Try Accept New File (virtual override)
-                if (PathToVirtualFileMap.TryGetValue(newFilePath, out var fileInfo))
-                {
-                    // Reuse of emulated file (backed by stream) is safe because file access is single threaded.
-                    HandleToInfoMap[hndl] = new(fileInfo.FilePath, 0, fileInfo.File);
-                    PathToHandleMap[newFilePath] = hndl;
-                    return ntStatus;
-                }
-
-                // Try accept new file (emulator)
-                for (var x = 0; x < Emulators.Count; x++)
-                {
-                    var emulator = Emulators[x];
-                    if (!emulator.TryCreateFile(hndl, newFilePath, currentRoute.FullPath, out var emulatedFile))
-                        continue;
-
-                    HandleToInfoMap[hndl] = new(newFilePath, 0, emulatedFile);
-                    PathToHandleMap[newFilePath] = hndl;
-                    return ntStatus;
-                }
-
+                _logger.Debug("[FileAccessServer] Can't get final file name.");
                 return ntStatus;
             }
-            finally
+
+            // Blacklist DLLs to prevent JIT from locking when new assemblies used by this method are loaded.
+            // Might want to disable some other extensions in the future; but this is just a temporary bugfix.
+            if (newFilePath.EndsWith(".dll", StringComparison.OrdinalIgnoreCase))
+                return ntStatus;
+
+            // We don't support directory emulation, yet.
+            if (IsDirectory(hndl))
+                return ntStatus;
+
+            // Append to route.
+            if (_currentRoute.IsEmpty())
+                _currentRoute = new Route(newFilePath);
+            else
+                _currentRoute = _currentRoute.Merge(newFilePath);
+
+            _logger.Debug("[FileAccessServer] Accessing: {0}, {1}, Route: {2}", hndl, newFilePath, _currentRoute.FullPath);
+
+            // Try Accept New File (virtual override)
+            if (PathToVirtualFileMap.TryGetValue(newFilePath, out var fileInfo))
             {
-                _currentRoute = currentRoute;
+                // Reuse of emulated file (backed by stream) is safe because file access is single threaded.
+                lock (ThreadLock)
+                {
+                    HandleToInfoMap[hndl] = new(fileInfo.FilePath, 0, fileInfo.File);
+                    PathToHandleMap[newFilePath] = hndl;
+                }
+                return ntStatus;
             }
+
+            // Try accept new file (emulator)
+            for (var x = 0; x < Emulators.Count; x++)
+            {
+                var emulator = Emulators[x];
+                if (!emulator.TryCreateFile(hndl, newFilePath, currentRoute.FullPath, out var emulatedFile))
+                    continue;
+
+                lock (ThreadLock)
+                {
+                    HandleToInfoMap[hndl] = new(newFilePath, 0, emulatedFile);
+                    PathToHandleMap[newFilePath] = hndl;
+                }
+                return ntStatus;
+            }
+
+            return ntStatus;
+        }
+        finally
+        {
+            _currentRoute = currentRoute;
         }
     }
 
