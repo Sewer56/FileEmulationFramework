@@ -10,27 +10,32 @@ namespace FileEmulationFramework.Benchmarks;
 public class DelegateCallVsDoubleDictLookup
 {
     private static Swag _staticSwag = new();
-    
-    // Simulates scenario with two lookups, separate for RegisterCustomFile and Emulated Files.
-    private Dictionary<nint, ISwag> _dictToInterface = new();
-    private Dictionary<nint, ISwag> _dictToInterface2 = new();
-    
-    private Dictionary<nint, Action<IntPtr, IntPtr>> _dictToFunctionPointer = new();
-    
+
+    private Dictionary<nint, ISwag> _dictToInterface;
+    private Dictionary<nint, ISwag> _dictToInterface2;
+    private Dictionary<nint, Action<IntPtr, IntPtr>> _dictToFunctionPointer;
+
+    [Params(2, 4, 8, 16, 32, 64, 128)] public int N;
+
     [GlobalSetup]
     public void Setup()
     {
-        _dictToInterface[0]       = new Swag();
-        _dictToInterface2[0]      = new Swag(); // We can assume calling emu interface and custom registered file to have same overhead.
-        _dictToFunctionPointer[0] = _staticSwag.Invoke; // Delegates are slower, but one lookup might be faster
+        _dictToInterface = new Dictionary<nint, ISwag>(N);
+        _dictToInterface2 = new Dictionary<nint, ISwag>(N);
+        _dictToFunctionPointer = new Dictionary<nint, Action<IntPtr, IntPtr>>(N);
+
+        for (int i = 0; i < N; i++)
+        {
+            _dictToInterface[i] = new Swag();
+            _dictToInterface2[i] = new Swag();
+            _dictToFunctionPointer[i] = _staticSwag.Invoke;
+        }
     }
 
-    // In these benchmarks we simulate a 1/10 hit rate to give an estimate of emulated to non-emulated files.
-    
     [Benchmark]
     public void SeparateDicts()
     {
-        for (int x = 0; x < 10; x++)
+        for (int x = 0; x < N; x++)
         {
             if (_dictToInterface.TryGetValue(x, out var iFace))
                 iFace.Invoke(IntPtr.Zero, IntPtr.Zero);
@@ -39,26 +44,19 @@ public class DelegateCallVsDoubleDictLookup
                 iFace.Invoke(IntPtr.Zero, IntPtr.Zero);
         }
     }
-    
+
     [Benchmark]
     public void UnifiedLookup()
     {
-        for (int x = 0; x < 10; x++)
+        for (int x = 0; x < N; x++)
         {
             if (_dictToFunctionPointer.TryGetValue(x, out var iFace))
                 iFace(IntPtr.Zero, IntPtr.Zero);
         }
     }
-    
+
     [Benchmark]
     public void SingleInterfaceCall()
-    {
-        if (_dictToInterface.TryGetValue(0, out var iFace))
-            iFace.Invoke(IntPtr.Zero, IntPtr.Zero);
-    }
-    
-    [Benchmark]
-    public void SingleDelegateCall()
     {
         if (_dictToInterface.TryGetValue(0, out var iFace))
             iFace.Invoke(IntPtr.Zero, IntPtr.Zero);
@@ -67,7 +65,9 @@ public class DelegateCallVsDoubleDictLookup
 
 public class Swag : ISwag
 {
-    public void Invoke(IntPtr a, IntPtr b) { }
+    public void Invoke(IntPtr a, IntPtr b)
+    {
+    }
 }
 
 public interface ISwag

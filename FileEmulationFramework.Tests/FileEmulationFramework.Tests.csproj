@@ -35,6 +35,9 @@
     <Content Include="Emulators\SPD\**">
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
+    <Content Update="Emulators\BMD\**">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
   </ItemGroup>
 
   <ItemGroup>
@@ -57,6 +60,7 @@
     <ProjectReference Include="..\Emulator\AWB.Stream.Emulator\AWB.Stream.Emulator.csproj" />
     <ProjectReference Include="..\Emulator\AFS.Stream.Emulator\AFS.Stream.Emulator.csproj" />
     <ProjectReference Include="..\Emulator\BF.File.Emulator\BF.File.Emulator.csproj" />
+    <ProjectReference Include="..\Emulator\BMD.File.Emulator\BMD.File.Emulator.csproj" />
     <ProjectReference Include="..\Emulator\ONE.Heroes.Stream.Emulator\ONE.Heroes.Stream.Emulator.csproj" />
     <ProjectReference Include="..\Emulator\PAK.Stream.Emulator\PAK.Stream.Emulator.csproj" />
     <ProjectReference Include="..\Emulator\SPD.File.Emulator\SPD.File.Emulator.csproj" />

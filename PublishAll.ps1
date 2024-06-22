@@ -21,6 +21,13 @@ Split-Path $MyInvocation.MyCommand.Path | Push-Location
 			  -ChangelogPath "Emulator/BF.File.Emulator/CHANGELOG.MD" `
               -IncludeRegexes ("ModConfig\.json", "\.deps\.json", "\.runtimeconfig\.json", "Libraries") `
 
+./Publish.ps1 -ProjectPath "Emulator/BMD.File.Emulator/BMD.File.Emulator.csproj" `
+              -PackageName "BMD.File.Emulator" `
+              -PublishOutputDir "Publish/ToUpload/BMD" `
+			  -ReadmePath "docs/emulators/bmd.md" `
+			  -ChangelogPath "Emulator/BMD.File.Emulator/CHANGELOG.MD" `
+              -IncludeRegexes ("ModConfig\.json", "\.deps\.json", "\.runtimeconfig\.json", "Libraries") `
+
 ./Publish.ps1 -ProjectPath "Emulator/SPD.File.Emulator/SPD.File.Emulator.csproj" `
               -PackageName "SPD.File.Emulator" `
               -PublishOutputDir "Publish/ToUpload/spd" `

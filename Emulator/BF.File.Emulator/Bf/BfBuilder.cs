@@ -160,11 +160,27 @@ public class BfBuilder
         // Override existing functions
         foreach (var func in _libraryFuncs)
         {
+            int module = -1;
+            int index = -1;
+
             for (int i = 0; i < library.FlowScriptModules.Count; i++)
             {
-                var existing = library.FlowScriptModules[i].Functions.FindIndex(x => x.Index == func.Index);
-                if (existing != -1)
-                    library.FlowScriptModules[i].Functions[existing] = func;
+                index = library.FlowScriptModules[i].Functions.FindIndex(x => x.Index == func.Index);
+
+                if (index != -1)
+                {
+                    module = i;
+                    break;
+                }
+            }
+
+            if (module != -1 && index != -1)
+            {
+                library.FlowScriptModules[module].Functions[index] = func;
+            }
+            else
+            {
+                library.FlowScriptModules.Last().Functions.Add(func);
             }
         }
 
