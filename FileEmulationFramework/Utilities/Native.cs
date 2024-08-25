@@ -16,7 +16,7 @@ public class Native
     {
         public FuncPtr<
             IntPtr, // handle 
-            int // status
+            NT_STATUS // status
         > Value;
     }
     
@@ -36,7 +36,7 @@ public class Native
             uint, // createOptions
             IntPtr, // eaBuffer
             uint, // eaLength
-            int // status
+            NT_STATUS // status
         > Value;
     }
 
@@ -54,7 +54,7 @@ public class Native
             uint, // length
             Ptr<long>, // byteOffset
             IntPtr, // key
-            int // status
+            NT_STATUS // status
         > Value;
     }
     
@@ -68,7 +68,7 @@ public class Native
             Ptr<byte>,   // fileInformation
             uint, // length
             FileInformationClass, // fileInformationClass
-            int // status
+            NT_STATUS // status
         > Value;
     }
     
@@ -82,7 +82,7 @@ public class Native
             Ptr<byte>,   // fileInformation
             uint, // length
             FileInformationClass, // fileInformationClass
-            int // status
+            NT_STATUS // status
         > Value;
     }
 
@@ -104,7 +104,7 @@ public class Native
     [StructLayout(LayoutKind.Sequential)]
     public struct IO_STATUS_BLOCK
     {
-        public UInt32 Status;
+        public NT_STATUS Status;
         public IntPtr Information;
     }
 
@@ -197,4 +197,17 @@ public class Native
         FileMaximumInformation,
 #pragma warning restore CS1591
     }
+
+    /// <summary>
+    /// An enumeration of Status values returned by functions.
+    /// There are a lot so only including ones that we actually need to use.
+    /// </summary>
+    public enum NT_STATUS : uint
+    {
+        #pragma warning disable CS1591
+        STATUS_SUCCESS = 0,
+        STATUS_END_OF_FILE = 0xC0000011,
+#pragma warning restore CS1591
+    }
+    
 }
