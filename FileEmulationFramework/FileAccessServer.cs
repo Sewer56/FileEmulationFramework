@@ -191,7 +191,7 @@ public static unsafe class FileAccessServer
         }
         else
         {
-            _logger.Debug("[FileAccessServer] Read Fail, Length: {0}, Offset: {1}", numReadBytes, requestedOffset);
+            _logger.Debug("[FileAccessServer] Likely EOF, Length: {0}, Offset: {1}", numReadBytes, requestedOffset);
             
             // Set status (note that we're assuming that if File.ReadData fails then we're at the end of the file)
             ioStatus->Status = NT_STATUS.STATUS_END_OF_FILE;
