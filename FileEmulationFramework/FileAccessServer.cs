@@ -103,7 +103,7 @@ public static unsafe class FileAccessServer
     }
 
     [UnmanagedCallersOnly(CallConvs = new[] { typeof(CallConvStdcall) })]
-    private static int QueryInformationFileImpl(IntPtr hfile, IO_STATUS_BLOCK* ioStatusBlock, byte* fileInformation, uint length, FileInformationClass fileInformationClass)
+    private static NT_STATUS QueryInformationFileImpl(IntPtr hfile, IO_STATUS_BLOCK* ioStatusBlock, byte* fileInformation, uint length, FileInformationClass fileInformationClass)
     {
         var result = _getFileSizeHook.OriginalFunction.Value.Invoke(hfile, ioStatusBlock, fileInformation, length, fileInformationClass);
         if (fileInformationClass != FileInformationClass.FileStandardInformation || !HandleToInfoMap.TryGetValue(hfile, out var info))
@@ -139,12 +139,12 @@ public static unsafe class FileAccessServer
     }
 
     [UnmanagedCallersOnly(CallConvs = new[] { typeof(CallConvStdcall) })]
-    private static int SetInformationFileHook(IntPtr hfile, IO_STATUS_BLOCK* ioStatusBlock, byte* fileInformation, uint length, FileInformationClass fileInformationClass)
+    private static NT_STATUS SetInformationFileHook(IntPtr hfile, IO_STATUS_BLOCK* ioStatusBlock, byte* fileInformation, uint length, FileInformationClass fileInformationClass)
     {
         return SetInformationFileImpl(hfile, ioStatusBlock, fileInformation, length, fileInformationClass);
     }
 
-    private static int SetInformationFileImpl(IntPtr hfile, IO_STATUS_BLOCK* ioStatusBlock, byte* fileInformation, uint length, FileInformationClass fileInformationClass)
+    private static NT_STATUS SetInformationFileImpl(IntPtr hfile, IO_STATUS_BLOCK* ioStatusBlock, byte* fileInformation, uint length, FileInformationClass fileInformationClass)
     {
         if (fileInformationClass != FileInformationClass.FilePositionInformation || !HandleToInfoMap.TryGetValue(hfile, out var info))
             return _setFilePointerHook.OriginalFunction.Value.Invoke(hfile, ioStatusBlock, fileInformation, length, fileInformationClass);
@@ -159,7 +159,7 @@ public static unsafe class FileAccessServer
     }
 
     [UnmanagedCallersOnly(CallConvs = new[] { typeof(CallConvStdcall) })]
-    private static int NtReadFileImpl(IntPtr handle, IntPtr hEvent, IntPtr* apcRoutine, IntPtr* apcContext,
+    private static NT_STATUS NtReadFileImpl(IntPtr handle, IntPtr hEvent, IntPtr* apcRoutine, IntPtr* apcContext,
         IO_STATUS_BLOCK* ioStatus, byte* buffer, uint length, long* byteOffset, IntPtr key)
     {
         // Check if this is one of our files.
@@ -184,18 +184,24 @@ public static unsafe class FileAccessServer
             requestedOffset += numReadBytes;
             SetInformationFileImpl(handle, ioStatus, (byte*)&requestedOffset, sizeof(long), FileInformationClass.FilePositionInformation);
 
-            // Set number of read bytes.
-            ioStatus->Status = 0;
+            // Set status
+            ioStatus->Status = NT_STATUS.STATUS_SUCCESS;
             ioStatus->Information = new(numReadBytes);
-            return 0;
+            return NT_STATUS.STATUS_SUCCESS;
         }
-
-        return _readFileHook.OriginalFunction.Value.Invoke(handle, hEvent, apcRoutine, apcContext, ioStatus, buffer,
-            length, byteOffset, key);
+        else
+        {
+            _logger.Debug("[FileAccessServer] Likely EOF, Length: {0}, Offset: {1}", numReadBytes, requestedOffset);
+            
+            // Set status (note that we're assuming that if File.ReadData fails then we're at the end of the file)
+            ioStatus->Status = NT_STATUS.STATUS_END_OF_FILE;
+            ioStatus->Information = new(numReadBytes);
+            return NT_STATUS.STATUS_END_OF_FILE;
+        }
     }
 
     [UnmanagedCallersOnly(CallConvs = new[] { typeof(CallConvStdcall) })]
-    private static int NtCreateFileImpl(IntPtr* handle, FileAccess access, OBJECT_ATTRIBUTES* objectAttributes, IO_STATUS_BLOCK* ioStatus, long* allocSize, uint fileAttributes, FileShare share, uint createDisposition, uint createOptions, IntPtr eaBuffer, uint eaLength)
+    private static NT_STATUS NtCreateFileImpl(IntPtr* handle, FileAccess access, OBJECT_ATTRIBUTES* objectAttributes, IO_STATUS_BLOCK* ioStatus, long* allocSize, uint fileAttributes, FileShare share, uint createDisposition, uint createOptions, IntPtr eaBuffer, uint eaLength)
     {
         lock (ThreadLock)
         {

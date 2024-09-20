@@ -22,7 +22,7 @@ public interface IEmulatedFile
     /// <param name="offset">Offset of the data to be received.</param>
     /// <param name="info">Additional information about the current file being processed.</param>
     /// <param name="numReadBytes">Number of bytes read by the function call.</param>
-    /// <returns>True if the operation succeeded, else false. Return true if at least 1 byte was read.</returns>
+    /// <returns>True if at least one byte was read, false otherwise (this indicates the EOF has been reached).</returns>
     public unsafe bool ReadData(IntPtr handle, byte* buffer, uint length, long offset, IFileInformation info, out int numReadBytes);
     
     /// <summary>
