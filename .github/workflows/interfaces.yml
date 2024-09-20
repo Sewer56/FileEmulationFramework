@@ -54,7 +54,7 @@ jobs:
           $items = Get-ChildItem -Recurse -Path "*.nupkg" | Move-Item -Destination "$env:PACKAGES_PATH"
 
       - name: Upload Packages Artifact
-        uses: actions/upload-artifact@v2.2.4
+        uses: actions/upload-artifact@v4
         with:
           # Artifact name
           name: Packages
