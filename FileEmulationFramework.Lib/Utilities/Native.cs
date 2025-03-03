@@ -453,6 +453,18 @@ public static class Native
             long fileTime = (long)((high << 32) + low);
             return DateTime.FromFileTimeUtc(fileTime);
         }
+
+        /// <summary>
+        /// Creates a LARGE_INTEGER from a long
+        /// </summary>
+        /// <param name="value">The long value to create a LARGE_INTEGER from</param>
+        public LARGE_INTEGER(long value)
+        {
+            // Setting QuadPart sets all three, just adding the = 0s to make the compiler happy
+            LowPart = 0;
+            HighPart = 0;
+            QuadPart = value;
+        }
     }
 
     /// <summary>The type of access to a file mapping object, which determines the page protection of the pages.</summary>

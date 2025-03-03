@@ -88,6 +88,17 @@ public class Native
 
     [Reloaded.Hooks.Definitions.X64.Function(Reloaded.Hooks.Definitions.X64.CallingConventions.Microsoft)]
     [Reloaded.Hooks.Definitions.X86.Function(Reloaded.Hooks.Definitions.X86.CallingConventions.Stdcall)]
+    public struct NtQueryAttributesFileFn
+    {
+        public FuncPtr<
+            Ptr<OBJECT_ATTRIBUTES>, // attributes
+            Ptr<FILE_BASIC_INFORMATION>, // information
+            int // status
+        > Value;
+    }
+
+    [Reloaded.Hooks.Definitions.X64.Function(Reloaded.Hooks.Definitions.X64.CallingConventions.Microsoft)]
+    [Reloaded.Hooks.Definitions.X86.Function(Reloaded.Hooks.Definitions.X86.CallingConventions.Stdcall)]
     public struct NtQueryFullAttributesFileFn
     {
         public FuncPtr<
@@ -117,6 +128,17 @@ public class Native
         public bool DeletePending;
         public bool Directory;
     }
+
+    [StructLayout(LayoutKind.Sequential)]
+    public struct FILE_BASIC_INFORMATION
+    {
+        public LARGE_INTEGER CreationTime;
+        public LARGE_INTEGER LastAccessTime;
+        public LARGE_INTEGER LastWriteTime;
+        public LARGE_INTEGER ChangeTime;
+        public ulong FileAttributes;
+    }
+
 
     [StructLayout(LayoutKind.Sequential)]
     public struct FILE_NETWORK_OPEN_INFORMATION
