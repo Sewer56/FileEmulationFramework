@@ -42,4 +42,10 @@ public interface IBmdEmulator
     /// </summary>
     /// <param name="dir">The directory to add the files from</param>
     public void AddDirectory(string dir);
+    
+    /// <summary>
+    /// Sets the encoding that bf emulator will use
+    /// </summary>
+    /// <param name="encoding">The name of the encoding to use</param>
+    public void SetEncoding(string encoding);
 }

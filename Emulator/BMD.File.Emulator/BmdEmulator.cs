@@ -3,7 +3,6 @@ using FileEmulationFramework.Interfaces;
 using System.Collections.Concurrent;
 using System.Text;
 using BMD.File.Emulator.Bmd;
-using FileEmulationFramework.Lib.Memory;
 using BMD.File.Emulator.Utilities;
 using MessageFormatVersion = AtlusScriptLibrary.MessageScriptLanguage.FormatVersion;
 using static BMD.File.Emulator.Mod;
@@ -11,7 +10,6 @@ using AtlusScriptLibrary.Common.Libraries;
 using AtlusScriptLibrary.Common.Text.Encodings;
 using AtlusScriptLibrary.Common.Logging;
 using Logger = FileEmulationFramework.Lib.Utilities.Logger;
-using System.Diagnostics;
 
 namespace BMD.File.Emulator;
 
@@ -27,7 +25,7 @@ public class BmdEmulator : IEmulator
 
     // Note: Handle->Stream exists because hashing IntPtr is easier; thus can resolve reads faster.
     private readonly BmdBuilderFactory _builderFactory;
-    private readonly ConcurrentDictionary<string, Stream?> _pathToStream = new(StringComparer.OrdinalIgnoreCase);
+    private readonly ConcurrentDictionary<string, EmulatedBmd?> _pathToEmulated = new(StringComparer.OrdinalIgnoreCase);
     private Logger _log;
 
     private MessageFormatVersion _messageFormat;
@@ -47,17 +45,17 @@ public class BmdEmulator : IEmulator
             case Game.P3P:
                 _messageFormat = MessageFormatVersion.Version1;
                 _library = LibraryLookup.GetLibrary("P3P");
-                _encoding = AtlusEncoding.GetByName("P4");
+                _encoding = AtlusEncoding.Create("P3P_EFIGS");
                 break;
             case Game.P4G:
                 _messageFormat = MessageFormatVersion.Version1;
                 _library = LibraryLookup.GetLibrary("P4G");
-                _encoding = AtlusEncoding.GetByName("P4");
+                _encoding = AtlusEncoding.Create("P4G_EFIGS");
                 break;
             case Game.P5R:
                 _messageFormat = MessageFormatVersion.Version1BigEndian;
                 _library = LibraryLookup.GetLibrary("P5R");
-                _encoding = AtlusEncoding.GetByName("P5R");
+                _encoding = AtlusEncoding.Create("P5R_EFIGS");
                 break;
         }
     }
@@ -66,13 +64,13 @@ public class BmdEmulator : IEmulator
     {
         // Check if we already made a custom BMD for this file.
         emulated = null!;
-        if (_pathToStream.TryGetValue(filepath, out var stream))
+        if (_pathToEmulated.TryGetValue(filepath, out var emulatedBmd))
         {
             // Avoid recursion into same file.
-            if (stream == null)
+            if (emulatedBmd == null)
                 return false;
 
-            emulated = new EmulatedFile<Stream>(stream);
+            emulated = new EmulatedFile<Stream>(emulatedBmd.Stream, emulatedBmd.LastWriteTime);
             return true;
         }
 
@@ -110,15 +108,16 @@ public class BmdEmulator : IEmulator
             return false;
 
         // Make the BMD file.
-        _pathToStream[outputPath] = null; // Avoid recursion into same file.
+        _pathToEmulated[outputPath] = null; // Avoid recursion into same file.
 
-        stream = builder!.Build(handle, srcDataPath, _messageFormat, _library, _encoding, _listener, isEmpty);
-        if (stream == null)
+        var emulatedBmd = builder!.Build(handle, srcDataPath, _messageFormat, _library, _encoding, _listener, isEmpty);
+        if (emulatedBmd == null)
             return false;
 
-        _pathToStream.TryAdd(outputPath, stream);
-        emulated = new EmulatedFile<Stream>(stream);
-        _log.Info("[BmdEmulator] Created Emulated file with Path {0}", outputPath);
+        stream = emulatedBmd.Stream;
+        _pathToEmulated.TryAdd(outputPath, emulatedBmd);
+        emulated = new EmulatedFile<Stream>(stream, emulatedBmd.LastWriteTime);
+        _log.Info("[BmdEmulator] Created Emulated file with Path {0} and Last Write {1}", outputPath, emulatedBmd.LastWriteTime);
 
         if (DumpFiles)
             DumpFile(route, stream);
@@ -144,13 +143,13 @@ public class BmdEmulator : IEmulator
     /// <param name="bmdPath">Full path to the file.</param>
     public void UnregisterFile(string bmdPath)
     {
-        _pathToStream!.Remove(bmdPath, out var stream);
-        stream?.Dispose();
+        _pathToEmulated!.Remove(bmdPath, out var emulated);
+        emulated?.Stream.Dispose();
     }
 
-    public void RegisterFile(string destinationPath, Stream stream)
+    public void RegisterFile(string destinationPath, Stream stream, DateTime lastWriteTime)
     {
-        _pathToStream.TryAdd(destinationPath, stream);
+        _pathToEmulated.TryAdd(destinationPath, new EmulatedBmd(stream, new List<string>(), lastWriteTime));
     }
 
     private void DumpFile(string route, Stream stream)
@@ -168,6 +167,8 @@ public class BmdEmulator : IEmulator
     internal void AddFromFolders(string dir) => _builderFactory.AddFromFolders(dir);
 
     internal void AddFile(string file, string route) => _builderFactory.AddFile(Path.GetFileName(file), file, Path.GetDirectoryName(file)!, route);
+
+    public void SetEncoding(string encoding) => _encoding = AtlusEncoding.Create(encoding);
 }
 
 public class AtlusLogListener : LogListener

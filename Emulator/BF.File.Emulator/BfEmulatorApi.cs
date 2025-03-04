@@ -7,6 +7,9 @@ using FileEmulationFramework.Lib.Utilities;
 using Microsoft.Win32.SafeHandles;
 using System.Runtime.InteropServices;
 
+// Aliasing for readability, since our assembly name has priority over 'File'
+using Fiel = System.IO.File;
+
 namespace BF.File.Emulator;
 
 public class BfEmulatorApi : IBfEmulator
@@ -57,8 +60,9 @@ public class BfEmulatorApi : IBfEmulator
 
         Native.SetFilePointerEx(handle, 0, IntPtr.Zero, 0);
         var fileStream = new FileStream(new SafeFileHandle(handle, true), FileAccess.Read);
-        var emulated = new EmulatedFile<FileStream>(fileStream);
-        _bfEmulator.RegisterFile(destinationPath, fileStream);
+        var lastWrite = Fiel.GetLastWriteTimeUtc(sourcePath);
+        var emulated = new EmulatedFile<FileStream>(fileStream, lastWrite);
+        _bfEmulator.RegisterFile(destinationPath, fileStream, lastWrite);
         _framework.RegisterVirtualFile(destinationPath, emulated, false);
 
         _logger.Info("[BfEmulatorApi] Registered bf {0} at {1}", sourcePath, destinationPath);
@@ -97,4 +101,9 @@ public class BfEmulatorApi : IBfEmulator
         _bfEmulator.AddFromFolders(dir);
     }
 
+    public void SetEncoding(string encoding)
+    {
+        _logger.Info("Setting encoding to {0}", encoding);
+        _bfEmulator.SetEncoding(encoding);
+    }
 }

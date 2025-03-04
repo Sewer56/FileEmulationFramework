@@ -23,16 +23,16 @@ public class BmdEmulatorTests
     {
         var msgFormat = MessageFormatVersion.Version1BigEndian;
         var library = LibraryLookup.GetLibrary("P5R");
-        var encoding = AtlusEncoding.GetByName("P5R");
+        var encoding = AtlusEncoding.Persona5RoyalEFIGS;
 
         var builder = new BmdBuilder();
         builder.AddMsgFile(Assets.FirstMsg);
         var handle = Native.CreateFileW(Assets.BaseBmd, FileAccess.Read, FileShare.Read, IntPtr.Zero, FileMode.Open, FileAttributes.Normal, IntPtr.Zero);
-        var stream = builder.Build(handle, Assets.BaseBmd, msgFormat, library, encoding);
+        var emulatedBmd = builder.Build(handle, Assets.BaseBmd, msgFormat, library, encoding);
 
         // Write to file for checking.
         using var fileStream = new FileStream("e722_103.bmd", FileMode.Create);
-        stream.CopyTo(fileStream);
+        emulatedBmd!.Stream.CopyTo(fileStream);
         fileStream.Close();
 
         // Parse file and check.
@@ -48,17 +48,17 @@ public class BmdEmulatorTests
     {
         var msgFormat = MessageFormatVersion.Version1BigEndian;
         var library = LibraryLookup.GetLibrary("P5R");
-        var encoding = AtlusEncoding.GetByName("P5R");
+        var encoding = AtlusEncoding.Persona5RoyalEFIGS;
 
         var builder = new BmdBuilder();
         builder.AddMsgFile(Assets.FirstMsg);
         builder.AddMsgFile(Assets.SecondMsg);
         var handle = Native.CreateFileW(Assets.BaseBmd, FileAccess.Read, FileShare.Read, IntPtr.Zero, FileMode.Open, FileAttributes.Normal, IntPtr.Zero);
-        var stream = builder.Build(handle, Assets.BaseBmd, msgFormat, library, encoding);
+        var emulatedBmd = builder.Build(handle, Assets.BaseBmd, msgFormat, library, encoding);
 
         // Write to file for checking.
         using var fileStream = new FileStream("e722_103.bmd", FileMode.Create);
-        stream.CopyTo(fileStream);
+        emulatedBmd!.Stream.CopyTo(fileStream);
         fileStream.Close();
 
         // Parse file and check.

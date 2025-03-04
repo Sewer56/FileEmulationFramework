@@ -108,7 +108,7 @@ public class BfBuilder
     /// <summary>
     /// Builds a BF file.
     /// </summary>
-    public unsafe Stream? Build(IntPtr originalHandle, string originalPath, FlowFormatVersion flowFormat, Library library, Encoding encoding, AtlusLogListener? listener = null, bool noBaseBf = false)
+    public EmulatedBf? Build(IntPtr originalHandle, string originalPath, FlowFormatVersion flowFormat, Library library, Encoding encoding, AtlusLogListener? listener = null, bool noBaseBf = false)
     {
         _log?.Info("[BfEmulator] Building BF File | {0}", originalPath);
 
@@ -135,19 +135,34 @@ public class BfBuilder
             imports.AddRange(_flowFiles.GetRange(1, _flowFiles.Count - 1));
         imports.AddRange(_msgFiles);
 
-        if (!compiler.TryCompileWithImports(bfStream, imports, baseFlow, out FlowScript flowScript))
+        try
         {
-            _log?.Error("[BfEmulator] Failed to compile BF File | {0}", originalPath);
+            if (!compiler.TryCompileWithImports(bfStream, imports, baseFlow, out FlowScript flowScript,
+                    out var sources))
+            {
+                _log?.Error("[BfEmulator] Failed to compile BF File | {0}", originalPath);
+                return null;
+            }
+
+            // Return the compiled bf
+            var bfBinary = flowScript.ToBinary();
+            var stream = StreamUtils.CreateMemoryStream(bfBinary.Header.FileSize);
+            bfBinary.ToStream(stream, true);
+            stream.Position = 0;
+
+            DateTime lastWrite = sources.Where(x => x != null).Select(Fiel.GetLastWriteTimeUtc).Max();
+            return new EmulatedBf(stream, sources, lastWrite);
+        }
+        catch (Exception exception)
+        {
+            var flows = string.Join(", ", _flowFiles.Concat(_msgFiles));
+            _log.Error(
+                "[BF Builder] Failed to compile bf {0} with source files: {1}. This may be due to your mods not being translated. Error: {2}",
+                originalPath, flows, exception.Message);
+            if (exception.StackTrace != null)
+                _log.Error(exception.StackTrace);
             return null;
         }
-
-        // Return the compiled bf
-        var bfBinary = flowScript.ToBinary();
-        var stream = StreamUtils.CreateMemoryStream(bfBinary.Header.FileSize);
-        bfBinary.ToStream(stream, true);
-        stream.Position = 0;
-
-        return stream;
     }
 
     /// <summary>
