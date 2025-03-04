@@ -323,7 +323,7 @@ public static unsafe class FileAccessServer
             _logger.Debug("[FileAccessServer] Accessing: {0}, {1}, Route: {2}", hndl, newFilePath, _currentRoute.FullPath);
 
             // Try Accept New File (virtual override)
-            if (PathToVirtualFileMap.TryGetValue(newFilePath, out var fileInfo))
+            if (PathToVirtualFileMap.TryGetValue(newFilePath, out var fileInfo) && fileInfo != null)
             {
                 // Reuse of emulated file (backed by stream) is safe because file access is single threaded.
                 lock (ThreadLock)
