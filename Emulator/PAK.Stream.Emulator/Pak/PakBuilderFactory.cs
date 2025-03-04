@@ -63,7 +63,7 @@ public class PakBuilderFactory
                 continue;
 
             // Make builder if not made.
-            builder ??= new PakBuilder();
+            builder ??= new PakBuilder(_log);
 
             // Add files to builder.
             var dir = group.Files.Directory.FullPath;
@@ -77,7 +77,7 @@ public class PakBuilderFactory
                 continue;
 
             // Make builder if not made.
-            builder ??= new PakBuilder();
+            builder ??= new PakBuilder(_log);
 
             builder.AddOrReplaceFileWithPath(group.FilePath, group.VirtualPath);
             

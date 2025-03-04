@@ -81,7 +81,7 @@ public class PakEmulator : IEmulator
         // Make the PAK file.
         _pathToStream[outputPath] = null; // Avoid recursion into same file.
 
-        stream = builder!.Build(handle, srcDataPath, _log);
+        stream = builder!.Build(handle, srcDataPath);
 
         _pathToStream.TryAdd(outputPath, stream);
         emulated = new EmulatedFile<MultiStream>(stream);
