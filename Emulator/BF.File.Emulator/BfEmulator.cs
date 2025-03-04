@@ -163,6 +163,17 @@ public class BfEmulator : IEmulator
         _log.Info($"[BfEmulator] Written To {dumpPath}");
     }
 
+    internal bool TryGetImports(string route, out string[] imports)
+    {
+        if (!_builderFactory.TryCreateFromPath(route, out var builder))
+        {
+            imports = Array.Empty<string>();
+            return false;
+        }
+
+        return builder!.TryGetImports(_flowFormat, _library, _encoding, out imports);
+    }
+
     internal List<RouteGroupTuple> GetInput() => _builderFactory.RouteFileTuples;
 
     internal void AddFromFolders(string dir) => _builderFactory.AddFromFolders(dir);

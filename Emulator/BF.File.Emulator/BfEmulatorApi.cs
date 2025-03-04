@@ -1,4 +1,5 @@
-﻿using BF.File.Emulator.Interfaces;
+﻿using System.Diagnostics;
+using BF.File.Emulator.Interfaces;
 using BF.File.Emulator.Interfaces.Structures.IO;
 using BF.File.Emulator.Utilities;
 using FileEmulationFramework.Interfaces;
@@ -105,5 +106,10 @@ public class BfEmulatorApi : IBfEmulator
     {
         _logger.Info("Setting encoding to {0}", encoding);
         _bfEmulator.SetEncoding(encoding);
+    }
+    
+    public bool TryGetImports(string route, out string[] imports)
+    {
+        return _bfEmulator.TryGetImports(route, out imports);
     }
 }

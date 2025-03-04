@@ -106,6 +106,34 @@ public class BfBuilder
     }
 
     /// <summary>
+    /// Tries to get all files that the base flow imports
+    /// </summary>
+    /// <param name="flowFormat">The format of the flowscript</param>
+    /// <param name="library">The library to use for the flowscript</param>
+    /// <param name="encoding">The encoding of the flowscript</param>
+    /// <param name="foundImports">An array of absolute paths to all files that the base flows import,
+    /// both directly and transitively. This includes the base files.</param>
+    /// <returns></returns>
+    public bool TryGetImports(FlowFormatVersion flowFormat, Library library, Encoding encoding,
+        out string[] foundImports)
+    {
+        // Use compiler arg overrides (if they're there)
+        if (_library != null) library = _library;
+        if (_encoding != null) encoding = _encoding;
+        if (_flowFormat != null) flowFormat = (FlowFormatVersion)_flowFormat;
+
+        var compiler = new FlowScriptCompiler(flowFormat);
+        compiler.Library = OverrideLibraries(library);
+        compiler.Encoding = encoding;
+
+        var imports = new List<string>();
+        imports.AddRange(_flowFiles);
+        imports.AddRange(_msgFiles);
+
+        return compiler.TryGetImports(imports, out foundImports);
+    }
+
+    /// <summary>
     /// Builds a BF file.
     /// </summary>
     public EmulatedBf? Build(IntPtr originalHandle, string originalPath, FlowFormatVersion flowFormat, Library library, Encoding encoding, AtlusLogListener? listener = null, bool noBaseBf = false)
