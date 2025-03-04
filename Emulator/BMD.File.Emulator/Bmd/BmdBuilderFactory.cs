@@ -122,7 +122,7 @@ internal class BmdBuilderFactory
 
         _messageFormat = GetMessageScriptFormatVersion(outFormat);
         _library = LibraryLookup.GetLibrary(args.Library);
-        _encoding = AtlusEncoding.GetByName(args.Encoding);
+        _encoding = AtlusEncoding.Create(args.Encoding);
 
         _log.Info($"[BmdBuilderFactory] Changed script compiler args to OutFormat: {args.OutFormat}, Library: {args.Library}, Encoding: {args.Encoding}");
     }

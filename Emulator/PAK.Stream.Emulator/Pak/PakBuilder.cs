@@ -5,9 +5,7 @@ using FileEmulationFramework.Lib.IO.Interfaces;
 using FileEmulationFramework.Lib.IO.Struct;
 using FileEmulationFramework.Lib.Utilities;
 using Microsoft.Win32.SafeHandles;
-using Reloaded.Memory;
 using Reloaded.Memory.Extensions;
-using Reloaded.Memory.Streams;
 using Reloaded.Memory.Utilities;
 
 // Aliasing for readability, since our assembly name has priority over 'stream'
@@ -19,6 +17,12 @@ namespace PAK.Stream.Emulator.Pak;
 public class PakBuilder
 {
     private readonly Dictionary<string, FileSlice> _customFiles = new Dictionary<string, FileSlice>();
+    private readonly Logger? _log;
+
+    public PakBuilder(Logger? log = null)
+    {
+        _log = log;
+    }
 
     /// <summary>
     /// Adds a file to the Virtual PAK builder.
@@ -29,7 +33,15 @@ public class PakBuilder
     {
         var nameIndex = filePath.IndexOf(pakName.Replace('\\', '/'), StringComparison.Ordinal);
         var file = filePath.Substring(nameIndex + pakName.Length + 1).Replace('\\', '/');
-        _customFiles[file] = new(filePath);
+        var fileSlice = new FileSlice(filePath);
+        if (fileSlice.Length == 0)
+        {
+            _log?.Error("[Pak Builder] File {0} is empty, not adding it to pak {1}", filePath, pakName);
+        }
+        else
+        {
+            _customFiles[file] = fileSlice;
+        }
     }
 
     /// <summary>
@@ -40,16 +52,24 @@ public class PakBuilder
     /// <param name="inPakPath">Path to where the file will be in the pak</param>
     public void AddOrReplaceFileWithPath(string filePath, string inPakPath)
     {
-        _customFiles[inPakPath.Replace('\\', '/')] = new(filePath);
+        var fileSlice = new FileSlice(filePath);
+        if (fileSlice.Length == 0)
+        {
+            _log?.Error("[Pak Builder] File {0} is empty, not adding it into pak at {1}", filePath, inPakPath);
+        }
+        else
+        {
+            _customFiles[inPakPath.Replace('\\', '/')] = fileSlice;
+        }
     }
 
 
     /// <summary>
     /// Builds an PAK file.
     /// </summary>
-    public unsafe MultiStream Build(IntPtr handle, string filepath, Logger? logger = null, string folder = "", long baseOffset = 0)
+    public unsafe MultiStream Build(IntPtr handle, string filepath, string folder = "", long baseOffset = 0)
     {
-        logger?.Info($"[{nameof(PakBuilder)}] Building PAK File | {{0}}", filepath);
+        _log?.Info($"[{nameof(PakBuilder)}] Building PAK File | {{0}}", filepath);
 
         // Get original file's entries.
         IEntry[] entries = GetEntriesFromFile(handle, baseOffset, out var format);
@@ -57,19 +77,19 @@ public class PakBuilder
         switch (format)
         {
             case FormatVersion.Version1:
-                return BuildV1(entries, handle, filepath, logger, folder, baseOffset);
+                return BuildV1(entries, handle, filepath, folder, baseOffset);
             case FormatVersion.Version2:
             case FormatVersion.Version2BE:
-                return BuildV2(entries, handle, filepath, format == FormatVersion.Version2BE, logger, folder, baseOffset);
+                return BuildV2(entries, handle, filepath, format == FormatVersion.Version2BE, folder, baseOffset);
             case FormatVersion.Version3:
             case FormatVersion.Version3BE:
-                return BuildV3(entries, handle, filepath, format == FormatVersion.Version3BE, logger, folder, baseOffset);
+                return BuildV3(entries, handle, filepath, format == FormatVersion.Version3BE, folder, baseOffset);
             default:
                 return null!; // Will nver even get here, an error is thrown in GetEntriesFromFile for invalid formats
         }
     }
 
-    private unsafe MultiStream BuildV1(IEntry[] entries, IntPtr handle, string filepath, Logger? logger = null, string folder = "", long baseOffset = 0)
+    private unsafe MultiStream BuildV1(IEntry[] entries, IntPtr handle, string filepath, string folder = "", long baseOffset = 0)
     {
         int sizeofentry = sizeof(V1FileEntry);
 
@@ -122,7 +142,7 @@ public class PakBuilder
             int length = 0;
             if (intFiles.TryGetValue(x, out var overwrittenFile))
             {
-                logger?.Info($"{nameof(PakBuilder)} | Injecting {{0}}, in slot {{1}}", overwrittenFile.FilePath, x);
+                _log?.Info($"{nameof(PakBuilder)} | Injecting {{0}}, in slot {{1}}", overwrittenFile.FilePath, x);
 
                 // For custom files, add to pairs directly.
                 length = overwrittenFile.Length;
@@ -137,7 +157,7 @@ public class PakBuilder
                 length = (int)Align(length, 64);
 
 
-                pairs.Add(new(new FileSliceStreamW32(overwrittenFile, logger), OffsetRange.FromStartAndLength(currentOffset + sizeofentry, overwrittenFile.Length)));
+                pairs.Add(new(new FileSliceStreamW32(overwrittenFile, _log), OffsetRange.FromStartAndLength(currentOffset + sizeofentry, overwrittenFile.Length)));
                 if (length > overwrittenFile.Length)
                 {
                     byte[] buffer = new byte[length - overwrittenFile.Length];
@@ -149,14 +169,14 @@ public class PakBuilder
             {
                 length = (int)Align(entries[x].Length, 64);
                 var entryContents = new FileSlice(baseOffset + fileOffset + sizeofentry, length, filepath);
-                Strim entryStream = new FileSliceStreamW32(entryContents, logger);
+                Strim entryStream = new FileSliceStreamW32(entryContents, _log);
                 var container = entries[x].FileName.Trim().Replace("../", "");
                 if (innerPaksToEdit.Contains(container) && DetectVersion(entryStream) != FormatVersion.Unknown)
                 {
                     var entryHeader = new FileSlice(baseOffset + fileOffset, sizeofentry - 4, filepath);
-                    Strim headerStream = new FileSliceStreamW32(entryHeader, logger);
+                    Strim headerStream = new FileSliceStreamW32(entryHeader, _log);
 
-                    entryStream = this.Build(handle, filepath, logger, container, baseOffset + fileOffset + sizeofentry);
+                    entryStream = this.Build(handle, filepath, container, baseOffset + fileOffset + sizeofentry);
                     length = (int)entryStream.Length;
 
                     var headerStream2 = new MemoryStream(4);
@@ -181,7 +201,7 @@ public class PakBuilder
                 else
                 {
                     var entryHeader = new FileSlice(baseOffset + fileOffset, sizeofentry, filepath);
-                    Strim headerStream = new FileSliceStreamW32(entryHeader, logger);
+                    Strim headerStream = new FileSliceStreamW32(entryHeader, _log);
 
                     pairs.Add(new(headerStream, OffsetRange.FromStartAndLength(currentOffset, sizeofentry)));
                     pairs.Add(new(entryStream, OffsetRange.FromStartAndLength(currentOffset + sizeofentry, length)));
@@ -210,10 +230,10 @@ public class PakBuilder
         pairs.Add(new(dummyHeader, OffsetRange.FromStartAndLength(currentOffset, sizeof(V1FileEntry))));
 
         // Return MultiStream
-        return new MultiStream(pairs, logger);
+        return new MultiStream(pairs, _log);
     }
 
-    private unsafe MultiStream BuildV2(IEntry[] entries, IntPtr handle, string filepath, bool bigEndian, Logger? logger = null, string folder = "", long baseOffset = 0)
+    private unsafe MultiStream BuildV2(IEntry[] entries, IntPtr handle, string filepath, bool bigEndian, string folder = "", long baseOffset = 0)
     {
         int sizeofentry = sizeof(V2FileEntry);
 
@@ -275,7 +295,7 @@ public class PakBuilder
             int length = 0;
             if (intFiles.TryGetValue(x, out var overwrittenFile))
             {
-                logger?.Info($"{nameof(PakBuilder)} | Injecting {{0}}, in slot {{1}}", overwrittenFile.FilePath, x);
+                _log?.Info($"{nameof(PakBuilder)} | Injecting {{0}}, in slot {{1}}", overwrittenFile.FilePath, x);
 
                 // For custom files, add to pairs directly.
                 length = overwrittenFile.Length;
@@ -288,7 +308,7 @@ public class PakBuilder
                 entrystream.Write(writelength);
                 pairs.Add(new(entrystream, OffsetRange.FromStartAndLength(currentOffset, sizeof(V2FileEntry))));
 
-                pairs.Add(new(new FileSliceStreamW32(overwrittenFile, logger), OffsetRange.FromStartAndLength(currentOffset + sizeofentry, overwrittenFile.Length)));
+                pairs.Add(new(new FileSliceStreamW32(overwrittenFile, _log), OffsetRange.FromStartAndLength(currentOffset + sizeofentry, overwrittenFile.Length)));
                 if (length > overwrittenFile.Length)
                 {
                     byte[] buffer = new byte[length - overwrittenFile.Length];
@@ -301,14 +321,14 @@ public class PakBuilder
                 length = entries[x].Length;
                 length = bigEndian ? Endian.Reverse(length) : length;
                 var entryContents = new FileSlice(baseOffset + fileOffset + sizeofentry, length, filepath);
-                Strim entryStream = new FileSliceStreamW32(entryContents, logger);
+                Strim entryStream = new FileSliceStreamW32(entryContents, _log);
                 var container = entries[x].FileName.Trim().Replace("../", "");
                 if (innerPaksToEdit.Contains(container) && DetectVersion(entryStream) != FormatVersion.Unknown)
                 {
                     var entryHeader = new FileSlice(baseOffset + fileOffset, sizeofentry - 4, filepath);
-                    headerStream = new FileSliceStreamW32(entryHeader, logger);
+                    headerStream = new FileSliceStreamW32(entryHeader, _log);
 
-                    entryStream = this.Build(handle, filepath, logger, container, baseOffset + fileOffset + sizeofentry);
+                    entryStream = this.Build(handle, filepath, container, baseOffset + fileOffset + sizeofentry);
                     length = (int)entryStream.Length;
 
                     var headerStream2 = new MemoryStream(4);
@@ -333,14 +353,11 @@ public class PakBuilder
                 else
                 {
                     var entryHeader = new FileSlice(baseOffset + fileOffset, sizeofentry, filepath);
-                    headerStream = new FileSliceStreamW32(entryHeader, logger);
+                    headerStream = new FileSliceStreamW32(entryHeader, _log);
 
                     pairs.Add(new(headerStream, OffsetRange.FromStartAndLength(currentOffset, sizeofentry)));
                     pairs.Add(new(entryStream, OffsetRange.FromStartAndLength(currentOffset + sizeofentry, length)));
-
                 }
-
-
             }
             else
             {
@@ -364,10 +381,10 @@ public class PakBuilder
         pairs.Add(new(dummyHeader, OffsetRange.FromStartAndLength(currentOffset, sizeof(V2FileEntry))));
 
         // Return MultiStream
-        return new MultiStream(pairs, logger);
+        return new MultiStream(pairs, _log);
     }
 
-    private unsafe MultiStream BuildV3(IEntry[] entries, IntPtr handle, string filepath, bool bigEndian, Logger? logger = null, string folder = "", long baseOffset = 0)
+    private unsafe MultiStream BuildV3(IEntry[] entries, IntPtr handle, string filepath, bool bigEndian, string folder = "", long baseOffset = 0)
     {
         int sizeofentry = sizeof(V3FileEntry);
 
@@ -429,7 +446,7 @@ public class PakBuilder
             int length = 0;
             if (intFiles.TryGetValue(x, out var overwrittenFile))
             {
-                logger?.Info($"{nameof(PakBuilder)} | Injecting {{0}}, in slot {{1}}", overwrittenFile.FilePath, x);
+                _log?.Info($"{nameof(PakBuilder)} | Injecting {{0}}, in slot {{1}}", overwrittenFile.FilePath, x);
 
                 // For custom files, add to pairs directly.
                 length = overwrittenFile.Length;
@@ -442,7 +459,7 @@ public class PakBuilder
                 entrystream.Write(writelength);
                 pairs.Add(new(entrystream, OffsetRange.FromStartAndLength(currentOffset, sizeof(V3FileEntry))));
 
-                pairs.Add(new(new FileSliceStreamW32(overwrittenFile, logger), OffsetRange.FromStartAndLength(currentOffset + sizeofentry, overwrittenFile.Length)));
+                pairs.Add(new(new FileSliceStreamW32(overwrittenFile, _log), OffsetRange.FromStartAndLength(currentOffset + sizeofentry, overwrittenFile.Length)));
                 if (length > overwrittenFile.Length)
                 {
                     byte[] buffer = new byte[length - overwrittenFile.Length];
@@ -455,14 +472,14 @@ public class PakBuilder
                 length = entries[x].Length;
                 length = bigEndian ? Endian.Reverse(length) : length;
                 var entryContents = new FileSlice(baseOffset + fileOffset + sizeofentry, length, filepath);
-                Strim entryStream = new FileSliceStreamW32(entryContents, logger);
+                Strim entryStream = new FileSliceStreamW32(entryContents, _log);
                 var container = entries[x].FileName.Trim().Replace("../", "");
                 if (innerPaksToEdit.Contains(container) && DetectVersion(entryStream) != FormatVersion.Unknown)
                 {
                     var entryHeader = new FileSlice(baseOffset + fileOffset, sizeofentry - 4, filepath);
-                    headerStream = new FileSliceStreamW32(entryHeader, logger);
+                    headerStream = new FileSliceStreamW32(entryHeader, _log);
 
-                    entryStream = this.Build(handle, filepath, logger, container, baseOffset + fileOffset + sizeofentry);
+                    entryStream = this.Build(handle, filepath, container, baseOffset + fileOffset + sizeofentry);
                     length = (int)entryStream.Length;
 
                     var headerStream2 = new MemoryStream(4);
@@ -486,7 +503,7 @@ public class PakBuilder
                 else
                 {
                     var entryHeader = new FileSlice(baseOffset + fileOffset, sizeofentry, filepath);
-                    headerStream = new FileSliceStreamW32(entryHeader, logger);
+                    headerStream = new FileSliceStreamW32(entryHeader, _log);
 
                     pairs.Add(new(headerStream, OffsetRange.FromStartAndLength(currentOffset, sizeofentry)));
                     pairs.Add(new(entryStream, OffsetRange.FromStartAndLength(currentOffset + sizeofentry, length)));
@@ -514,7 +531,7 @@ public class PakBuilder
         pairs.Add(new(dummyHeader, OffsetRange.FromStartAndLength(currentOffset, sizeof(V3FileEntry))));
 
         // Return MultiStream
-        return new MultiStream(pairs, logger);
+        return new MultiStream(pairs, _log);
     }
 
     private static bool IsValidFormatVersion1(Strim stream)

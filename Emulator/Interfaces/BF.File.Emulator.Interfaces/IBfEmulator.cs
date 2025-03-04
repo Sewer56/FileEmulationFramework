@@ -42,4 +42,18 @@ public interface IBfEmulator
     /// </summary>
     /// <param name="dir">The directory to add the files from</param>
     public void AddDirectory(string dir);
+
+    /// <summary>
+    /// Sets the encoding that bf emulator will use
+    /// </summary>
+    /// <param name="encoding">The name of the encoding to use</param>
+    public void SetEncoding(string encoding);
+    
+    /// <summary>
+    /// Gets a list of files that a flow file imports
+    /// </summary>
+    /// <param name="route">The route to the file to check</param>
+    /// <param name="imports">A list of full paths to all files that are imported (directly or transitively) by the flow file</param>
+    /// <returns>True if the imports could be determined, false otherwise</returns>
+    public bool TryGetImports(string route, out string[] imports);
 }

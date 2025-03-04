@@ -1,13 +1,10 @@
-﻿using FileEmulationFramework.Lib.IO;
-using FileEmulationFramework.Lib.Utilities;
-using FileEmulationFramework.Lib.Memory;
+﻿using FileEmulationFramework.Lib.Utilities;
 using AtlusScriptLibrary.MessageScriptLanguage.Compiler;
 using MessageFormatVersion = AtlusScriptLibrary.MessageScriptLanguage.FormatVersion;
 using AtlusScriptLibrary.Common.Libraries;
 using System.Text;
 using Microsoft.Win32.SafeHandles;
 using AtlusScriptLibrary.MessageScriptLanguage;
-using System.Text.Json;
 using BMD.File.Emulator.Utilities;
 
 // Aliasing for readability, since our assembly name has priority over 'File'
@@ -48,7 +45,7 @@ public class BmdBuilder
     /// <summary>
     /// Builds a BMD file.
     /// </summary>
-    public unsafe Stream? Build(IntPtr originalHandle, string originalPath, MessageFormatVersion msgFormat, Library library, Encoding encoding, AtlusLogListener? listener = null, bool noBaseBmd = false)
+    public EmulatedBmd? Build(IntPtr originalHandle, string originalPath, MessageFormatVersion msgFormat, Library library, Encoding encoding, AtlusLogListener? listener = null, bool noBaseBmd = false)
     {
         _log?.Info("[BmdEmulator] Building BMD File | {0}", originalPath);
 
@@ -67,18 +64,30 @@ public class BmdBuilder
         if (!noBaseBmd)
             bmdStream = new FileStream(new SafeFileHandle(originalHandle, false), FileAccess.Read);
 
-        if (!compiler.TryCompileWithImports(bmdStream, _msgFiles, out MessageScript messageScript))
+        try
         {
-            _log?.Error("[BmdEmulator] Failed to compile BMD File | {0}", originalPath);
+            if (!compiler.TryCompileWithImports(bmdStream, _msgFiles, out MessageScript messageScript))
+            {
+                _log?.Error("[BmdEmulator] Failed to compile BMD File | {0}", originalPath);
+                return null;
+            }
+
+            // Return the compiled bmd
+            var bmdBinary = messageScript.ToBinary();
+            var stream = StreamUtils.CreateMemoryStream(bmdBinary.FileSize);
+            bmdBinary.ToStream(stream, true);
+            stream.Position = 0;
+
+            DateTime lastWrite = _msgFiles.Select(Fiel.GetLastWriteTimeUtc).Max();
+            return new EmulatedBmd(stream, _msgFiles, lastWrite);
+        }
+        catch (Exception exception)
+        {
+            var msgs = string.Join(", ", _msgFiles);
+            _log.Error(
+                "[BMD Builder] Failed to compile bf {0} with msgs {1}. This may be due to your mods not being translated. Error: {2}",
+                originalPath, msgs, exception.Message);
             return null;
         }
-
-        // Return the compiled bmd
-        var bmdBinary = messageScript.ToBinary();
-        var stream = StreamUtils.CreateMemoryStream(bmdBinary.Header.FileSize);
-        bmdBinary.ToStream(stream, true);
-        stream.Position = 0;
-
-        return stream;
     }
 }
