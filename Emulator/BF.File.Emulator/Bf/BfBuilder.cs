@@ -150,6 +150,13 @@ public class BfBuilder
         return stream;
     }
 
+    /// <summary>
+    /// Applies library file overrides to the base library.
+    /// This adds aliases to functions with different names, replaces functions with different
+    /// return values or parameters, and adds any completely new functions.
+    /// </summary>
+    /// <param name="library">The base library to override</param>
+    /// <returns>A deep copy of the base library with overrides applied</returns>
     private Library OverrideLibraries(Library library)
     {
         if (_libraryEnums.Count == 0 && _libraryFuncs.Count == 0) return library;
@@ -176,7 +183,15 @@ public class BfBuilder
 
             if (module != -1 && index != -1)
             {
-                library.FlowScriptModules[module].Functions[index] = func;
+                var existingFunc = library.FlowScriptModules[module].Functions[index];
+                if (FlowFunctionsSame(existingFunc, func))
+                {
+                    existingFunc.Aliases.Add(func.Name);
+                }
+                else
+                {
+                    library.FlowScriptModules[module].Functions[index] = func;
+                }
             }
             else
             {
@@ -187,5 +202,18 @@ public class BfBuilder
         // Add enums
         library.FlowScriptModules[0].Enums.AddRange(_libraryEnums);
         return library;
+    }
+
+    /// <summary>
+    /// Checks if two flowscript functions are effectively the same.
+    /// They are the same if the return type and parameter types are the same.
+    /// </summary>
+    /// <param name="func1">The first function to compare</param>
+    /// <param name="func2">The other function to compare</param>
+    /// <returns>Truee if the two functions are effectively the same, false otherwise</returns>
+    private bool FlowFunctionsSame(FlowScriptModuleFunction func1, FlowScriptModuleFunction func2)
+    {
+        return func1.ReturnType == func2.ReturnType && func1.Parameters.Select(param => param.Type)
+            .SequenceEqual(func2.Parameters.Select(param => param.Type));
     }
 }
