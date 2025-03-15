@@ -343,8 +343,10 @@ public static unsafe class FileAccessServer
 
                 lock (ThreadLock)
                 {
-                    HandleToInfoMap[hndl] = new(newFilePath, 0, emulatedFile);
+                    fileInfo = new(newFilePath, 0, emulatedFile);
+                    HandleToInfoMap[hndl] = fileInfo;
                     PathToHandleMap[newFilePath] = hndl;
+                    PathToVirtualFileMap[newFilePath] = fileInfo;
                 }
                 return ntStatus;
             }
