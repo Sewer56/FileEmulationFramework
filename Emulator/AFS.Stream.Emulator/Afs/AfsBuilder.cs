@@ -6,7 +6,7 @@ using FileEmulationFramework.Lib.IO.Struct;
 using FileEmulationFramework.Lib.Utilities;
 using Microsoft.Win32.SafeHandles;
 using Reloaded.Memory.Extensions;
-using Reloaded.Memory.Streams;
+using StreamExtensions = FileEmulationFramework.Lib.Utilities.StreamExtensions;
 
 // Aliasing for readability, since our assembly name has priority over 'stream'
 using Strim = System.IO.Stream;
@@ -151,7 +151,8 @@ public class AfsBuilder
                 ThrowHelpers.IO("Failed to read original AFS header start.");
 
             var entries = GC.AllocateUninitializedArray<AfsFileEntry>(header.NumberOfFiles);
-            if (!stream.TryRead(MemoryMarshal.Cast<AfsFileEntry, byte>(entries), out _))
+            var byteSpan = MemoryMarshal.Cast<AfsFileEntry, byte>(entries);
+            if (!StreamExtensions.TryRead(stream, byteSpan, out _))
                 ThrowHelpers.IO("Failed to read original AFS header pos+offset.");
 
             return entries;
