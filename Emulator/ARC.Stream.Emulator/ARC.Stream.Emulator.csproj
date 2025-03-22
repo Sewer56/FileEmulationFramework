@@ -1,10 +1,10 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
-    <TargetFramework>net7.0</TargetFramework>
+    <TargetFramework>net9.0</TargetFramework>
 	  <AppendTargetFrameworkToOutputPath>false</AppendTargetFrameworkToOutputPath>
 	  <CopyLocalLockFileAssemblies>true</CopyLocalLockFileAssemblies>
-	  <LangVersion>preview</LangVersion>
+	  <LangVersion>10.0</LangVersion>
 	  <Nullable>enable</Nullable>
 	  <AllowUnsafeBlocks>True</AllowUnsafeBlocks>
 	  <OutputPath>$(RELOADEDIIMODS)/reloaded.universal.fileemulationframework.arc</OutputPath>
