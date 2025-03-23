@@ -32,7 +32,7 @@ public static unsafe class FileAccessServer
     private static List<IEmulator> Emulators { get; } = new();
 
     private static readonly ConcurrentDictionary<IntPtr, FileInformation> HandleToInfoMap = new();
-    private static readonly ConcurrentDictionary<string, FileInformation?> PathToVirtualFileMap = new(StringComparer.OrdinalIgnoreCase);
+    private static readonly ConcurrentDictionary<string, FileInformation> PathToVirtualFileMap = new(StringComparer.OrdinalIgnoreCase);
     private static readonly ConcurrentDictionary<string, IntPtr> PathToHandleMap = new(StringComparer.OrdinalIgnoreCase);
 
     private static readonly object ThreadLock = new();
@@ -148,44 +148,11 @@ public static unsafe class FileAccessServer
         
         var path = Strings.TrimWindowsPrefixes(attributes->ObjectName);
 
-        SafeFileHandle? safeHandle = null;
-
-        if (!PathToHandleMap.TryGetValue(path, out var hfile) || !HandleToInfoMap.TryGetValue(hfile, out var info))
-        {
-            // We haven't tried to create an emulated file for this yet, try it
-            if (!PathToVirtualFileMap.TryGetValue(path, out info))
-            {
-                // Prevent recursion
-                PathToVirtualFileMap[path] = null;
-                
-                // There is a virtual file but no handle exists for it, we need to make one
-                try
-                {
-                    safeHandle = File.OpenHandle(path);
-                }
-                catch (Exception e)
-                {
-                    // If we couldn't make the handle this probably isn't a file we can emulate
-                    return result;
-                }
-                
-                hfile = safeHandle.DangerousGetHandle();
-
-                // We tried to make one but failed, this file isn't emulated
-                if (!HandleToInfoMap.TryGetValue(hfile, out info))
-                {
-                    safeHandle.Close();
-                    return result;
-                }
-            }
-
-            // We've tried to create an emulated file for this before but failed, this file isn't emulated
-            if (info == null)
-                return result;
-        }
+        if (!TryGetFileInfoFromPath(path, out var hfile, out var info, out var newFileHandle))
+            return result;
 
         var oldSize = information->EndOfFile;
-        var newSize = info.File.GetFileSize(hfile, info);
+        var newSize = info!.File.GetFileSize(hfile, info);
         if (newSize != -1)
             information->EndOfFile = newSize;
 
@@ -200,8 +167,7 @@ public static unsafe class FileAccessServer
         }
 
         // Clean up if we needed to make a new handle
-        if (safeHandle != null)
-            safeHandle.Close();
+        newFileHandle?.Close();
 
         return result;
     }
@@ -212,16 +178,19 @@ public static unsafe class FileAccessServer
         var result = _getFileAttributesHook.OriginalFunction.Value.Invoke(attributes, information);
         var path = Strings.TrimWindowsPrefixes(attributes->ObjectName);
 
-        if (!PathToHandleMap.TryGetValue(path, out var hfile) || !HandleToInfoMap.TryGetValue(hfile, out var info))
+        if (!TryGetFileInfoFromPath(path, out var hfile, out var info, out var newFileHandle))
             return result;
 
-        if (info.File.TryGetLastWriteTime(hfile, info, out var newWriteTime))
+        if (info!.File.TryGetLastWriteTime(hfile, info, out var newWriteTime))
         {
             var oldWriteTime = information->LastWriteTime.ToDateTime();
             information->LastWriteTime = new LARGE_INTEGER(newWriteTime!.Value.ToFileTimeUtc());
             _logger.Info("[FileAccessServer] File Last Write Override | Old: {0}, New: {1} | {2}", oldWriteTime,
                 newWriteTime, path);
         }
+        
+        // Clean up if we needed to make a new handle
+        newFileHandle?.Close();
 
         return result;
     }
@@ -323,7 +292,7 @@ public static unsafe class FileAccessServer
             _logger.Debug("[FileAccessServer] Accessing: {0}, {1}, Route: {2}", hndl, newFilePath, _currentRoute.FullPath);
 
             // Try Accept New File (virtual override)
-            if (PathToVirtualFileMap.TryGetValue(newFilePath, out var fileInfo) && fileInfo != null)
+            if (PathToVirtualFileMap.TryGetValue(newFilePath, out var fileInfo))
             {
                 // Reuse of emulated file (backed by stream) is safe because file access is single threaded.
                 lock (ThreadLock)
@@ -346,7 +315,6 @@ public static unsafe class FileAccessServer
                     fileInfo = new(newFilePath, 0, emulatedFile);
                     HandleToInfoMap[hndl] = fileInfo;
                     PathToHandleMap[newFilePath] = hndl;
-                    PathToVirtualFileMap[newFilePath] = fileInfo;
                 }
                 return ntStatus;
             }
@@ -357,6 +325,50 @@ public static unsafe class FileAccessServer
         {
             _currentRoute = currentRoute;
         }
+    }
+
+    /// <summary>
+    /// Tries to get the FileInformation for an emulated file based on its path.
+    /// If a file at the specified path has never been created before this will attempt to create it, making the emulated file.
+    /// </summary>
+    /// <param name="path">The path to the file to try and get information for</param>
+    /// <param name="hfile">The handle to the emulated file if there was one</param>
+    /// <param name="fileInfo">The FileInformation for the emulated file if there is one, null otherwise</param>
+    /// <param name="newFileHandle">A safe handle to the new file that was created, if one had to be created. Make sure to close this when you are done with the file info!</param>
+    /// <returns>True if the file information for an emulated file with the specified path was found, false otherwise.</returns>
+    private static bool TryGetFileInfoFromPath(string path, out IntPtr hfile, out FileInformation? fileInfo,  out SafeFileHandle? newFileHandle)
+    {
+        newFileHandle = null;
+        fileInfo = null;
+        
+        // We haven't tried to create an emulated file for this yet, try it
+        if (!PathToHandleMap.TryGetValue(path, out hfile) || (hfile != INVALID_HANDLE_VALUE && !HandleToInfoMap.TryGetValue(hfile, out fileInfo)))
+        {
+            // Prevent recursion
+            PathToHandleMap[path] = INVALID_HANDLE_VALUE;
+                
+            // There is a virtual file but no handle exists for it, we need to make one
+            try
+            {
+                newFileHandle = File.OpenHandle(path);
+            }
+            catch (Exception e)
+            {
+                // If we couldn't make the handle this probably isn't a file we can emulate
+                return false;
+            }
+
+            hfile = newFileHandle.DangerousGetHandle();
+                
+            // We tried to make one but failed, this file isn't emulated
+            if (!HandleToInfoMap.TryGetValue(hfile, out fileInfo))
+            {
+                newFileHandle.Close();
+                return false;
+            }
+        }
+        
+        return fileInfo != null;
     }
 
     /// <summary>
