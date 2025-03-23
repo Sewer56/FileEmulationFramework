@@ -12,6 +12,11 @@ namespace FileEmulationFramework.Lib.Utilities;
 public static class Native
 {
     /// <summary>
+    /// The value of a handle that is invalid
+    /// </summary>
+    public static IntPtr INVALID_HANDLE_VALUE = new IntPtr(-1);
+    
+    /// <summary>
     /// <para>
     /// Loads the specified module into the address space of the calling process. The specified module may cause other modules to be loaded.
     /// </para>
