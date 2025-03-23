@@ -1,3 +1,7 @@
+# 2.3.0
+
+- Added support for emulating LastWriteTime of emulated files across re-opens.
+
 # 2.1.1
 
 - Added: Source to start of various log commands.  

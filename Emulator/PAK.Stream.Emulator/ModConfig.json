@@ -2,7 +2,7 @@
   "ModId": "reloaded.universal.fileemulationframework.pak",
   "ModName": "PAK Emulator for File Emulation Framework",
   "ModAuthor": "ltsophia & friends",
-  "ModVersion": "1.1.1",
+  "ModVersion": "1.2.0",
   "ModDescription": "Simulates Atlus PAK files. Allows mods to add or replace existing files using files on disk.",
   "ModDll": "PAK.Stream.Emulator.dll",
   "ModIcon": "Preview.png",
