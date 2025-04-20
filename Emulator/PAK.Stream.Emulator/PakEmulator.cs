@@ -83,7 +83,7 @@ public class PakEmulator : IEmulator
 
         stream = builder!.Build(handle, srcDataPath);
 
-        _pathToStream.TryAdd(outputPath, stream);
+        _pathToStream[outputPath] = stream;
         emulated = new EmulatedFile<MultiStream>(stream);
         _log.Info("[PakEmulator] Created Emulated file with Path {0}", outputPath);
 
