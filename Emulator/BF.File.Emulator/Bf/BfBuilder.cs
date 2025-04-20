@@ -229,6 +229,7 @@ public class BfBuilder
                 var existingFunc = library.FlowScriptModules[module].Functions[index];
                 if (FlowFunctionsSame(existingFunc, func))
                 {
+                    existingFunc.Aliases ??= new List<string>();
                     existingFunc.Aliases.Add(func.Name);
                 }
                 else
