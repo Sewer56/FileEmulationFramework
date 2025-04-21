@@ -1,4 +1,5 @@
-﻿using FileEmulationFramework.Interfaces;
+﻿using System.Collections.Concurrent;
+using FileEmulationFramework.Interfaces;
 using FileEmulationFramework.Interfaces.Reference;
 using FileEmulationFramework.Lib.IO;
 using FileEmulationFramework.Lib.Utilities;
@@ -19,7 +20,7 @@ public class SpdEmulator : IEmulator
 
     // Note: Handle->Stream exists because hashing IntPtr is easier; thus can resolve reads faster.
     private readonly SpriteBuilderFactory _builderFactory;
-    private readonly Dictionary<string, Stream?> _pathToStream = new(StringComparer.OrdinalIgnoreCase);
+    private readonly ConcurrentDictionary<string, Stream?> _pathToStream = new(StringComparer.OrdinalIgnoreCase);
     private readonly Logger _log;
 
     public SpdEmulator(Logger log, bool dumpFiles)
