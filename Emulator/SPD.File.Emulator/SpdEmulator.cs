@@ -79,7 +79,7 @@ public class SpdEmulator : IEmulator
         _pathToStream[outputPath] = null; // Avoid recursion into same file.
 
         stream = builder!.Build(srcDataPath, _log);
-        _pathToStream.TryAdd(outputPath, stream);
+        _pathToStream[outputPath] = stream;
         emulated = new EmulatedFile<MultiStream>(stream);
         _log.Info("[SpdEmulator] Created Emulated file with Path {0}", outputPath);
 
@@ -123,7 +123,7 @@ public class SpdEmulator : IEmulator
 
     public void RegisterFile(string destinationPath, Stream stream)
     {
-        _pathToStream.TryAdd(destinationPath, stream);
+        _pathToStream[destinationPath] = stream;
     }
 
     internal List<RouteGroupTuple> GetInput() => _builderFactory.RouteGroupTuples;

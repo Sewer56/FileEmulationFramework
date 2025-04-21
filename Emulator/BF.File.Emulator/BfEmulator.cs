@@ -116,7 +116,7 @@ public class BfEmulator : IEmulator
             return false;
 
         stream = emulatedBf.Stream;
-        _pathToEmulated.TryAdd(outputPath, emulatedBf);
+        _pathToEmulated[outputPath] = emulatedBf;
         emulated = new EmulatedFile<Stream>(stream, emulatedBf.LastWriteTime);
         _log.Info("[BfEmulator] Created Emulated file with Path {0} and Last Write {1}", outputPath, emulatedBf.LastWriteTime);
 
@@ -150,7 +150,7 @@ public class BfEmulator : IEmulator
 
     public void RegisterFile(string destinationPath, Stream stream, DateTime lastWriteTime)
     {
-        _pathToEmulated.TryAdd(destinationPath, new EmulatedBf(stream, new List<string>(), lastWriteTime));
+        _pathToEmulated[destinationPath] = new EmulatedBf(stream, new List<string>(), lastWriteTime);
     }
 
     private void DumpFile(string route, Stream stream)

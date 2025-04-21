@@ -115,7 +115,7 @@ public class BmdEmulator : IEmulator
             return false;
 
         stream = emulatedBmd.Stream;
-        _pathToEmulated.TryAdd(outputPath, emulatedBmd);
+        _pathToEmulated[outputPath] = emulatedBmd;
         emulated = new EmulatedFile<Stream>(stream, emulatedBmd.LastWriteTime);
         _log.Info("[BmdEmulator] Created Emulated file with Path {0} and Last Write {1}", outputPath, emulatedBmd.LastWriteTime);
 
@@ -149,7 +149,7 @@ public class BmdEmulator : IEmulator
 
     public void RegisterFile(string destinationPath, Stream stream, DateTime lastWriteTime)
     {
-        _pathToEmulated.TryAdd(destinationPath, new EmulatedBmd(stream, new List<string>(), lastWriteTime));
+        _pathToEmulated[destinationPath] = new EmulatedBmd(stream, new List<string>(), lastWriteTime);
     }
 
     private void DumpFile(string route, Stream stream)
