@@ -1,3 +1,8 @@
+# 1.3.1
+
+- Fixed a bug where previously emulated files would not be emulated if opened more than once.
+- Fixed a crash when adding function alias to a function with no existing aliases.
+
 # 1.3.0
 
 - Added ability to override the file encoding via the `SetEncoding` API.

@@ -2,7 +2,7 @@
   "ModId": "reloaded.universal.fileemulationframework.spd",
   "ModName": "SPD Emulator for File Emulation Framework",
   "ModAuthor": "SecreC.",
-  "ModVersion": "1.0.0",
+  "ModVersion": "1.0.1",
   "ModDescription": "Simulating Atlus SPD files. Allows mods to add or replace individual sprites, even in the same texture file.",
   "ModDll": "SPD.File.Emulator.dll",
   "ModIcon": "Preview.png",
