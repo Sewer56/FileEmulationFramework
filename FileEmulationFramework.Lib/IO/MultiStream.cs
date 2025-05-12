@@ -73,7 +73,7 @@ public sealed class MultiStream : Stream
         var index  = _offsetRangeSelector.Select(Position);
         if (index == -1)
         {
-            _log?.Warning($"[{nameof(MultiStream)}] Cannot read from this position!! Position: {{0}}, Length: {{1}}. This is not necessarily an error, some implementations of e.g. CopyTo might cause this; just be weary of this message.", Position, Length);
+            _log?.Warning($"[{nameof(MultiStream)}] Cannot read from this position!! Position: {{0}}, Length: {{1}}. This is not necessarily an error, some implementations of e.g. CopyTo might cause this; just be wary of this message.", Position, Length);
             return 0;
         }
 
