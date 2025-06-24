@@ -1,13 +1,13 @@
 ﻿using BMD.File.Emulator.Interfaces;
 using BMD.File.Emulator.Interfaces.Structures.IO;
-using BMD.File.Emulator.Utilities;
 using FileEmulationFramework.Interfaces;
 using FileEmulationFramework.Interfaces.Reference;
-using FileEmulationFramework.Lib.Memory;
 using FileEmulationFramework.Lib.Utilities;
 using Microsoft.Win32.SafeHandles;
-using System.Diagnostics;
 using System.Runtime.InteropServices;
+
+// Aliasing for readability, since our assembly name has priority over 'File'
+using Fiel = System.IO.File;
 
 namespace BMD.File.Emulator;
 
@@ -59,9 +59,10 @@ public class BmdEmulatorApi : IBmdEmulator
 
         Native.SetFilePointerEx(handle, 0, IntPtr.Zero, 0);
 
+        var lastWrite = Fiel.GetLastWriteTimeUtc(sourcePath);
         var fileStream = new FileStream(new SafeFileHandle(handle, true), FileAccess.Read);
-        var emulated = new EmulatedFile<FileStream>(fileStream);
-        _bmdEmulator.RegisterFile(destinationPath, fileStream);
+        var emulated = new EmulatedFile<FileStream>(fileStream, lastWrite);
+        _bmdEmulator.RegisterFile(destinationPath, fileStream, lastWrite);
         _framework.RegisterVirtualFile(destinationPath, emulated, false);
 
         _logger.Info("[BmdEmulatorApi] Registered bmd {0} at {1}", sourcePath, destinationPath);
@@ -98,5 +99,11 @@ public class BmdEmulatorApi : IBmdEmulator
     public void AddDirectory(string dir)
     {
         _bmdEmulator.AddFromFolders(dir);
+    }
+    
+    public void SetEncoding(string encoding)
+    {
+        _logger.Info("Setting encoding to {0}", encoding);
+        _bmdEmulator.SetEncoding(encoding);
     }
 }

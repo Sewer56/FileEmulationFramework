@@ -13,6 +13,7 @@ using IReloadedHooks = Reloaded.Hooks.ReloadedII.Interfaces.IReloadedHooks;
 using Native = FileEmulationFramework.Lib.Utilities.Native;
 using System.Collections.Concurrent;
 using Reloaded.Memory.Utilities;
+using Microsoft.Win32.SafeHandles;
 
 // ReSharper disable RedundantArgumentDefaultValue
 
@@ -39,7 +40,8 @@ public static unsafe class FileAccessServer
     private static IHook<NtReadFileFn> _readFileHook = null!;
     private static IHook<NtSetInformationFileFn> _setFilePointerHook = null!;
     private static IHook<NtQueryInformationFileFn> _getFileSizeHook = null!;
-    private static IHook<NtQueryFullAttributesFileFn> _getFileAttributesHook = null!;
+    private static IHook<NtQueryFullAttributesFileFn> _getFileFullAttributesHook = null!;
+    private static IHook<NtQueryAttributesFileFn> _getFileAttributesHook = null!;
     private static IAsmHook _closeHandleHook = null!;
     private static NtQueryInformationFileFn _ntQueryInformationFile;
 
@@ -60,7 +62,8 @@ public static unsafe class FileAccessServer
         _setFilePointerHook = functions.SetFilePointer.Hook(typeof(FileAccessServer), nameof(SetInformationFileHook)).Activate();
         _getFileSizeHook = functions.GetFileSize.Hook(typeof(FileAccessServer), nameof(QueryInformationFileImpl)).Activate();
         _ntQueryInformationFile = _getFileSizeHook.OriginalFunction;
-        _getFileAttributesHook = functions.NtQueryFullAttributes.Hook(typeof(FileAccessServer), nameof(QueryAttributesFileImpl)).Activate();
+        _getFileFullAttributesHook = functions.NtQueryFullAttributes.Hook(typeof(FileAccessServer), nameof(QueryFullAttributesFileImpl)).Activate();
+        _getFileAttributesHook = functions.NtQueryAttributes.Hook(typeof(FileAccessServer), nameof(QueryAttributesFileImpl)).Activate();
 
         // We need to cook some assembly for NtClose, because Native->Managed
         // transition can invoke thread setup code which will call CloseHandle again
@@ -106,34 +109,88 @@ public static unsafe class FileAccessServer
     private static NT_STATUS QueryInformationFileImpl(IntPtr hfile, IO_STATUS_BLOCK* ioStatusBlock, byte* fileInformation, uint length, FileInformationClass fileInformationClass)
     {
         var result = _getFileSizeHook.OriginalFunction.Value.Invoke(hfile, ioStatusBlock, fileInformation, length, fileInformationClass);
-        if (fileInformationClass != FileInformationClass.FileStandardInformation || !HandleToInfoMap.TryGetValue(hfile, out var info))
+        if (!HandleToInfoMap.TryGetValue(hfile, out var info))
             return result;
+        
+        if (fileInformationClass == FileInformationClass.FileStandardInformation)
+        {
+            var information = (FILE_STANDARD_INFORMATION*)fileInformation;
+            var oldSize = information->EndOfFile;
+            var newSize = info.File.GetFileSize(hfile, info);
+            if (newSize != -1)
+                information->EndOfFile = newSize;
 
-        var information = (FILE_STANDARD_INFORMATION*)fileInformation;
-        var oldSize = information->EndOfFile;
-        var newSize = info.File.GetFileSize(hfile, info);
-        if (newSize != -1)
-            information->EndOfFile = newSize;
+            _logger.Info("[FileAccessServer] File Size Override | Old: {0}, New: {1} | {2}", oldSize, newSize, info.FilePath);
+        }
+        else if (fileInformationClass == FileInformationClass.FileBasicInformation)
+        {
+            var information = (FILE_BASIC_INFORMATION*)fileInformation;
+            if (info.File.TryGetLastWriteTime(hfile, info, out var newWriteTime))
+            {
+                var oldWriteTime = information->LastWriteTime.ToDateTime();
+                information->LastWriteTime = new LARGE_INTEGER(newWriteTime!.Value.ToFileTimeUtc());
+                _logger.Info("[FileAccessServer] File Last Write Override | Old: {0}, New: {1} | {2}", oldWriteTime,
+                    newWriteTime, info.FilePath);
+            }
+        }
 
-        _logger.Info("[FileAccessServer] File Size Override | Old: {0}, New: {1} | {2}", oldSize, newSize, info.FilePath);
         return result;
     }
 
     [UnmanagedCallersOnly(CallConvs = new[] { typeof(CallConvStdcall) })]
-    private static int QueryAttributesFileImpl(OBJECT_ATTRIBUTES* attributes, FILE_NETWORK_OPEN_INFORMATION* information)
+    private static int QueryFullAttributesFileImpl(OBJECT_ATTRIBUTES* attributes, FILE_NETWORK_OPEN_INFORMATION* information)
     {
-        var result = _getFileAttributesHook.OriginalFunction.Value.Invoke(attributes, information);
+        var result = _getFileFullAttributesHook.OriginalFunction.Value.Invoke(attributes, information);
+        
+        // We don't support directories currently
+        if ((information->FileAttributes & (uint)FileAttributes.Directory) != 0)
+            return result;
+        
         var path = Strings.TrimWindowsPrefixes(attributes->ObjectName);
 
-        if (!PathToHandleMap.TryGetValue(path, out var hfile) || !HandleToInfoMap.TryGetValue(hfile, out var info))
+        if (!TryGetFileInfoFromPath(path, out var hfile, out var info, out var newFileHandle))
             return result;
 
         var oldSize = information->EndOfFile;
-        var newSize = info.File.GetFileSize(hfile, info);
+        var newSize = info!.File.GetFileSize(hfile, info);
         if (newSize != -1)
             information->EndOfFile = newSize;
 
         _logger.Info("[FileAccessServer] File Size Override | Old: {0}, New: {1} | {2}", oldSize, newSize, path);
+
+        if (info.File.TryGetLastWriteTime(hfile, info, out var newWriteTime))
+        {
+            var oldWriteTime = information->LastWriteTime.ToDateTime();
+            information->LastWriteTime = new LARGE_INTEGER(newWriteTime!.Value.ToFileTimeUtc());
+            _logger.Info("[FileAccessServer] File Last Write Override | Old: {0}, New: {1} | {2}", oldWriteTime,
+                newWriteTime, path);
+        }
+
+        // Clean up if we needed to make a new handle
+        newFileHandle?.Close();
+
+        return result;
+    }
+
+    [UnmanagedCallersOnly(CallConvs = new[] { typeof(CallConvStdcall) })]
+    private static int QueryAttributesFileImpl(OBJECT_ATTRIBUTES* attributes, FILE_BASIC_INFORMATION* information)
+    {
+        var result = _getFileAttributesHook.OriginalFunction.Value.Invoke(attributes, information);
+        var path = Strings.TrimWindowsPrefixes(attributes->ObjectName);
+
+        if (!TryGetFileInfoFromPath(path, out var hfile, out var info, out var newFileHandle))
+            return result;
+
+        if (info!.File.TryGetLastWriteTime(hfile, info, out var newWriteTime))
+        {
+            var oldWriteTime = information->LastWriteTime.ToDateTime();
+            information->LastWriteTime = new LARGE_INTEGER(newWriteTime!.Value.ToFileTimeUtc());
+            _logger.Info("[FileAccessServer] File Last Write Override | Old: {0}, New: {1} | {2}", oldWriteTime,
+                newWriteTime, path);
+        }
+        
+        // Clean up if we needed to make a new handle
+        newFileHandle?.Close();
 
         return result;
     }
@@ -261,7 +318,8 @@ public static unsafe class FileAccessServer
 
                 lock (ThreadLock)
                 {
-                    HandleToInfoMap[hndl] = new(newFilePath, 0, emulatedFile);
+                    fileInfo = new(newFilePath, 0, emulatedFile);
+                    HandleToInfoMap[hndl] = fileInfo;
                     PathToHandleMap[newFilePath] = hndl;
                 }
                 return ntStatus;
@@ -273,6 +331,50 @@ public static unsafe class FileAccessServer
         {
             _currentRoute = currentRoute;
         }
+    }
+
+    /// <summary>
+    /// Tries to get the FileInformation for an emulated file based on its path.
+    /// If a file at the specified path has never been created before this will attempt to create it, making the emulated file.
+    /// </summary>
+    /// <param name="path">The path to the file to try and get information for</param>
+    /// <param name="hfile">The handle to the emulated file if there was one</param>
+    /// <param name="fileInfo">The FileInformation for the emulated file if there is one, null otherwise</param>
+    /// <param name="newFileHandle">A safe handle to the new file that was created, if one had to be created. Make sure to close this when you are done with the file info!</param>
+    /// <returns>True if the file information for an emulated file with the specified path was found, false otherwise.</returns>
+    private static bool TryGetFileInfoFromPath(string path, out IntPtr hfile, out FileInformation? fileInfo,  out SafeFileHandle? newFileHandle)
+    {
+        newFileHandle = null;
+        fileInfo = null;
+        
+        // We haven't tried to create an emulated file for this yet, try it
+        if (!PathToHandleMap.TryGetValue(path, out hfile) || (hfile != INVALID_HANDLE_VALUE && !HandleToInfoMap.TryGetValue(hfile, out fileInfo)))
+        {
+            // Prevent recursion
+            PathToHandleMap[path] = INVALID_HANDLE_VALUE;
+                
+            // There is a virtual file but no handle exists for it, we need to make one
+            try
+            {
+                newFileHandle = File.OpenHandle(path);
+            }
+            catch (Exception e)
+            {
+                // If we couldn't make the handle this probably isn't a file we can emulate
+                return false;
+            }
+
+            hfile = newFileHandle.DangerousGetHandle();
+                
+            // We tried to make one but failed, this file isn't emulated
+            if (!HandleToInfoMap.TryGetValue(hfile, out fileInfo))
+            {
+                newFileHandle.Close();
+                return false;
+            }
+        }
+        
+        return fileInfo != null;
     }
 
     /// <summary>

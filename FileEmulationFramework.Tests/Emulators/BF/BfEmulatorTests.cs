@@ -1,14 +1,10 @@
 ﻿using AtlusScriptLibrary.Common.Libraries;
 using AtlusScriptLibrary.Common.Text.Encodings;
 using BF.File.Emulator.Bf;
-using FileEmulationFramework.Lib.Memory;
 using FileEmulationFramework.Lib.Utilities;
 using System;
-using System.Collections.Generic;
 using System.IO;
-using System.Linq;
 using System.Text;
-using System.Threading.Tasks;
 using Xunit;
 using FlowFormatVersion = AtlusScriptLibrary.FlowScriptLanguage.FormatVersion;
 
@@ -27,16 +23,16 @@ public class BfEmulatorTests
     {
         var flowFormat = FlowFormatVersion.Version1;
         var library = LibraryLookup.GetLibrary("P4G");
-        var encoding = AtlusEncoding.GetByName("P4");
+        var encoding = AtlusEncoding.Create("P4G_EFIGS");
 
         var builder = new BfBuilder();
         builder.AddFlowFile(Assets.SimpleFlow);
         var handle = Native.CreateFileW(Assets.BaseBf, FileAccess.Read, FileShare.Read, IntPtr.Zero, FileMode.Open, FileAttributes.Normal, IntPtr.Zero);
-        var stream = builder.Build(handle, Assets.BaseBf, flowFormat, library, encoding);
+        var emulatedBf = builder.Build(handle, Assets.BaseBf, flowFormat, library, encoding);
 
         // Write to file for checking.
         using var fileStream = new FileStream("field.bf", FileMode.Create);
-        stream.CopyTo(fileStream);
+        emulatedBf!.Stream.CopyTo(fileStream);
         fileStream.Close();
 
         // Parse file and check.
@@ -49,17 +45,17 @@ public class BfEmulatorTests
     {
         var flowFormat = FlowFormatVersion.Version1;
         var library = LibraryLookup.GetLibrary("P4G");
-        var encoding = AtlusEncoding.GetByName("P4");
+        var encoding = AtlusEncoding.Create("P4G_EFIGS");
 
         var builder = new BfBuilder();
         builder.AddFlowFile(Assets.SimpleFlow);
         builder.AddFlowFile(Assets.ComplexFlow);
         var handle = Native.CreateFileW(Assets.BaseBf, FileAccess.Read, FileShare.Read, IntPtr.Zero, FileMode.Open, FileAttributes.Normal, IntPtr.Zero);
-        var stream = builder.Build(handle, Assets.BaseBf, flowFormat, library, encoding);
+        var emulatedBf = builder.Build(handle, Assets.BaseBf, flowFormat, library, encoding);
 
         // Write to file for checking.
         using var fileStream = new FileStream("field.bf", FileMode.Create);
-        stream.CopyTo(fileStream);
+        emulatedBf!.Stream.CopyTo(fileStream);
         fileStream.Close();
 
         // Parse file and check.

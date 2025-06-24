@@ -2,7 +2,7 @@
   "ModId": "reloaded.universal.fileemulationframework.bmd",
   "ModName": "BMD Emulator For File Emulation Framework",
   "ModAuthor": "oceanstuck, AnimatedSwine37",
-  "ModVersion": "1.0.0",
+  "ModVersion": "1.1.1",
   "ModDescription": "Simulates Atlus BMD files. Allows mods to add or replace existing files using files on disk.",
   "ModDll": "BMD.File.Emulator.dll",
   "ModIcon": "Preview.png",

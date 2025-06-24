@@ -26,9 +26,18 @@ public interface IEmulatedFile
     public unsafe bool ReadData(IntPtr handle, byte* buffer, uint length, long offset, IFileInformation info, out int numReadBytes);
     
     /// <summary>
-    /// Called when a handle to the given file is closed..
+    /// Called when a handle to the given file is closed.
     /// </summary>
     /// <param name="handle">The handle of the file.</param>
     /// <param name="info">Additional information about the current file being processed.</param>
     public void CloseHandle(IntPtr handle, IFileInformation info);
+
+    /// <summary>
+    /// Tries to get the last write time of a file with a given handle.
+    /// </summary>
+    /// <param name="handle">The handle of the file.</param>
+    /// <param name="info">Additional information about the current file being processed.</param>
+    /// <param name="lastWriteTime">The time the emulated file was last written to.</param>
+    /// <returns>True if the last write to was determined, false if the operation was not supported.</returns>
+    public bool TryGetLastWriteTime(IntPtr handle, IFileInformation info, out DateTime? lastWriteTime);
 }

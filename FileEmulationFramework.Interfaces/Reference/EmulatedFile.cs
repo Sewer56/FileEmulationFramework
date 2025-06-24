@@ -11,11 +11,30 @@ public class EmulatedFile<TStream> : IEmulatedFile where TStream : Stream
     public TStream BaseStream { get; set; }
     
     /// <summary>
+    /// The last time the file was written to.
+    /// If null, the last write time of the original file will be reported.
+    /// </summary>
+    public DateTime? LastWrite { get; set; }
+    
+    /// <summary>
     /// Creates an emulated file from a stream.
+    /// This file will report the last write time of the original.
     /// </summary>
     /// <param name="baseStream">Stream from which this emulated file is based from.</param>
     public EmulatedFile(TStream baseStream) => BaseStream = baseStream;
 
+
+    /// <summary>
+    /// Creates an emulated file from a stream with a last write time.
+    /// </summary>
+    /// <param name="baseStream">Stream from which this emulated file is based from.</param>
+    /// <param name="lastWrite">The last write time that the emulated file will report.</param>
+    public EmulatedFile(TStream baseStream, DateTime lastWrite)
+    {
+        BaseStream = baseStream;
+        LastWrite = lastWrite;
+    }
+    
     /// <inheritdoc/>
     public long GetFileSize(IntPtr handle, IFileInformation info) => BaseStream.Length;
 
@@ -30,4 +49,11 @@ public class EmulatedFile<TStream> : IEmulatedFile where TStream : Stream
 
     /// <inheritdoc/>
     public void CloseHandle(IntPtr handle, IFileInformation info) { }
+
+    /// <inheritdoc/>
+    public bool TryGetLastWriteTime(IntPtr handle, IFileInformation info, out DateTime? lastWriteTime)
+    {
+        lastWriteTime = LastWrite;
+        return lastWriteTime != null;
+    }
 }

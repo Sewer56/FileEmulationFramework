@@ -6,7 +6,7 @@ using FileEmulationFramework.Lib.IO.Struct;
 using FileEmulationFramework.Lib.Utilities;
 using Microsoft.Win32.SafeHandles;
 using Reloaded.Memory.Extensions;
-using Reloaded.Memory.Streams;
+using StreamExtensions = FileEmulationFramework.Lib.Utilities.StreamExtensions;
 
 // Aliasing for readability, since our assembly name has priority over 'stream'
 using Strim = System.IO.Stream;
@@ -112,7 +112,8 @@ public class ArcBuilder
 
             var entries = GC.AllocateUninitializedArray<ArcFileEntry>(header.GetNumberOfFiles());
             RandXoringStream input = new RandXoringStream(stream, header.GetNumberOfFiles());
-            if (!input.TryRead(MemoryMarshal.Cast<ArcFileEntry, byte>(entries), out _))
+            var byteSpan = MemoryMarshal.Cast<ArcFileEntry, byte>(entries);
+            if (!StreamExtensions.TryRead(input, result: byteSpan, numBytesRead: out _))
                 ThrowHelpers.IO("Failed to read original ARC header pos+offset.");
 
             input.Dispose();

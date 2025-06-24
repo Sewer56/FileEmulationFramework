@@ -25,7 +25,7 @@ public class BfEmulator : IEmulator
 
     // Note: Handle->Stream exists because hashing IntPtr is easier; thus can resolve reads faster.
     private readonly BfBuilderFactory _builderFactory;
-    private readonly ConcurrentDictionary<string, Stream?> _pathToStream = new(StringComparer.OrdinalIgnoreCase);
+    private readonly ConcurrentDictionary<string, EmulatedBf?> _pathToEmulated = new(StringComparer.OrdinalIgnoreCase);
     private Logger _log;
 
     private FlowFormatVersion _flowFormat;
@@ -46,17 +46,17 @@ public class BfEmulator : IEmulator
             case Game.P3P:
                 _flowFormat = FlowFormatVersion.Version1;
                 _library = LibraryLookup.GetLibrary("P3P");
-                _encoding = AtlusEncoding.GetByName("P4");
+                _encoding = AtlusEncoding.Create("P3P_EFIGS");
                 break;
             case Game.P4G:
                 _flowFormat = FlowFormatVersion.Version1;
                 _library = LibraryLookup.GetLibrary("P4G");
-                _encoding = AtlusEncoding.GetByName("P4");
+                _encoding = AtlusEncoding.Create("P4G_EFIGS");
                 break;
             case Game.P5R:
                 _flowFormat = FlowFormatVersion.Version3BigEndian;
                 _library = LibraryLookup.GetLibrary("P5R");
-                _encoding = AtlusEncoding.GetByName("P5R");
+                _encoding = AtlusEncoding.Create("P5R_EFIGS");
                 break;
         }
     }
@@ -65,13 +65,13 @@ public class BfEmulator : IEmulator
     {
         // Check if we already made a custom BF for this file.
         emulated = null!;
-        if (_pathToStream.TryGetValue(filepath, out var stream))
+        if (_pathToEmulated.TryGetValue(filepath, out var emulatedBf))
         {
             // Avoid recursion into same file.
-            if (stream == null)
+            if (emulatedBf == null)
                 return false;
 
-            emulated = new EmulatedFile<Stream>(stream);
+            emulated = new EmulatedFile<Stream>(emulatedBf.Stream, emulatedBf.LastWriteTime);
             return true;
         }
 
@@ -109,15 +109,16 @@ public class BfEmulator : IEmulator
             return false;
 
         // Make the BF file.
-        _pathToStream[outputPath] = null; // Avoid recursion into same file.
+        _pathToEmulated[outputPath] = null; // Avoid recursion into same file.
 
-        stream = builder!.Build(handle, srcDataPath, _flowFormat, _library, _encoding, _listener, isEmpty);
-        if (stream == null)
+        var emulatedBf = builder!.Build(handle, srcDataPath, _flowFormat, _library, _encoding, _listener, isEmpty);
+        if (emulatedBf == null)
             return false;
 
-        _pathToStream.TryAdd(outputPath, stream);
-        emulated = new EmulatedFile<Stream>(stream);
-        _log.Info("[BfEmulator] Created Emulated file with Path {0}", outputPath);
+        stream = emulatedBf.Stream;
+        _pathToEmulated[outputPath] = emulatedBf;
+        emulated = new EmulatedFile<Stream>(stream, emulatedBf.LastWriteTime);
+        _log.Info("[BfEmulator] Created Emulated file with Path {0} and Last Write {1}", outputPath, emulatedBf.LastWriteTime);
 
         if (DumpFiles)
             DumpFile(route, stream);
@@ -143,13 +144,13 @@ public class BfEmulator : IEmulator
     /// <param name="bfPath">Full path to the file.</param>
     public void UnregisterFile(string bfPath)
     {
-        _pathToStream!.Remove(bfPath, out var stream);
-        stream?.Dispose();
+        _pathToEmulated!.Remove(bfPath, out var emulated);
+        emulated?.Stream.Dispose();
     }
 
-    public void RegisterFile(string destinationPath, Stream stream)
+    public void RegisterFile(string destinationPath, Stream stream, DateTime lastWriteTime)
     {
-        _pathToStream.TryAdd(destinationPath, stream);
+        _pathToEmulated[destinationPath] = new EmulatedBf(stream, new List<string>(), lastWriteTime);
     }
 
     private void DumpFile(string route, Stream stream)
@@ -162,11 +163,25 @@ public class BfEmulator : IEmulator
         _log.Info($"[BfEmulator] Written To {dumpPath}");
     }
 
+    internal bool TryGetImports(string route, out string[] imports)
+    {
+        if (!_builderFactory.TryCreateFromPath(route, out var builder))
+        {
+            imports = Array.Empty<string>();
+            return false;
+        }
+
+        return builder!.TryGetImports(_flowFormat, _library, _encoding, out imports);
+    }
+
     internal List<RouteGroupTuple> GetInput() => _builderFactory.RouteFileTuples;
 
     internal void AddFromFolders(string dir) => _builderFactory.AddFromFolders(dir);
 
     internal void AddFile(string file, string route) => _builderFactory.AddFile(Path.GetFileName(file), file, Path.GetDirectoryName(file)!, route);
+    
+    internal void SetEncoding(string encoding) => _encoding = AtlusEncoding.Create(encoding);
+
 }
 
 public class AtlusLogListener : LogListener

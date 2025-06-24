@@ -12,6 +12,11 @@ namespace FileEmulationFramework.Lib.Utilities;
 public static class Native
 {
     /// <summary>
+    /// The value of a handle that is invalid
+    /// </summary>
+    public static IntPtr INVALID_HANDLE_VALUE = new IntPtr(-1);
+    
+    /// <summary>
     /// <para>
     /// Loads the specified module into the address space of the calling process. The specified module may cause other modules to be loaded.
     /// </para>
@@ -452,6 +457,18 @@ public static class Native
             ulong low = (ulong)LowPart;
             long fileTime = (long)((high << 32) + low);
             return DateTime.FromFileTimeUtc(fileTime);
+        }
+
+        /// <summary>
+        /// Creates a LARGE_INTEGER from a long
+        /// </summary>
+        /// <param name="value">The long value to create a LARGE_INTEGER from</param>
+        public LARGE_INTEGER(long value)
+        {
+            // Setting QuadPart sets all three, just adding the = 0s to make the compiler happy
+            LowPart = 0;
+            HighPart = 0;
+            QuadPart = value;
         }
     }
 

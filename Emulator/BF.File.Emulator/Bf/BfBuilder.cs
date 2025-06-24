@@ -106,9 +106,37 @@ public class BfBuilder
     }
 
     /// <summary>
+    /// Tries to get all files that the base flow imports
+    /// </summary>
+    /// <param name="flowFormat">The format of the flowscript</param>
+    /// <param name="library">The library to use for the flowscript</param>
+    /// <param name="encoding">The encoding of the flowscript</param>
+    /// <param name="foundImports">An array of absolute paths to all files that the base flows import,
+    /// both directly and transitively. This includes the base files.</param>
+    /// <returns></returns>
+    public bool TryGetImports(FlowFormatVersion flowFormat, Library library, Encoding encoding,
+        out string[] foundImports)
+    {
+        // Use compiler arg overrides (if they're there)
+        if (_library != null) library = _library;
+        if (_encoding != null) encoding = _encoding;
+        if (_flowFormat != null) flowFormat = (FlowFormatVersion)_flowFormat;
+
+        var compiler = new FlowScriptCompiler(flowFormat);
+        compiler.Library = OverrideLibraries(library);
+        compiler.Encoding = encoding;
+
+        var imports = new List<string>();
+        imports.AddRange(_flowFiles);
+        imports.AddRange(_msgFiles);
+
+        return compiler.TryGetImports(imports, out foundImports);
+    }
+
+    /// <summary>
     /// Builds a BF file.
     /// </summary>
-    public unsafe Stream? Build(IntPtr originalHandle, string originalPath, FlowFormatVersion flowFormat, Library library, Encoding encoding, AtlusLogListener? listener = null, bool noBaseBf = false)
+    public EmulatedBf? Build(IntPtr originalHandle, string originalPath, FlowFormatVersion flowFormat, Library library, Encoding encoding, AtlusLogListener? listener = null, bool noBaseBf = false)
     {
         _log?.Info("[BfEmulator] Building BF File | {0}", originalPath);
 
@@ -135,21 +163,43 @@ public class BfBuilder
             imports.AddRange(_flowFiles.GetRange(1, _flowFiles.Count - 1));
         imports.AddRange(_msgFiles);
 
-        if (!compiler.TryCompileWithImports(bfStream, imports, baseFlow, out FlowScript flowScript))
+        try
         {
-            _log?.Error("[BfEmulator] Failed to compile BF File | {0}", originalPath);
+            if (!compiler.TryCompileWithImports(bfStream, imports, baseFlow, out FlowScript flowScript,
+                    out var sources))
+            {
+                _log?.Error("[BfEmulator] Failed to compile BF File | {0}", originalPath);
+                return null;
+            }
+
+            // Return the compiled bf
+            var bfBinary = flowScript.ToBinary();
+            var stream = StreamUtils.CreateMemoryStream(bfBinary.Header.FileSize);
+            bfBinary.ToStream(stream, true);
+            stream.Position = 0;
+
+            DateTime lastWrite = sources.Where(x => x != null).Select(Fiel.GetLastWriteTimeUtc).Max();
+            return new EmulatedBf(stream, sources, lastWrite);
+        }
+        catch (Exception exception)
+        {
+            var flows = string.Join(", ", _flowFiles.Concat(_msgFiles));
+            _log.Error(
+                "[BF Builder] Failed to compile bf {0} with source files: {1}. This may be due to your mods not being translated. Error: {2}",
+                originalPath, flows, exception.Message);
+            if (exception.StackTrace != null)
+                _log.Error(exception.StackTrace);
             return null;
         }
-
-        // Return the compiled bf
-        var bfBinary = flowScript.ToBinary();
-        var stream = StreamUtils.CreateMemoryStream(bfBinary.Header.FileSize);
-        bfBinary.ToStream(stream, true);
-        stream.Position = 0;
-
-        return stream;
     }
 
+    /// <summary>
+    /// Applies library file overrides to the base library.
+    /// This adds aliases to functions with different names, replaces functions with different
+    /// return values or parameters, and adds any completely new functions.
+    /// </summary>
+    /// <param name="library">The base library to override</param>
+    /// <returns>A deep copy of the base library with overrides applied</returns>
     private Library OverrideLibraries(Library library)
     {
         if (_libraryEnums.Count == 0 && _libraryFuncs.Count == 0) return library;
@@ -176,7 +226,16 @@ public class BfBuilder
 
             if (module != -1 && index != -1)
             {
-                library.FlowScriptModules[module].Functions[index] = func;
+                var existingFunc = library.FlowScriptModules[module].Functions[index];
+                if (FlowFunctionsSame(existingFunc, func))
+                {
+                    existingFunc.Aliases ??= new List<string>();
+                    existingFunc.Aliases.Add(func.Name);
+                }
+                else
+                {
+                    library.FlowScriptModules[module].Functions[index] = func;
+                }
             }
             else
             {
@@ -187,5 +246,18 @@ public class BfBuilder
         // Add enums
         library.FlowScriptModules[0].Enums.AddRange(_libraryEnums);
         return library;
+    }
+
+    /// <summary>
+    /// Checks if two flowscript functions are effectively the same.
+    /// They are the same if the return type and parameter types are the same.
+    /// </summary>
+    /// <param name="func1">The first function to compare</param>
+    /// <param name="func2">The other function to compare</param>
+    /// <returns>Truee if the two functions are effectively the same, false otherwise</returns>
+    private bool FlowFunctionsSame(FlowScriptModuleFunction func1, FlowScriptModuleFunction func2)
+    {
+        return func1.ReturnType == func2.ReturnType && func1.Parameters.Select(param => param.Type)
+            .SequenceEqual(func2.Parameters.Select(param => param.Type));
     }
 }

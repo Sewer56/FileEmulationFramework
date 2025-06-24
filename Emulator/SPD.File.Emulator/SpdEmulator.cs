@@ -1,4 +1,5 @@
-﻿using FileEmulationFramework.Interfaces;
+﻿using System.Collections.Concurrent;
+using FileEmulationFramework.Interfaces;
 using FileEmulationFramework.Interfaces.Reference;
 using FileEmulationFramework.Lib.IO;
 using FileEmulationFramework.Lib.Utilities;
@@ -19,7 +20,7 @@ public class SpdEmulator : IEmulator
 
     // Note: Handle->Stream exists because hashing IntPtr is easier; thus can resolve reads faster.
     private readonly SpriteBuilderFactory _builderFactory;
-    private readonly Dictionary<string, Stream?> _pathToStream = new(StringComparer.OrdinalIgnoreCase);
+    private readonly ConcurrentDictionary<string, Stream?> _pathToStream = new(StringComparer.OrdinalIgnoreCase);
     private readonly Logger _log;
 
     public SpdEmulator(Logger log, bool dumpFiles)
@@ -79,7 +80,7 @@ public class SpdEmulator : IEmulator
         _pathToStream[outputPath] = null; // Avoid recursion into same file.
 
         stream = builder!.Build(srcDataPath, _log);
-        _pathToStream.TryAdd(outputPath, stream);
+        _pathToStream[outputPath] = stream;
         emulated = new EmulatedFile<MultiStream>(stream);
         _log.Info("[SpdEmulator] Created Emulated file with Path {0}", outputPath);
 
@@ -123,7 +124,7 @@ public class SpdEmulator : IEmulator
 
     public void RegisterFile(string destinationPath, Stream stream)
     {
-        _pathToStream.TryAdd(destinationPath, stream);
+        _pathToStream[destinationPath] = stream;
     }
 
     internal List<RouteGroupTuple> GetInput() => _builderFactory.RouteGroupTuples;
