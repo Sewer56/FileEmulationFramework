@@ -2,7 +2,7 @@
   "ModId": "reloaded.universal.fileemulationframework.arc",
   "ModName": "ARC Emulator for File Emulation Framework",
   "ModAuthor": "ltsophia + Sewer56",
-  "ModVersion": "1.0.0",
+  "ModVersion": "1.0.1",
   "ModDescription": "Simulates Sega ARC files. Allows mods to add or replace existing files using files on disk.",
   "ModDll": "ARC.Stream.Emulator.dll",
   "ModIcon": "Preview.png",
