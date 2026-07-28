@@ -28,6 +28,20 @@ public class AfsEmulator : IEmulator
         DumpFiles = dumpFiles;
     }
 
+    /// <summary>
+    /// Registers a source file for an indexed entry in archives matching a route.
+    /// </summary>
+    /// <param name="file">Path to the source file.</param>
+    /// <param name="route">Route used to match archive paths.</param>
+    /// <param name="index">Zero-based archive entry index.</param>
+    internal void AddFile(string file, string route, int index) => _builderFactory.AddFile(file, route, index);
+
+    /// <summary>
+    /// Registers a redirector-style AFS directory root.
+    /// </summary>
+    /// <param name="dir">Path to the directory root.</param>
+    internal void AddDirectory(string dir) => _builderFactory.AddFromFolders(dir);
+
     public bool TryCreateFile(IntPtr handle, string filepath, string route, out IEmulatedFile emulatedFile)
     {
         // Check if we already made a custom AFS for this file.

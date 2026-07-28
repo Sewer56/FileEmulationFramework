@@ -20,6 +20,7 @@
 
   <ItemGroup>
     <ReloadedLinkRoots Include="AFS.Stream.Emulator" />
+    <ReloadedLinkRoots Include="AFS.Stream.Emulator.Interfaces" />
     <!-- Add assemblies to be trimmed. You might need to add their dependencies too!  -->
     <ReloadedLinkAssemblies Include="Reloaded.Memory" />
     <ReloadedLinkAssemblies Include="AFSLib" />
@@ -54,6 +55,7 @@
   </ItemGroup>
 
   <ItemGroup>
+    <ProjectReference Include="..\Interfaces\AFS.Stream.Emulator.Interfaces\AFS.Stream.Emulator.Interfaces.csproj" />
     <ProjectReference Include="..\..\FileEmulationFramework.Interfaces\FileEmulationFramework.Interfaces.csproj" />
     <ProjectReference Include="..\..\FileEmulationFramework.Lib\FileEmulationFramework.Lib.csproj" />
   </ItemGroup>

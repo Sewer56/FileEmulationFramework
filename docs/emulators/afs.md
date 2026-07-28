@@ -38,7 +38,7 @@ Adding `FEmulator/AFS/EVENT_ADX_E.AFS/32.aix` to your mod would replace the 32th
 
 ![example](../images/afs/afs_example.png)
 
-File names can contain other text, but must start with a number corresponding to the index.  
+File names can contain other text, but must start with a number corresponding to the index.
 
 !!! info 
 
@@ -50,4 +50,29 @@ File names can contain other text, but must start with a number corresponding to
 
 !!! info 
 
-    If dealing with AFS audio; you might need to make sure your new files have the same channel count as the originals.   
+    If dealing with AFS audio; you might need to make sure your new files have the same channel count as the originals.
+
+
+## Programmatic Usage
+
+Add a project or package reference to the
+[`AFS.Stream.Emulator.Interfaces`](https://www.nuget.org/packages/AFS.Stream.Emulator.Interfaces)
+NuGet package, then [obtain the `IAfsEmulator` controller through Reloaded-II](https://reloaded-project.github.io/Reloaded-II/DependencyInjection_Consumer/).
+
+`AddFile(file, route, index)` registers a source file for indexes 0 through 65535 in AFS paths matching `route`.
+
+`AddDirectory(dir)` treats `dir` like the root of a mod's `FEmulator/AFS` folder, so its
+archive directories and index-named files use the same routing rules as folder loading.
+
+```csharp
+using AFS.Stream.Emulator.Interfaces;
+
+if (_modLoader.GetController<IAfsEmulator>().TryGetTarget(out var afsEmulator))
+    // Replace file at index 0 in event_adx_e.afs
+    afsEmulator.AddFile(sourcePath, "data/sound/event_adx_e.afs", 0);
+else
+    _logger.WriteLine("The AFS emulator controller is unavailable.");
+```
+
+Register inputs when your mod boots up, before the target AFS is first opened. Emulated archives are cached for
+the application lifetime, so later registrations do not rebuild an existing stream.

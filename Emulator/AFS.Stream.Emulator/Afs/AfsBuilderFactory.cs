@@ -5,7 +5,8 @@ namespace AFS.Stream.Emulator.Afs;
 
 public class AfsBuilderFactory
 {
-    private List<RouteGroupTuple> _routeGroupTuples = new();
+    private readonly List<RouteGroupTuple> _routeGroupTuples = new();
+    private readonly List<RouteFileTuple> _routeFileTuples = new();
 
     /// <summary>
     /// Adds all available routes from folders.
@@ -33,6 +34,22 @@ public class AfsBuilderFactory
     }
 
     /// <summary>
+    /// Adds an indexed source file for archives matching a route.
+    /// </summary>
+    /// <param name="file">Path to the source file.</param>
+    /// <param name="route">Route used to match archive paths.</param>
+    /// <param name="index">Zero-based archive entry index.</param>
+    internal void AddFile(string file, string route, int index)
+    {
+        _routeFileTuples.Add(new RouteFileTuple
+        {
+            Route = new Route(route),
+            FilePath = file,
+            Index = index
+        });
+    }
+
+    /// <summary>
     /// Tries to create an AFS from a given route.
     /// </summary>
     /// <param name="path">The file path/route to create AFS Builder for.</param>
@@ -56,6 +73,15 @@ public class AfsBuilderFactory
                 builder.AddOrReplaceFile(Path.Combine(dir, file));
         }
 
+        foreach (var file in _routeFileTuples)
+        {
+            if (!route.Matches(file.Route.FullPath))
+                continue;
+
+            builder ??= new AfsBuilder();
+            builder.AddOrReplaceFile(file.Index, file.FilePath);
+        }
+
         return builder != null;
     }
 }
@@ -71,4 +97,11 @@ internal struct RouteGroupTuple
     /// Files bound by this route.
     /// </summary>
     public DirectoryFilesGroup Files;
+}
+
+internal struct RouteFileTuple
+{
+    public Route Route;
+    public string FilePath;
+    public int Index;
 }

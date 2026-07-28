@@ -1,4 +1,5 @@
 ﻿using System.Runtime.CompilerServices;
+using AFS.Stream.Emulator.Interfaces;
 using AFS.Stream.Emulator.Template;
 using FileEmulationFramework.Interfaces;
 using FileEmulationFramework.Lib.Utilities;
@@ -12,7 +13,7 @@ namespace AFS.Stream.Emulator;
 /// <summary>
 /// Your mod logic goes here.
 /// </summary>
-public class Mod : ModBase // <= Do not Remove.
+public class Mod : ModBase, IExports // <= Do not Remove.
 {
     /// <summary>
     /// Provides access to the mod loader API.
@@ -57,6 +58,9 @@ public class Mod : ModBase // <= Do not Remove.
 
         _modLoader.GetController<IEmulationFramework>().TryGetTarget(out var framework);
         framework!.Register(_emulator);
+
+        // Expose registrations to other mods through Reloaded's controller registry.
+        _modLoader.AddOrReplaceController<IAfsEmulator>(context.Owner, new AfsEmulatorApi(_emulator));
     }
 
     private void OnModLoaderInitialized()
@@ -82,4 +86,7 @@ public class Mod : ModBase // <= Do not Remove.
 #pragma warning disable CS8618
     public Mod() { }
 #pragma warning restore CS8618
+
+    /// <inheritdoc/>
+    public Type[] GetTypes() => new[] { typeof(IAfsEmulator) };
 }
