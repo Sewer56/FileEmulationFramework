@@ -2,7 +2,7 @@
   "ModId": "reloaded.universal.fileemulationframework.heroes.one",
   "ModName": "Heroes ONE Emulator for File Emulation Framework",
   "ModAuthor": "Sewer56",
-  "ModVersion": "2.0.2",
+  "ModVersion": "2.0.3",
   "ModDescription": "Simulates Sonic Heroes\u0027 ONE files. Allows mods to add or replace existing files using files on disk.",
   "ModDll": "ONE.Heroes.Stream.Emulator.dll",
   "ModIcon": "Preview.png",
@@ -15,6 +15,15 @@
   "PluginData": {
     "GitHubDependencies": {
       "IdToConfigMap": {
+        "reloaded.universal.fileemulationframework": {
+          "Config": {
+            "UserName": "Sewer56",
+            "RepositoryName": "FileEmulationFramework",
+            "UseReleaseTag": false,
+            "AssetFileName": "Mod.zip"
+          },
+          "ReleaseMetadataName": "Reloaded.Universal.FileEmulationFramework.ReleaseMetadata.json"
+        },
         "reloaded.sharedlib.hooks": {
           "Config": {
             "UserName": "Sewer56",

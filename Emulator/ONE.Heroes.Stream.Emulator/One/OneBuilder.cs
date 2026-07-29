@@ -30,7 +30,7 @@ public class OneBuilder
         // Check if it's one to delete.
         if (fileName.EndsWith(Constants.DeleteExtension, StringComparison.OrdinalIgnoreCase))
         {
-            AddDeleteFile(filePath[..^Constants.DeleteExtension.Length]);
+            AddDeleteFile(fileName[..^Constants.DeleteExtension.Length].ToString());
             return;
         }
 
@@ -49,7 +49,7 @@ public class OneBuilder
     /// <summary>
     /// Adds a file to be deleted.
     /// </summary>
-    /// <param name="fileName">Name of the file. Name only, must match what's inside ONE file, case insensitive.</param>
+    /// <param name="fileName">Name of the file. Name only, must match what's inside ONE file, case sensitively.</param>
     public void AddDeleteFile(string fileName) => _filesToDelete.Add(fileName);
 
     /// <summary>

@@ -6,6 +6,7 @@ namespace ONE.Heroes.Stream.Emulator.One;
 public class OneBuilderFactory
 {
     private List<RouteGroupTuple> _routeGroupTuples = new();
+    private List<RouteFileTuple> _routeFileTuples = new();
 
     /// <summary>
     /// Adds all available routes from folders.
@@ -32,6 +33,20 @@ public class OneBuilderFactory
     }
 
     /// <summary>
+    /// Adds a source file for archives matching a route.
+    /// </summary>
+    /// <param name="file">Path to the source file.</param>
+    /// <param name="route">Route used to match archive paths.</param>
+    internal void AddFile(string file, string route)
+    {
+        _routeFileTuples.Add(new RouteFileTuple
+        {
+            Route = new Route(route),
+            FilePath = file
+        });
+    }
+
+    /// <summary>
     /// Tries to create an ONE from a given route.
     /// </summary>
     /// <param name="path">The file path/route to create ONE Builder for.</param>
@@ -55,6 +70,15 @@ public class OneBuilderFactory
                 builder.AddInputFile(Path.Combine(dir, file));
         }
 
+        foreach (var file in _routeFileTuples)
+        {
+            if (!route.Matches(file.Route.FullPath))
+                continue;
+
+            builder ??= new OneBuilder();
+            builder.AddInputFile(file.FilePath);
+        }
+
         return builder != null;
     }
 }
@@ -70,4 +94,10 @@ internal struct RouteGroupTuple
     /// Files bound by this route.
     /// </summary>
     public DirectoryFilesGroup Files;
+}
+
+internal struct RouteFileTuple
+{
+    public Route Route;
+    public string FilePath;
 }

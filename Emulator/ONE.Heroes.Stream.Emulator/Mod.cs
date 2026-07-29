@@ -2,6 +2,7 @@
 using FileEmulationFramework.Interfaces;
 using FileEmulationFramework.Lib.Utilities;
 using Heroes.SDK;
+using ONE.Heroes.Stream.Emulator.Interfaces;
 using ONE.Heroes.Stream.Emulator.One;
 using ONE.Heroes.Stream.Emulator.Template;
 using Reloaded.Mod.Interfaces;
@@ -12,7 +13,7 @@ namespace ONE.Heroes.Stream.Emulator;
 /// <summary>
 /// Your mod logic goes here.
 /// </summary>
-public class Mod : ModBase // <= Do not Remove.
+public class Mod : ModBase, IExports // <= Do not Remove.
 {
     /// <summary>
     /// Provides access to the mod loader API.
@@ -60,6 +61,9 @@ public class Mod : ModBase // <= Do not Remove.
         SDK.Init(null, prsCompressor);
         CompressedFilesCache.Init(prsCompressor!);
         framework!.Register(_emulator);
+
+        // Expose registrations to other mods through Reloaded's controller registry.
+        _modLoader.AddOrReplaceController<IOneEmulator>(context.Owner, new OneEmulatorApi(_emulator));
     }
 
     private void OnModLoaderInitialized()
@@ -83,4 +87,7 @@ public class Mod : ModBase // <= Do not Remove.
 #pragma warning disable CS8618
     public Mod() { }
 #pragma warning restore CS8618
+
+    /// <inheritdoc/>
+    public Type[] GetTypes() => new[] { typeof(IOneEmulator) };
 }

@@ -64,4 +64,29 @@ e.g. This would remove the file `GAME_DISP.TXD` from the original archive.
 
 !!! note
 
-    The archive builder works in the order `Delete` then `Add`. If a file is first deleted, it can be re-added by either the same or another mod.  
+    The archive builder works in the order `Delete` then `Add`. If a file is first deleted, it can be re-added by either the same or another mod.
+
+## Programmatic Registration
+
+Add a project or package reference to the
+[`ONE.Heroes.Stream.Emulator.Interfaces`](https://www.nuget.org/packages/ONE.Heroes.Stream.Emulator.Interfaces)
+NuGet package, then [obtain the `IOneEmulator` controller through Reloaded-II](https://reloaded-project.github.io/Reloaded-II/DependencyInjection_Consumer/).
+
+Call `AddFile(file, route)` to register a source for matching ONE archives, or `AddDirectory(dir)`
+to use the same redirector-style layout described above.
+
+```csharp
+using ONE.Heroes.Stream.Emulator.Interfaces;
+
+if (_modLoader.GetController<IOneEmulator>().TryGetTarget(out var oneEmulator))
+    // Replace the entry named after sourcePath's file name in game_disp.one
+    oneEmulator.AddFile(sourcePath, "dvdroot/stage/game_disp.one");
+else
+    _logger.WriteLine("The ONE emulator controller is unavailable.");
+```
+
+Register inputs when your mod boots up, before the target archive is first emulated; an already cached archive is not rebuilt.
+
+Programmatic inputs follow the same replacement, compression, and deletion rules as folder inputs; see
+[Adding/Replacing Files](#addingreplacing-files) and [Deleting Files](#deleting-files). As with folder inputs,
+uncompressed sources are PRS-compressed lazily at first archive request.

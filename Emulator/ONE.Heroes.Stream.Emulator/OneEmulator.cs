@@ -22,6 +22,19 @@ public class OneEmulator : IEmulator
         _log = log;
     }
 
+    /// <summary>
+    /// Registers a source file for archives matching a route.
+    /// </summary>
+    /// <param name="file">Path to the source file.</param>
+    /// <param name="route">Route used to match archive paths.</param>
+    internal void AddFile(string file, string route) => _builderFactory.AddFile(file, route);
+
+    /// <summary>
+    /// Registers a redirector-style ONE directory root.
+    /// </summary>
+    /// <param name="dir">Path to the directory root.</param>
+    internal void AddDirectory(string dir) => _builderFactory.AddFromFolders(dir);
+
     public bool TryCreateFile(IntPtr handle, string filepath, string route, out IEmulatedFile emulatedFile)
     {
         // Check if we already made a custom ONE for this file.
