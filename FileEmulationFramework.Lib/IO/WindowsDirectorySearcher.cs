@@ -313,15 +313,10 @@ public class WindowsDirectorySearcher
                 }
                 else
                 {
-                    FILE_DIRECTORY_INFORMATION* info;
-                    do
-                    {
+                        FILE_DIRECTORY_INFORMATION* info;
+                        do
+                        {
                         info = (FILE_DIRECTORY_INFORMATION*)currentBufferPtr;
-
-                        // Not symlink or symlink to offline file.
-                        if ((info->FileAttributes & FileAttributes.ReparsePoint) != 0 &&
-                            (info->FileAttributes & FileAttributes.Offline) == 0)
-                            goto nextfile;
 
                         var fileName = Marshal.PtrToStringUni(currentBufferPtr + sizeof(FILE_DIRECTORY_INFORMATION), (int)info->FileNameLength / 2);
 
