@@ -149,6 +149,7 @@ public class BfBuilder
         compiler.Library = OverrideLibraries(library);
         compiler.Encoding = encoding;
         compiler.ProcedureHookMode = ProcedureHookMode.ImportedOnly;
+        compiler.OverwriteExistingProcedures = true;
         compiler.OverwriteExistingMsgs = true;
         if (listener != null)
             compiler.AddListener(listener);
